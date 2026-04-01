@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Dominos",
+    "rating": 4.2,
+    "image": "https://picsum.photos/200/300",
+    "deliveryTime": "30 mins"
+  },
+  {
+    "name": "Pizza Hut",
+    "rating": 4.0,
+    "image": "https://picsum.photos/200/301",
+    "deliveryTime": "25 mins"
+  },
+  {
+    "name": "KFC",
+    "rating": 4.3,
+    "image": "https://picsum.photos/200/302",
+    "deliveryTime": "35 mins"
+  }
+]

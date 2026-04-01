@@ -1,6 +1,6 @@
-package com.swapna.foodapp.domain.model
+package com.swapna.foodapp.data.remote.dto
 
-data class Restaurant(
+data class RestaurantDto(
     val id: Int,
     val name: String,
     val rating: Double,
