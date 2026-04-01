@@ -1,29 +1,43 @@
 package com.swapna.foodapp.presentation.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swapna.foodapp.domain.model.Restaurant
-import com.swapna.foodapp.domain.repository.RestaurantRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.swapna.foodapp.domain.usecase.GetRestaurantsUseCase
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: RestaurantRepository
+    private val getRestaurants: GetRestaurantsUseCase
 ) : ViewModel() {
 
-    var restaurants = mutableStateOf<List<Restaurant>>(emptyList())
-        private set
+    private val _state = MutableStateFlow(HomeState())
+    val state: StateFlow<HomeState> = _state
 
     init {
-        loadData()
+        loadRestaurants()
     }
 
-    private fun loadData() {
+    private fun loadRestaurants() {
         viewModelScope.launch {
-            restaurants.value = repository.getRestaurants()
+            _state.value = HomeState(isLoading = true)
+
+            try {
+                val result = getRestaurants()
+                _state.value = HomeState(data = result)
+            } catch (e: Exception) {
+                _state.value = HomeState(error = e.message)
+            }
         }
     }
 }
+
+data class HomeState(
+    val isLoading: Boolean = false,
+    val data: List<Restaurant> = emptyList(),
+    val error: String? = null
+)

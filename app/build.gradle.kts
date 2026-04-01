@@ -25,8 +25,7 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
@@ -58,7 +57,6 @@ dependencies {
 
     // hilt
     implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
 
     //DataStore
     implementation(libs.androidx.datastore.core.android)
@@ -68,13 +66,21 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.bundles.coil)
 
-    //Retrofit
-    implementation(libs.bundles.retrofit)
-    implementation(libs.okhttp.interceptor.logging)
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.moshi.v290)
 
-    //Moshi
+    // Moshi
     implementation(libs.moshi)
     ksp(libs.moshi.kotlin.codegen)
+    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.moshi.kotlin)
+
+    // OkHttp logging
+    implementation(libs.okhttp.interceptor.logging)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
 
     //Firebase
     implementation(platform(libs.firebase.bom))
@@ -102,22 +108,15 @@ dependencies {
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
 
-    // Retrofit
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.gson)
-
-// Testing
+    // Testing
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
 
-// Hilt Testing
+    // Hilt Testing
     androidTestImplementation(libs.hilt.android.testing)
     kspAndroidTest(libs.hilt.android.compiler)
     ksp(libs.hilt.android.compiler)
 
-    // Navigation
-    implementation(libs.hilt.navigation.compose)
-
-// Logging
+    // Logging
     implementation(libs.timber)
 }
