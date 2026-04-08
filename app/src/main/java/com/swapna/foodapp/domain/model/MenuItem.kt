@@ -1,0 +1,26 @@
+package com.swapna.foodapp.domain.model
+
+data class MenuItem (
+    val id: String,
+    val restaurantId: String,
+    val name: String,
+    val description: String,
+    val price: Double,
+    val imageUrl: String,
+    val category: String,
+    val isVeg: Boolean,
+    val isRecommended: Boolean = false,
+    val customisations: List<Customisation> = emptyList(),
+)
+
+data class Customisation(
+    val id: String,
+    val name: String,             // "Size", "Spice Level"
+    val options: List<CustomisationOption>,
+)
+
+data class CustomisationOption(
+    val id: String,
+    val label: String,            // "Full Plate", "Large"
+    val extraPrice: Double,       // 0.0 if no extra charge
+)
