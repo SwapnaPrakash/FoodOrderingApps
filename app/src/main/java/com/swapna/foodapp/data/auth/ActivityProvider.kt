@@ -18,10 +18,9 @@ class ActivityProvider @Inject constructor() {
         activityRef = WeakReference(activity)
     }
 
+    fun getActivity(): Activity? = activityRef?.get()
+
     fun clearActivity() {
         activityRef = null
     }
-
-    // Returns current Activity or null if it's gone
-    fun getActivity(): Activity? = activityRef?.get()
 }

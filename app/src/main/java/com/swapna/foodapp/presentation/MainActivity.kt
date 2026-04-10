@@ -22,31 +22,31 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-       //clear activityProvider.setActivity(this)
+
+        // ✅ Set activity immediately in onCreate
+        activityProvider.setActivity(this)
+
         setContent {
             FoodAppTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color    = MaterialTheme.colorScheme.background,
-                ) {
-                    val navController = rememberNavController()
-                    // Entry point — all navigation starts here
-                    AppNavGraph(navController = navController)
-
-                }
+                val navController = rememberNavController()
+                AppNavGraph(navController = navController)
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Register Activity for Firebase reCAPTCHA
+        // ✅ Re-set on resume (activity might have changed)
         activityProvider.setActivity(this)
     }
 
     override fun onPause() {
         super.onPause()
-        // Clear to avoid memory leak
+        activityProvider.clearActivity()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
         activityProvider.clearActivity()
     }
 }

@@ -1,8 +1,15 @@
 package com.swapna.foodapp.presentation.splash
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.swapna.foodapp.domain.repository.UserRepository
+import com.swapna.foodapp.utils.AppConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -10,6 +17,37 @@ class SplashViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    fun isLoggedIn(): Boolean = userRepository.isLoggedIn()
+    sealed class SplashDestination {
+        object Home  : SplashDestination()
+        object Login : SplashDestination()
+    }
 
+    private val _navigateTo =
+        MutableStateFlow<SplashDestination?>(null)
+    val navigateTo: StateFlow<SplashDestination?> =
+        _navigateTo.asStateFlow()
+
+    init {
+        checkLoginAndNavigate()
+    }
+
+    private fun checkLoginAndNavigate() = viewModelScope.launch {
+
+        // Run splash delay in parallel with login check
+        val splashJob = launch {
+            delay(AppConstants.SPLASH_DELAY_MS) // 1500ms
+        }
+
+        // ✅ Now inside coroutine — suspend call is allowed
+        val isLoggedIn = userRepository.isLoggedIn()
+
+        // Wait minimum splash time
+        splashJob.join()
+
+        _navigateTo.value = if (isLoggedIn) {
+            SplashDestination.Home
+        } else {
+            SplashDestination.Login
+        }
+    }
 }

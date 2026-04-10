@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hiltAndroid)
     alias(libs.plugins.ksp)
+    id("kotlin-kapt")
     id("com.google.gms.google-services")
     id("org.jetbrains.kotlinx.kover") version "0.7.5"
 }
@@ -25,7 +26,8 @@ android {
            // "\"https://github.com/SwapnaPrakash/zomato-mock-api/blob/main/\""
         )
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner =
+            "com.swapna.foodapp.HiltTestRunner"
     }
 
     buildTypes {
@@ -98,6 +100,10 @@ tasks.named("koverHtmlReport") {
     dependsOn("testDebugUnitTest")
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
 dependencies {
     //Compose
     implementation(libs.core.ktx)
@@ -114,6 +120,7 @@ dependencies {
 
     // hilt
     implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
 
     //DataStore
     implementation(libs.androidx.datastore.core.android)
@@ -149,6 +156,8 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation("com.google.android.gms:play-services-safetynet:18.0.1")
+    implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
 
     //Room
     implementation(libs.bundles.room)
@@ -163,8 +172,10 @@ dependencies {
 
     // Hilt Testing
     androidTestImplementation(libs.hilt.android.testing)
-    kspAndroidTest(libs.hilt.android.compiler)
-    ksp(libs.hilt.android.compiler)
+   // kspAndroidTest(libs.hilt.android.compiler)
+   // ksp(libs.hilt.android.compiler)
+    kaptAndroidTest(libs.hilt.android.compiler)
+
 
     // Logging
     implementation(libs.timber)
@@ -187,6 +198,9 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation (libs.mockito.kotlin)
 
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+
     // Kotest
     testImplementation (libs.io.kotest.kotest.runner.junit52)
     testImplementation (libs.kotest.assertions.core)
@@ -194,5 +208,7 @@ dependencies {
     testImplementation (libs.mockk)
     testImplementation (libs.kotlinx.coroutines.test.v173)
     testImplementation("androidx.test:core:1.5.0")
-
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
