@@ -15,32 +15,6 @@
 
 </div>
 
----
-
-## 📱 Features
-
-### Phase 1 — Complete (Days 1–15)
-
-| Feature | Description | Status |
-|---|---|---|
-| 🔐 **Login Screen** | Phone number + OTP authentication | ✅ Done |
-| 🏠 **Home Screen** | Offers banner, categories, nearby restaurants | ✅ Done |
-| 🔍 **Search Screen** | Real-time search with debounce + filters | ✅ Done |
-| 📡 **Offline First** | Room cache serves data without internet | ✅ Done |
-| 📍 **Location Picker** | Bottom sheet to select delivery location | ✅ Done |
-| 🔴 **Offline Banner** | Animated indicator when device is offline | ✅ Done |
-
-### Phase 2 — In Progress (Days 16–30)
-
-| Feature | Description | Status |
-|---|---|---|
-| 🍽️ **Restaurant Screen** | Hero image, menu with sticky headers | 🔄 Day 16–20 |
-| 🛍️ **Product Detail** | Customisations, quantity, price update | 🔄 Day 21–23 |
-| 🛒 **Cart Screen** | Items, price breakdown, order flow | 🔄 Day 24–25 |
-| 👤 **Profile Screen** | View and edit user info, orders | 🔄 Day 26–27 |
-
----
-
 ## 🏗️ Architecture
 
 Clean Architecture with MVVM — strictly 3 layers:
@@ -313,19 +287,6 @@ Production (Firebase Phone Auth):
   4. Switch UserRepositoryImpl to FirebaseAuthManager
   (AuthViewModel + all tests unchanged — only impl swaps)
 ```
-
----
-
-## 📊 PIP Progress
-
-| Review | Day | Status | Tests |
-|---|---|---|---|
-| **Review 1** | Day 15 | ✅ Complete | 145 passing |
-| **Review 2** | Day 30 | 🔄 In Progress | Target 200+ |
-| **Final** | Day 45 | ⏳ Upcoming | Target 300+ |
-
----
-
 ## 👩‍💻 Author
 
 **Swapna** — Android Developer — PIP Assessment Project
