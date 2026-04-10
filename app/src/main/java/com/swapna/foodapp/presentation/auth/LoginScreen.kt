@@ -9,7 +9,6 @@ import androidx.navigation.NavController
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,222 +43,295 @@ import com.swapna.foodapp.presentation.ui.theme.AppLightGray
 import com.swapna.foodapp.presentation.ui.theme.AppWhite
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ErrorRed
+import com.swapna.foodapp.presentation.ui.theme.ErrorRedBg
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 
 @Composable
 fun LoginScreen(
     navController: NavController,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    // Collect state as Compose State
-    // collectAsStateWithLifecycle is lifecycle-aware
-    // (stops collecting when screen is in background)
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state        by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHost = remember { SnackbarHostState() }
 
-    // Local UI state — only the text field values
-    // These don't need to be in ViewModel
     var phone by remember { mutableStateOf("") }
     var otp   by remember { mutableStateOf("") }
 
-    // Navigate to Home when login succeeds
-    // LaunchedEffect re-runs when `state` changes
+    // ── Navigate to Home on Success ───────────────────────────
     LaunchedEffect(state) {
         if (state is AuthViewModel.AuthState.Success) {
             navController.navigate(AppRoutes.HOME) {
-                // Remove Login from back stack
-                // User can't go back to Login by pressing back
                 popUpTo(AppRoutes.LOGIN) { inclusive = true }
             }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppWhite)
-            .padding(horizontal = Dimens.SpaceXXL),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-
-        // ── Logo + Title ──────────────────────────────────────
-        Text(
-            text     = "🍔",
-            fontSize = 64.sp,
-        )
-
-        Spacer(Modifier.height(Dimens.Space32))
-
-        Text(
-            text       = "Login",
-            style      = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            color      = Color.Black,
-        )
-
-        Spacer(Modifier.height(Dimens.SpaceS))
-
-        Text(
-            text  = "Enter your mobile number to continue",
-            style = MaterialTheme.typography.bodyMedium,
-            color = AppGray,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(Modifier.height(Dimens.SpaceXXL))
-
-        // ── Phone Number Field ────────────────────────────────
-        OutlinedTextField(
-            value = phone,
-            shape = MaterialTheme.shapes.small,
-            onValueChange = { input ->
-                // Only allow digits, max 10 characters
-                if (input.length <= 10 && input.all { it.isDigit() }) {
-                    phone = input
-                    // Clear error when user starts typing
-                    if (state is AuthViewModel.AuthState.Error) {
-                        viewModel.resetState()
-                    }
-                }
-            },
-            label  = { Text("Phone Number") },
-            prefix = { Text("+91  ") },
-            placeholder = { Text("9876543210") },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Phone,
-            ),
-            singleLine = true,
-            isError    = state is AuthViewModel.AuthState.Error,
-            // Disable once OTP is sent so phone can't be changed
-            enabled    = state !is AuthViewModel.AuthState.OtpSent
-                    && state !is AuthViewModel.AuthState.Loading,
-            modifier   = Modifier.fillMaxWidth(),
-        )
-
-        // ── OTP Field (visible only after OTP sent) ────────────
-        AnimatedVisibility(
-            visible = state is AuthViewModel.AuthState.OtpSent
-                    || state is AuthViewModel.AuthState.Loading
-                    && otp.isNotEmpty(),
-            enter   = fadeIn() + slideInVertically(),
-            exit    = fadeOut(),
-        ) {
-            Column {
-                Spacer(Modifier.height(Dimens.SpaceL))
-
-                OutlinedTextField(
-                    value = otp,
-                    onValueChange = { input ->
-                        // Only allow digits, max 6 characters
-                        if (input.length <= 6 && input.all { it.isDigit() }) {
-                            otp = input
-                            if (state is AuthViewModel.AuthState.Error) {
-                                viewModel.resetState()
-                            }
-                        }
-                    },
-                    label = { Text("Enter 6-digit OTP") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.NumberPassword,
-                    ),
-                    singleLine = true,
-                    isError    = state is AuthViewModel.AuthState.Error,
-                    enabled    = state !is AuthViewModel.AuthState.Loading,
-                    modifier   = Modifier.fillMaxWidth(),
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHost) { data ->
+                // ✅ Custom styled Snackbar — for API errors
+                Snackbar(
+                    snackbarData    = data,
+                    containerColor  = Color(0xFF323232),
+                    contentColor    = AppWhite,
+                    actionColor     = ZomatoRed,
+                    shape           = RoundedCornerShape(Dimens.RadiusM),
+                    modifier        = Modifier.padding(Dimens.SpaceM),
                 )
+            }
+        },
+    ) { paddingValues ->
 
-                // Resend OTP link
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppWhite)
+                .padding(paddingValues)
+                .padding(horizontal = Dimens.SpaceXXL),
+            verticalArrangement    = Arrangement.Center,
+            horizontalAlignment    = Alignment.CenterHorizontally,
+        ) {
+
+            // ── Logo ──────────────────────────────────────────
+            Text(text = "🍔", fontSize = 64.sp)
+
+            Spacer(Modifier.height(Dimens.Space32))
+
+            Text(
+                text       = "Login",
+                style      = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(Modifier.height(Dimens.SpaceS))
+
+            Text(
+                text      = "Enter your mobile number to continue",
+                style     = MaterialTheme.typography.bodyMedium,
+                color     = AppGray,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(Modifier.height(Dimens.SpaceXXL))
+
+            // ── Phone Field ───────────────────────────────────
+            val isPhoneError = state is AuthViewModel.AuthState.Error
+                    && otp.isEmpty()  // only show on phone field, not OTP field
+
+            OutlinedTextField(
+                value    = phone,
+                onValueChange = { input ->
+                    if (input.length <= 10 && input.all { it.isDigit() }) {
+                        phone = input
+                        if (state is AuthViewModel.AuthState.Error) {
+                            viewModel.resetState()
+                        }
+                    }
+                },
+                label  = { Text("Phone Number") },
+                prefix = { Text("+91  ") },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Phone,
+                        null,
+                        tint = if (isPhoneError) ErrorRed else AppGray,
+                    )
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone
+                ),
+                singleLine = true,
+                isError    = isPhoneError,
+                enabled    = state !is AuthViewModel.AuthState.OtpSent
+                        && state !is AuthViewModel.AuthState.Loading,
+                colors     = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor      = ZomatoRed,
+                    unfocusedBorderColor    = AppGray.copy(alpha = 0.5f),
+                    errorBorderColor        = ErrorRed,
+                    errorLabelColor         = ErrorRed,
+                    errorLeadingIconColor   = ErrorRed,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            // ── Styled Inline Error ───────────────────────────
+            // Validation errors → inline styled card (stays visible)
+            // API errors → Snackbar (auto-dismisses)
+            AnimatedVisibility(
+                visible = state is AuthViewModel.AuthState.Error && otp.isEmpty(),
+                enter   = fadeIn() + expandVertically(),
+                exit    = fadeOut() + shrinkVertically(),
+            ) {
+                val errorMessage = (state as? AuthViewModel.AuthState.Error)
+                    ?.message ?: ""
+
                 Spacer(Modifier.height(Dimens.SpaceS))
-                Row(
+
+                // ✅ Attractive error card — not plain red text
+                Surface(
+                    color  = ErrorRedBg,                    // light pink bg
+                    shape  = RoundedCornerShape(Dimens.RadiusS),
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(
-                        onClick = { viewModel.sendOtp(phone) },
-                        enabled = state !is AuthViewModel.AuthState.Loading,
+                    Row(
+                        modifier          = Modifier.padding(
+                            horizontal = Dimens.SpaceM,
+                            vertical   = Dimens.SpaceS,
+                        ),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        // Error icon
+                        Icon(
+                            imageVector        = Icons.Default.ErrorOutline,
+                            contentDescription = "Error",
+                            tint               = ErrorRed,
+                            modifier           = Modifier.size(Dimens.IconS),
+                        )
+                        Spacer(Modifier.width(Dimens.SpaceS))
                         Text(
-                            text  = "Resend OTP",
-                            color = ZomatoRed,
-                            style = MaterialTheme.typography.labelLarge,
+                            text       = errorMessage,
+                            style      = MaterialTheme.typography.bodySmall,
+                            color      = ErrorRed,
+                            fontWeight = FontWeight.Medium,
                         )
                     }
                 }
             }
-        }
 
-        // ── Error Message ─────────────────────────────────────
-        AnimatedVisibility(
-            visible = state is AuthViewModel.AuthState.Error,
-        ) {
-            Column {
-                Spacer(Modifier.height(Dimens.SpaceS))
-                Text(
-                    text  = (state as? AuthViewModel.AuthState.Error)?.message ?: "",
-                    color = ErrorRed,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-        }
+            // ── OTP Field ─────────────────────────────────────
+            AnimatedVisibility(
+                visible = state is AuthViewModel.AuthState.OtpSent
+                        || (state is AuthViewModel.AuthState.Loading && otp.isNotEmpty()),
+                enter   = fadeIn() + expandVertically(),
+                exit    = fadeOut() + shrinkVertically(),
+            ) {
+                Column {
+                    Spacer(Modifier.height(Dimens.SpaceL))
 
-        Spacer(Modifier.height(Dimens.SpaceXXL))
+                    OutlinedTextField(
+                        value    = otp,
+                        onValueChange = { input ->
+                            if (input.length <= 6 && input.all { it.isDigit() }) {
+                                otp = input
+                                if (state is AuthViewModel.AuthState.Error) {
+                                    viewModel.resetState()
+                                }
+                            }
+                        },
+                        label           = { Text("Enter 6-digit OTP") },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword,
+                        ),
+                        singleLine = true,
+                        enabled    = state !is AuthViewModel.AuthState.Loading,
+                        colors     = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor   = ZomatoRed,
+                            unfocusedBorderColor = AppGray.copy(alpha = 0.5f),
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
 
-        // ── CTA Button ────────────────────────────────────────
-        Button(
-            onClick = {
-                when (state) {
-                    // OTP sent → verify it
-                    is AuthViewModel.AuthState.OtpSent -> {
-                        viewModel.verifyOtp(otp)
+                    // ── Resend OTP ─────────────────────────────
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(
+                            onClick = {
+                                otp = ""
+                                viewModel.sendOtp(phone)
+                            },
+                            enabled = state !is AuthViewModel.AuthState.Loading,
+                        ) {
+                            Text(
+                                text  = "Resend OTP",
+                                color = ZomatoRed,
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        }
                     }
-                    // Default → send OTP
-                    else -> {
-                        viewModel.sendOtp(phone)
+
+                    // ── OTP sent hint ──────────────────────────
+                    // ✅ Success hint card — green background
+                    Surface(
+                        color    = Color(0xFFE8FAF0),
+                        shape    = RoundedCornerShape(Dimens.RadiusS),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier          = Modifier.padding(
+                                horizontal = Dimens.SpaceM,
+                                vertical   = Dimens.SpaceS,
+                            ),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(text = "✅", fontSize = 14.sp)
+                            Spacer(Modifier.width(Dimens.SpaceS))
+                            Text(
+                                text  = "OTP sent to +91 $phone",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF1B8A3E),
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
                     }
                 }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(Dimens.ButtonHeight),
-            shape    = MaterialTheme.shapes.small,
-            colors  = ButtonDefaults.buttonColors(
-                containerColor = ZomatoRed,
-                disabledContainerColor = AppLightGray,
-            ),
-            // Disable while loading
-            enabled = state !is AuthViewModel.AuthState.Loading,
-        ) {
-            if (state is AuthViewModel.AuthState.Loading) {
-                // Show spinner while loading
-                CircularProgressIndicator(
-                    color    = AppWhite,
-                    modifier = Modifier.size(Dimens.IconM),
-                    strokeWidth = Dimens.SpaceXS,
-                )
-            } else {
-                Text(
-                    text  = when (state) {
-                        is AuthViewModel.AuthState.OtpSent -> "Verify OTP"
-                        else -> "Send OTP"
-                    },
-                    style      = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = AppWhite,
-                )
             }
-        }
 
-        Spacer(Modifier.height(Dimens.SpaceL))
+            Spacer(Modifier.height(Dimens.SpaceXXL))
 
-        // ── Phone hint shown after OTP sent ───────────────────
-        AnimatedVisibility(
-            visible = state is AuthViewModel.AuthState.OtpSent,
-        ) {
-            Text(
-                text  = "OTP sent to +91 $phone",
-                style = MaterialTheme.typography.bodySmall,
-                color = AppGray,
-            )
+            // ── CTA Button ────────────────────────────────────
+            Button(
+                onClick = {
+                    when (state) {
+                        is AuthViewModel.AuthState.OtpSent ->
+                            viewModel.verifyOtp(otp)
+                        else ->
+                            viewModel.sendOtp(phone)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Dimens.ButtonHeight),
+                colors   = ButtonDefaults.buttonColors(
+                    containerColor         = ZomatoRed,
+                    disabledContainerColor = AppLightGray,
+                ),
+                shape   = RoundedCornerShape(Dimens.RadiusM),
+                enabled = state !is AuthViewModel.AuthState.Loading,
+            ) {
+                if (state is AuthViewModel.AuthState.Loading) {
+                    CircularProgressIndicator(
+                        color       = AppWhite,
+                        modifier    = Modifier.size(Dimens.IconM),
+                        strokeWidth = Dimens.SpaceXS,
+                    )
+                } else {
+                    Text(
+                        text       = when (state) {
+                            is AuthViewModel.AuthState.OtpSent -> "Verify OTP"
+                            else                               -> "Send OTP"
+                        },
+                        style      = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = AppWhite,
+                    )
+                }
+            }
         }
     }
 }
