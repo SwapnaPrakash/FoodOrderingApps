@@ -32,19 +32,10 @@ class SplashViewModel @Inject constructor(
     }
 
     private fun checkLoginAndNavigate() = viewModelScope.launch {
+        delay(AppConstants.SPLASH_DELAY_MS)
 
-        // Run splash delay in parallel with login check
-        val splashJob = launch {
-            delay(AppConstants.SPLASH_DELAY_MS) // 1500ms
-        }
-
-        // ✅ Now inside coroutine — suspend call is allowed
-        val isLoggedIn = userRepository.isLoggedIn()
-
-        // Wait minimum splash time
-        splashJob.join()
-
-        _navigateTo.value = if (isLoggedIn) {
+        // ✅ isLoggedIn() is NOT suspend — call directly
+        _navigateTo.value = if (userRepository.isLoggedIn()) {
             SplashDestination.Home
         } else {
             SplashDestination.Login

@@ -55,17 +55,17 @@ class FirebaseAuthManager @Inject constructor() {
                 if (cont.isActive) cont.resume(Result.success(Unit))
             }
 
-            override fun onVerificationFailed(e: FirebaseException) {
-                Log.e(TAG, "onVerificationFailed: ${e.message}")
-                val msg = when (e) {
-                    is FirebaseAuthInvalidCredentialsException ->
-                        "Invalid phone number. Use 10 digits."
-                    is FirebaseTooManyRequestsException ->
-                        "Too many requests. Try after some time."
-                    else -> e.message ?: "OTP sending failed."
-                }
+            override fun onVerificationFailed(
+                exception: FirebaseException,
+            ) {
                 if (cont.isActive) {
-                    cont.resume(Result.failure(Exception(msg)))
+                    cont.resume(
+                        Result.failure(
+                            Exception(
+                                exception.message ?: "OTP sending failed"
+                            )
+                        )
+                    )
                 }
             }
 

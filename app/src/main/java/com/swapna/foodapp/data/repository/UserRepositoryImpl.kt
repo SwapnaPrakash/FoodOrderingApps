@@ -23,74 +23,61 @@ import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
-    private val firebaseAuthManager: FirebaseAuthManager,
-    private val activityProvider: ActivityProvider,
     private val api: FoodApi,
     private val userDao: UserDao,
+    private val firebaseAuthManager: FirebaseAuthManager,
+    private val activityProvider: ActivityProvider,
     private val userMapper: UserMapper,
     private val entityMapper: EntityMapper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UserRepository {
-
-    private var pendingPhone: String? = null
 
     // ── Send OTP ──────────────────────────────────────────────
     override suspend fun sendOtp(phone: String): Result<Unit> =
         withContext(ioDispatcher) {
             val activity = activityProvider.getActivity()
                 ?: return@withContext Result.failure(
-                    Exception("App is in background. Please reopen.")
+                    Exception(
+                        "App is in background. Please reopen and try again."
+                    )
                 )
-            pendingPhone = phone
-            firebaseAuthManager.sendOtp(phone, activity)
+            try {
+                firebaseAuthManager.sendOtp(
+                    phoneNumber = phone,
+                    activity    = activity,
+                )
+            } catch (e: Exception) {
+                Result.failure(Exception(e.message ?: "Failed to send OTP"))
+            }
         }
 
     // ── Verify OTP ────────────────────────────────────────────
     override suspend fun verifyOtp(otp: String): Result<User> =
         withContext(ioDispatcher) {
-            if (otp.length != AppConstants.OTP_LENGTH) {
-                return@withContext Result.failure(
-                    Exception("Enter the 6-digit OTP")
+            try {
+                val uidResult = firebaseAuthManager.verifyOtp(otp)
+                val uid       = uidResult.getOrElse {
+                    return@withContext Result.failure(it)
+                }
+
+                val response = api.getUser()
+                val user     = userMapper.toDomain(response.user)
+                    .copy(id = uid)
+
+                userDao.insertUser(entityMapper.userToEntity(user))
+                Result.success(user)
+
+            } catch (e: Exception) {
+                Result.failure(
+                    Exception(e.message ?: "Verification failed")
                 )
             }
-
-            val result = firebaseAuthManager.verifyOtp(otp)
-
-            result.fold(
-                onSuccess = { uid ->
-                    val user = try {
-                        val response = api.getUser()
-                        userMapper.toDomain(response.user)
-                            .copy(
-                                id    = uid,
-                                phone = pendingPhone ?: "",
-                            )
-                    } catch (e: Exception) {
-                        User(
-                            id           = uid,
-                            name         = "User",
-                            email        = "",
-                            phone        = pendingPhone ?: "",
-                            profileImage = "",
-                            addresses    = emptyList(),
-                        )
-                    }
-                    userDao.insertUser(entityMapper.userToEntity(user))
-                    pendingPhone = null
-                    Result.success(user)
-                },
-                onFailure = { Result.failure(it) }
-            )
         }
 
-    // ── Is Logged In ──────────────────────────────────────────
-    override suspend fun isLoggedIn(): Boolean =
-        withContext(ioDispatcher) {
-            try {
-                firebaseAuthManager.isSignedIn() &&
-                        userDao.getUser() != null
-            } catch (e: Exception) { false }
-        }
+    // ── Login state ───────────────────────────────────────────
+    // ✅ NOT suspend — same as original working code
+    override fun isLoggedIn(): Boolean =
+        firebaseAuthManager.isSignedIn()
 
     // ── Get User ──────────────────────────────────────────────
     override suspend fun getUser(): Result<User> =
@@ -107,7 +94,9 @@ class UserRepositoryImpl @Inject constructor(
                 userDao.insertUser(entityMapper.userToEntity(user))
                 Result.success(user)
             } catch (e: Exception) {
-                Result.failure(Exception(e.message ?: "Failed"))
+                Result.failure(
+                    Exception(e.message ?: "Failed to load profile")
+                )
             }
         }
 
@@ -116,11 +105,15 @@ class UserRepositoryImpl @Inject constructor(
         withContext(ioDispatcher) {
             try {
                 userDao.updateNameAndEmail(
-                    user.id, user.name, user.email
+                    id    = user.id,
+                    name  = user.name,
+                    email = user.email,
                 )
                 Result.success(Unit)
             } catch (e: Exception) {
-                Result.failure(Exception(e.message ?: "Update failed"))
+                Result.failure(
+                    Exception(e.message ?: "Failed to update profile")
+                )
             }
         }
 
@@ -128,18 +121,18 @@ class UserRepositoryImpl @Inject constructor(
     override fun getRecentOrders(): Flow<List<Order>> = flow {
         try {
             val response = api.getOrders()
-            emit(response.orders.map {
-                userMapper.orderToDomain(it.order)
-            })
-        } catch (e: Exception) { emit(emptyList()) }
-    }
-        .catch { emit(emptyList()) }
-        .flowOn(ioDispatcher)
+            val orders   = response.orders.map { wrapper ->
+                userMapper.orderToDomain(wrapper.order)
+            }
+            emit(orders)
+        } catch (e: Exception) {
+            emit(emptyList())
+        }
+    }.flowOn(ioDispatcher)
 
     // ── Logout ────────────────────────────────────────────────
     override suspend fun logout() =
         withContext(ioDispatcher) {
-            pendingPhone = null
             firebaseAuthManager.signOut()
             userDao.clearUser()
         }

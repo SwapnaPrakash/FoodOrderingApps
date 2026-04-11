@@ -8,7 +8,7 @@ interface UserRepository {
     // Auth
     suspend fun sendOtp(phone: String): Result<Unit>
     suspend fun verifyOtp(otp: String): Result<User>
-    suspend fun isLoggedIn(): Boolean
+    fun isLoggedIn(): Boolean
     suspend fun logout()
 
     // Profile
