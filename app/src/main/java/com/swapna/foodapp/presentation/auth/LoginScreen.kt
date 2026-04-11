@@ -63,22 +63,19 @@ import com.swapna.foodapp.utils.LoginTestTags
 
 @Composable
 fun LoginScreen(
-    navController: NavController,
-    viewModel: AuthViewModel = hiltViewModel(),
+    onLoginSuccess: () -> Unit,
+    viewModel: AuthViewModel,
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state        by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHost = remember { SnackbarHostState() }
 
-    // rememberSaveable — survives rotation (phone/otp preserved)
     var phone by rememberSaveable { mutableStateOf("") }
     var otp   by rememberSaveable { mutableStateOf("") }
 
-    // ── Navigate to Home on Success ───────────────────────────
+    // ✅ Navigate via callback — not navController directly
     LaunchedEffect(state) {
         if (state is AuthViewModel.AuthState.Success) {
-            navController.navigate(AppRoutes.HOME) {
-                popUpTo(AppRoutes.LOGIN) { inclusive = true }
-            }
+            onLoginSuccess()
         }
     }
 
@@ -86,7 +83,6 @@ fun LoginScreen(
         modifier     = Modifier.testTag(LoginTestTags.SCREEN_ROOT),
         snackbarHost = {
             SnackbarHost(snackbarHost) { data ->
-                // Custom styled Snackbar for API errors
                 Snackbar(
                     snackbarData   = data,
                     containerColor = Color(0xFF323232),
@@ -105,7 +101,6 @@ fun LoginScreen(
                 .background(AppWhite)
                 .padding(paddingValues)
                 .padding(horizontal = Dimens.SpaceXXL)
-                // verticalScroll — keyboard won't hide content
                 .verticalScroll(rememberScrollState()),
             verticalArrangement    = Arrangement.Center,
             horizontalAlignment    = Alignment.CenterHorizontally,
@@ -113,9 +108,6 @@ fun LoginScreen(
 
             Spacer(Modifier.height(Dimens.Space64))
 
-            // ── Logo ──────────────────────────────────────────
-            // testTag("login_logo") — tests find by tag not text
-            // Tag is stable even if emoji changes 🍔 → 🍕
             Text(
                 text     = "🍔",
                 fontSize = 64.sp,
@@ -124,7 +116,6 @@ fun LoginScreen(
 
             Spacer(Modifier.height(Dimens.Space32))
 
-            // ── Title ─────────────────────────────────────────
             Text(
                 text       = "Login",
                 style      = MaterialTheme.typography.displaySmall,
@@ -134,7 +125,6 @@ fun LoginScreen(
 
             Spacer(Modifier.height(Dimens.SpaceS))
 
-            // ── Subtitle ──────────────────────────────────────
             Text(
                 text      = "Enter your mobile number to continue",
                 style     = MaterialTheme.typography.bodyMedium,
@@ -145,27 +135,22 @@ fun LoginScreen(
 
             Spacer(Modifier.height(Dimens.SpaceXXL))
 
-            // ── Phone Number Field ────────────────────────────
-            // isError = true → red border + red label
-            // Only show error when it's a phone validation error
-            // (not OTP error — that goes on OTP field)
             val isPhoneError = state is AuthViewModel.AuthState.Error
                     && otp.isEmpty()
 
             OutlinedTextField(
-                value    = phone,
+                value         = phone,
                 onValueChange = { input ->
-                    // Max 10 digits, only numbers
-                    if (input.length <= 10 && input.all { it.isDigit() }) {
+                    if (input.length <= 10 &&
+                        input.all { it.isDigit() }) {
                         phone = input
-                        // Clear error when user starts typing
                         if (state is AuthViewModel.AuthState.Error) {
                             viewModel.resetState()
                         }
                     }
                 },
-                label  = { Text("Phone Number") },
-                prefix = {
+                label       = { Text("Phone Number") },
+                prefix      = {
                     Text(
                         text  = "+91  ",
                         color = if (isPhoneError) ErrorRed else AppGray,
@@ -174,9 +159,8 @@ fun LoginScreen(
                 leadingIcon = {
                     Icon(
                         imageVector        = Icons.Default.Phone,
-                        contentDescription = "Phone icon",
-                        tint               = if (isPhoneError) ErrorRed
-                        else AppGray,
+                        contentDescription = "Phone",
+                        tint = if (isPhoneError) ErrorRed else AppGray,
                     )
                 },
                 keyboardOptions = KeyboardOptions(
@@ -184,7 +168,6 @@ fun LoginScreen(
                 ),
                 singleLine = true,
                 isError    = isPhoneError,
-                // Disabled after OTP sent — can't change number mid-flow
                 enabled    = state !is AuthViewModel.AuthState.OtpSent
                         && state !is AuthViewModel.AuthState.Loading,
                 colors     = OutlinedTextFieldDefaults.colors(
@@ -199,31 +182,21 @@ fun LoginScreen(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    // ✅ testTag — tests find phone field reliably
-                    // Even if label text "Phone Number" changes
                     .testTag(LoginTestTags.PHONE_FIELD),
             )
 
-            // ── Error Card ────────────────────────────────────
-            // AnimatedVisibility — smooth slide in/out
-            // Shows: validation errors for phone
-            // Hides: when user starts typing valid phone
             AnimatedVisibility(
                 visible = state is AuthViewModel.AuthState.Error
                         && otp.isEmpty(),
                 enter   = fadeIn() + expandVertically(),
                 exit    = fadeOut() + shrinkVertically(),
             ) {
-                val errorMessage = (state as? AuthViewModel.AuthState.Error)
+                val errorMsg = (state as? AuthViewModel.AuthState.Error)
                     ?.message ?: ""
-
                 Spacer(Modifier.height(Dimens.SpaceS))
-
                 Surface(
-                    color    = ErrorRedBg,           // light pink background
+                    color    = ErrorRedBg,
                     shape    = RoundedCornerShape(Dimens.RadiusS),
-                    // ✅ testTag — tests verify error card appears
-                    // and check message text inside it
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(LoginTestTags.PHONE_ERROR_CARD),
@@ -243,7 +216,7 @@ fun LoginScreen(
                         )
                         Spacer(Modifier.width(Dimens.SpaceS))
                         Text(
-                            text       = errorMessage,
+                            text       = errorMsg,
                             style      = MaterialTheme.typography.bodySmall,
                             color      = ErrorRed,
                             fontWeight = FontWeight.Medium,
@@ -252,9 +225,6 @@ fun LoginScreen(
                 }
             }
 
-            // ── OTP Section ───────────────────────────────────
-            // AnimatedVisibility — slides in when OTP is sent
-            // Contains: OTP field + success hint + resend button
             AnimatedVisibility(
                 visible = state is AuthViewModel.AuthState.OtpSent
                         || (state is AuthViewModel.AuthState.Error
@@ -267,17 +237,15 @@ fun LoginScreen(
                 Column {
                     Spacer(Modifier.height(Dimens.SpaceL))
 
-                    // ── OTP Input Field ───────────────────────
                     val isOtpError = state is AuthViewModel.AuthState.Error
                             && otp.isNotEmpty()
 
                     OutlinedTextField(
-                        value    = otp,
+                        value         = otp,
                         onValueChange = { input ->
-                            // Max 6 digits, only numbers
-                            if (input.length <= 6 && input.all { it.isDigit() }) {
+                            if (input.length <= 6 &&
+                                input.all { it.isDigit() }) {
                                 otp = input
-                                // Clear error when user retypes OTP
                                 if (state is AuthViewModel.AuthState.Error) {
                                     viewModel.resetState()
                                 }
@@ -298,17 +266,17 @@ fun LoginScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            // ✅ testTag — tests type into OTP field by tag
                             .testTag(LoginTestTags.OTP_FIELD),
                     )
 
-                    // OTP Error message
-                    AnimatedVisibility(visible = isOtpError) {
+                    AnimatedVisibility(
+                        visible = isOtpError,
+                        enter   = fadeIn() + expandVertically(),
+                        exit    = fadeOut() + shrinkVertically(),
+                    ) {
                         val otpError = (state as? AuthViewModel.AuthState.Error)
                             ?.message ?: ""
-
-                        Spacer(Modifier.height(Dimens.SpaceXS))
-
+                        Spacer(Modifier.height(Dimens.SpaceS))
                         Surface(
                             color    = ErrorRedBg,
                             shape    = RoundedCornerShape(Dimens.RadiusS),
@@ -340,20 +308,17 @@ fun LoginScreen(
                         }
                     }
 
-                    // ── Resend OTP ────────────────────────────
                     Row(
                         modifier              = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                     ) {
                         TextButton(
-                            onClick = {
-                                otp = "" // clear OTP field
+                            onClick  = {
+                                otp = ""
                                 viewModel.sendOtp(phone)
                             },
                             enabled  = state !is AuthViewModel.AuthState.Loading,
-                            modifier = Modifier
-                                // ✅ testTag — tests tap resend button
-                                .testTag(LoginTestTags.RESEND_BUTTON),
+                            modifier = Modifier.testTag(LoginTestTags.RESEND_BUTTON),
                         ) {
                             Text(
                                 text  = "Resend OTP",
@@ -363,14 +328,11 @@ fun LoginScreen(
                         }
                     }
 
-                    // ── Success hint card ─────────────────────
-                    // Green card: "OTP sent to +91 9876543210"
                     Surface(
-                        color    = Color(0xFFE8FAF0), // light green
+                        color    = Color(0xFFE8FAF0),
                         shape    = RoundedCornerShape(Dimens.RadiusS),
                         modifier = Modifier
                             .fillMaxWidth()
-                            // ✅ testTag — tests verify hint appears
                             .testTag(LoginTestTags.SUCCESS_CARD),
                     ) {
                         Row(
@@ -395,9 +357,6 @@ fun LoginScreen(
 
             Spacer(Modifier.height(Dimens.SpaceXXL))
 
-            // ── CTA Button ────────────────────────────────────
-            // Shows: "Send OTP" or "Verify OTP" based on state
-            // Shows: spinner when loading
             Button(
                 onClick = {
                     when (state) {
@@ -409,9 +368,7 @@ fun LoginScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(Dimens.ButtonHeight) // 52dp
-                    // ✅ testTag — tests tap by tag
-                    // Even if button text changes "Send OTP"→"Verify OTP"
+                    .height(Dimens.ButtonHeight)
                     .testTag(LoginTestTags.AUTH_BUTTON),
                 colors  = ButtonDefaults.buttonColors(
                     containerColor         = ZomatoRed,
@@ -421,12 +378,10 @@ fun LoginScreen(
                 enabled = state !is AuthViewModel.AuthState.Loading,
             ) {
                 if (state is AuthViewModel.AuthState.Loading) {
-                    // Loading spinner inside button
                     CircularProgressIndicator(
                         color       = AppWhite,
                         modifier    = Modifier
                             .size(Dimens.IconM)
-                            // ✅ testTag — tests verify loading shows
                             .testTag(LoginTestTags.LOADING_INDICATOR),
                         strokeWidth = Dimens.SpaceXS,
                     )

@@ -18,7 +18,7 @@ androidx-test-ext-junit = "1.2.1"
 espresso-core = "3.6.1"
 lifecycle-runtime-ktx = "2.9.1"
 activity-compose = "1.10.1"
-compose-bom = "2025.06.01"
+compose-bom = "2024.02.00"
 materialIconsExtended = "1.7.8"
 mockk = "1.13.5"
 navigation-compose = "2.9.1"
@@ -91,6 +91,8 @@ mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mo
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

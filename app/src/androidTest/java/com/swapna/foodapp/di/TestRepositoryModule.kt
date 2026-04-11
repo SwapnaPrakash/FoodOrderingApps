@@ -5,29 +5,24 @@ import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.repository.UserRepository
 import com.swapna.foodapp.fakes.FakeCartRepository
 import com.swapna.foodapp.fakes.FakeRestaurantRepository
-import com.swapna.foodapp.fakes.FakeUserRepositoryForTest
+import com.swapna.foodapp.fakes.FakeUserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
 
-// Replaces real RepositoryModule with fake during UI tests
-// @TestInstallIn → only active in androidTest, not production
 @Module
 @TestInstallIn(
     components = [SingletonComponent::class],
-    replaces   = [RepositoryModule::class],
+    replaces = [RepositoryModule::class]
 )
 object TestRepositoryModule {
-
-    private val fakeUserRepo = FakeUserRepositoryForTest()
-
 
     @Provides
     @Singleton
     fun provideUserRepository(): UserRepository =
-        fakeUserRepo
+        FakeUserRepository()
 
     @Provides
     @Singleton
@@ -38,6 +33,4 @@ object TestRepositoryModule {
     @Singleton
     fun provideRestaurantRepository(): RestaurantRepository =
         FakeRestaurantRepository()
-
 }
-

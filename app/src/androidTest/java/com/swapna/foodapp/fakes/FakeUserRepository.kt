@@ -6,37 +6,35 @@ import com.swapna.foodapp.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-// ── Inline FakeUserRepository ─────────────────────────────────
-// No Hilt injection needed — we pass this directly to ViewModel
-// 100% controlled — zero Firebase calls
-class FakeUserRepositoryForTest : UserRepository {
+class FakeUserRepository : UserRepository {
 
-    var sendOtpResult: Result<Unit>   = Result.success(Unit)
-    var verifyOtpResult: Result<User> = Result.success(testUser())
-    var loggedIn: Boolean             = false
+    var sendOtpResult: Result<Unit> =
+        Result.success(Unit)
 
-    override suspend fun sendOtp(phone: String): Result<Unit> =
+    var verifyOtpResult: Result<User> =
+        Result.success(fakeUser())
+
+    override suspend fun sendOtp(phone: String) =
         sendOtpResult
 
-    override suspend fun verifyOtp(otp: String): Result<User> =
+    override suspend fun verifyOtp(otp: String) =
         verifyOtpResult
 
+    override fun isLoggedIn(): Boolean = false
 
-    override  fun isLoggedIn(): Boolean = loggedIn
+    override suspend fun getUser() =
+        Result.success(fakeUser())
 
-    override suspend fun getUser(): Result<User> =
-        Result.success(testUser())
-
-    override suspend fun updateUser(user: User): Result<Unit> =
+    override suspend fun updateUser(user: User) =
         Result.success(Unit)
 
     override fun getRecentOrders(): Flow<List<Order>> =
         flowOf(emptyList())
 
-    override suspend fun logout() { loggedIn = false }
+    override suspend fun logout() {}
 
     companion object {
-        fun testUser() = User(
+        fun fakeUser() = User(
             id           = "u_001",
             name         = "Test User",
             email        = "test@foodapp.com",

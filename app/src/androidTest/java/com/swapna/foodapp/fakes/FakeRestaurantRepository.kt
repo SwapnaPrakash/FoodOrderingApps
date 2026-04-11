@@ -10,9 +10,9 @@ import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.repository.RestaurantRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import javax.inject.Inject
+import kotlin.String
 
-class FakeRestaurantRepository @Inject constructor() : RestaurantRepository {
+class FakeRestaurantRepository : RestaurantRepository {
 
     override fun getNearbyRestaurants(): Flow<Result<List<Restaurant>>> =
         flowOf(Result.success(emptyList()))
@@ -24,10 +24,10 @@ class FakeRestaurantRepository @Inject constructor() : RestaurantRepository {
         flowOf(Result.success(emptyList()))
 
     override fun getRestaurantDetail(id: String): Flow<Result<Restaurant>> =
-        flowOf(Result.failure(Exception("Fake: No data")))
+        flowOf(Result.success(fakeRestaurant()))
 
     override fun getMenuItems(
-        restaurantId: String,
+        restaurantId: String
     ): Flow<Result<Map<String, List<MenuItem>>>> =
         flowOf(Result.success(emptyMap()))
 
@@ -36,10 +36,32 @@ class FakeRestaurantRepository @Inject constructor() : RestaurantRepository {
 
     override fun searchRestaurants(
         query: String,
-        filters: SearchFilters,
+        filters: SearchFilters
     ): Flow<Result<List<Restaurant>>> =
         flowOf(Result.success(emptyList()))
 
     override fun getCuisines(): Flow<Result<List<Cuisine>>> =
         flowOf(Result.success(emptyList()))
+
+    // ✅ Fake data
+    private fun fakeRestaurant() = Restaurant(
+        id = "r1",
+        name = "Test Restaurant",
+        imageUrl = "",
+        rating = 4.5,
+        cuisines = listOf("Indian"),
+        isOpen = true,
+        thumbUrl = "",
+        ratingText = "",
+        ratingColor = "",
+        totalVotes = 9,
+        avgDeliveryTime = 9,
+        deliveryFee = 0.0,
+        minOrder = 5,
+        address = "",
+        locality = "",
+        distanceKm = 0.0,
+        hasDelivery = true,
+        offers = emptyList(),
+        avgCostForTwo = 9)
 }

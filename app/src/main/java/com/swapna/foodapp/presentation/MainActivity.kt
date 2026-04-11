@@ -22,10 +22,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // ✅ Set activity immediately in onCreate
         activityProvider.setActivity(this)
-
+        // ✅ Do NOT call setContent here
+        // Test will call activity.setContent() instead
+        // Production nav graph set via setContent below
         setContent {
             FoodAppTheme {
                 val navController = rememberNavController()
@@ -36,17 +36,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // ✅ Re-set on resume (activity might have changed)
         activityProvider.setActivity(this)
     }
 
     override fun onPause() {
         super.onPause()
-        activityProvider.clearActivity()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
         activityProvider.clearActivity()
     }
 }

@@ -1,11 +1,13 @@
 package com.swapna.foodapp.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.swapna.foodapp.presentation.auth.AuthViewModel
 import com.swapna.foodapp.presentation.auth.LoginScreen
 import com.swapna.foodapp.presentation.cart.CartScreen
 import com.swapna.foodapp.presentation.home.HomeScreen
@@ -29,9 +31,16 @@ fun AppNavGraph(
         }
 
         composable(AppRoutes.LOGIN) {
-            LoginScreen(navController)
+            val viewModel: AuthViewModel = hiltViewModel()
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate(AppRoutes.HOME) {
+                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                    }
+                },
+                viewModel = viewModel,
+            )
         }
-
         composable(AppRoutes.HOME) {
             HomeScreen(navController)
         }
