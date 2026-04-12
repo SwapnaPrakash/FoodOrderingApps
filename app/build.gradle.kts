@@ -10,15 +10,15 @@ plugins {
 }
 
 android {
-    namespace  = "com.swapna.foodapp"
+    namespace = "com.swapna.foodapp"
     compileSdk = 36
 
     defaultConfig {
         applicationId = "com.swapna.foodapp"
-        minSdk        = 24
-        targetSdk     = 36
-        versionCode   = 1
-        versionName   = "1.0"
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
 
         buildConfigField(
             "String",
@@ -26,7 +26,6 @@ android {
             "\"https://raw.githubusercontent.com/SwapnaPrakash/zomato-mock-api/main/\""
         )
 
-        // ✅ Standard runner — NOT HiltTestRunner
         testInstrumentationRunner = "com.swapna.foodapp.HiltTestRunner"
     }
 
@@ -50,7 +49,7 @@ android {
     }
 
     buildFeatures {
-        compose     = true
+        compose = true
         buildConfig = true
     }
 
@@ -61,7 +60,7 @@ android {
     }
 }
 
-// ── Kover Coverage ────────────────────────────────────────────
+// Kover Coverage
 koverReport {
     filters {
         excludes {
@@ -96,7 +95,7 @@ tasks.named("koverHtmlReport") {
 
 dependencies {
 
-    // ── Compose ───────────────────────────────────────────────
+    // Compose
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.activity.compose)
@@ -109,59 +108,55 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.androidx.material.icons.extended)
 
-    // ── Hilt ──────────────────────────────────────────────────
+    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
 
-    // ── DataStore ─────────────────────────────────────────────
+    // ── DataStore
     implementation(libs.androidx.datastore.core.android)
     implementation(libs.androidx.datastore.preferences)
 
-    // ── Coil ──────────────────────────────────────────────────
+    //  Coil
     implementation(libs.accompanist.permissions)
     implementation(libs.bundles.coil)
     implementation(libs.coil.kt.coil.compose)
 
-    // ── Retrofit + OkHttp ─────────────────────────────────────
+    // Retrofit + OkHttp
     implementation(libs.retrofit)
     implementation(libs.converter.moshi.v290)
     implementation(libs.converter.gson)
     implementation(libs.okhttp)
-    // ✅ DEDUPLICATED: was listed twice — kept once
     implementation(libs.okhttp.interceptor.logging)
 
-    // ── Moshi ─────────────────────────────────────────────────
+    //  Moshi
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
 
-    // ── Coroutines ────────────────────────────────────────────
+    //  Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
-    // ── Firebase ──────────────────────────────────────────────
+    //  Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 
-    // ── Room ──────────────────────────────────────────────────
+    //  Room
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)
 
-    // ── Pagination ────────────────────────────────────────────
+    //  Pagination
     implementation(libs.androidx.paging.compose)
 
-    // ── Logging ───────────────────────────────────────────────
+    //  Logging
     implementation(libs.timber)
 
-    // ══════════════════════════════════════════════════════════
     // UNIT TESTS (JVM — no device needed)
-    // ══════════════════════════════════════════════════════════
     testImplementation(libs.junit)
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.core)
-    // ✅ DEDUPLICATED: mockito.kotlin was listed twice — kept once
     testImplementation(libs.mockito.kotlin)
     testImplementation(kotlin("test"))
     testImplementation("androidx.test:core:1.5.0")
@@ -173,14 +168,8 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.framework.engine)
     testImplementation(libs.mockk)
-    // ✅ DEDUPLICATED: kept only v173 (more specific version)
     testImplementation(libs.kotlinx.coroutines.test.v173)
 
-    // ══════════════════════════════════════════════════════════
-    // UI / INSTRUMENTED TESTS (needs device/emulator)
-    // ✅ NO Hilt androidTest deps — they crash test APK
-    // ✅ NO kspAndroidTest — not needed without Hilt testing
-    // ══════════════════════════════════════════════════════════
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation("androidx.test.ext:junit-ktx:1.1.5")
     androidTestImplementation(libs.espresso.core)
@@ -193,7 +182,7 @@ dependencies {
     androidTestImplementation("androidx.activity:activity-compose:1.9.0")
     androidTestImplementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // ── Debug ─────────────────────────────────────────────────
+    //  Debug
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
 

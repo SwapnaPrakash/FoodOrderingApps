@@ -15,10 +15,10 @@ import javax.inject.Singleton
 
 // Sealed class for network status
 sealed class NetworkStatus {
-    object Available   : NetworkStatus()
+    object Available : NetworkStatus()
     object Unavailable : NetworkStatus()
-    object Losing      : NetworkStatus()
-    object Lost        : NetworkStatus()
+    object Losing : NetworkStatus()
+    object Lost : NetworkStatus()
 }
 
 @Singleton
@@ -29,7 +29,7 @@ class ConnectivityObserver @Inject constructor(
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    // ── Observe network status as a Flow ──────────────────────
+    // ─ Observe network status as a Flow ─
     // callbackFlow converts Android callback API into a Flow
     // distinctUntilChanged prevents duplicate emissions
     val networkStatus: Flow<NetworkStatus> = callbackFlow {
@@ -38,12 +38,15 @@ class ConnectivityObserver @Inject constructor(
             override fun onAvailable(network: Network) {
                 trySend(NetworkStatus.Available)
             }
+
             override fun onLosing(network: Network, maxMsToLive: Int) {
                 trySend(NetworkStatus.Losing)
             }
+
             override fun onLost(network: Network) {
                 trySend(NetworkStatus.Lost)
             }
+
             override fun onUnavailable() {
                 trySend(NetworkStatus.Unavailable)
             }

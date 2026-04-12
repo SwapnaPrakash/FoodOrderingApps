@@ -1,10 +1,10 @@
 package com.swapna.foodapp.data.local.dao
 
-import com.swapna.foodapp.data.local.entity.CartItemEntity
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.swapna.foodapp.data.local.entity.CartItemEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

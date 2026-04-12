@@ -1,33 +1,34 @@
 package com.swapna.foodapp.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
+import com.swapna.foodapp.utils.AppConstants
 
 data class CollectionsResponse(
-    @SerializedName("collections")
+    @SerializedName(AppConstants.KEY_COLLECTIONS)
     val collections: List<CollectionWrapper>,
 )
 
 data class CollectionWrapper(
-    @SerializedName("collection")
+    @SerializedName(AppConstants.KEY_COLLECTION)
     val collection: CollectionDto,
 )
 
 data class CollectionDto(
-    @SerializedName("collection_id")
+    @SerializedName(AppConstants.KEY_COLLECTION_ID)
     val id: Int,
 
-    @SerializedName("title")
+    @SerializedName(AppConstants.KEY_COLLECTION_TITLE)
     val title: String,
 
-    @SerializedName("description")
+    @SerializedName(AppConstants.KEY_COLLECTION_DESCRIPTION)
     val description: String,
 
-    @SerializedName("image_url")
+    @SerializedName(AppConstants.KEY_COLLECTION_IMAGE)
     val imageUrl: String,
 
-    @SerializedName("res_count")
+    @SerializedName(AppConstants.KEY_COLLECTION_RES_COUNT)
     val restaurantCount: Int,
 
-    @SerializedName("discount")
+    @SerializedName(AppConstants.KEY_COLLECTION_DISCOUNT)
     val discount: String? = null,
 )

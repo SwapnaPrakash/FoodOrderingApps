@@ -23,7 +23,7 @@ fun AppNavGraph(
     startDestination: String = AppRoutes.SPLASH,
 ) {
     NavHost(
-        navController    = navController,
+        navController = navController,
         startDestination = startDestination,
     ) {
         composable(AppRoutes.SPLASH) {
@@ -50,10 +50,10 @@ fun AppNavGraph(
         }
 
         composable(
-            route     = AppRoutes.SEARCH_WITH_QUERY,
+            route = AppRoutes.SEARCH_WITH_QUERY,
             arguments = listOf(
                 navArgument(AppRoutes.ARG_SEARCH_QUERY) {
-                    type     = NavType.StringType
+                    type = NavType.StringType
                     nullable = true
                     defaultValue = ""
                 }
@@ -62,8 +62,8 @@ fun AppNavGraph(
             val query = backStackEntry.arguments
                 ?.getString(AppRoutes.ARG_SEARCH_QUERY) ?: ""
             SearchScreen(
-                navController  = navController,
-                initialQuery   = query,   // ← pre-fill search with category name
+                navController = navController,
+                initialQuery = query,   // ← pre-fill search with category name
             )
         }
 
@@ -75,15 +75,13 @@ fun AppNavGraph(
             ProfileScreen(navController)
         }
 
-        // ── Screens with arguments ────────────────────────────
-
         // Restaurant screen receives restaurantId
         // Called via: navController.navigate(AppRoutes.restaurant("101"))
         composable(
             route = AppRoutes.RESTAURANT,     // "restaurant/{restaurantId}"
             arguments = listOf(
                 navArgument(AppRoutes.ARG_RESTAURANT_ID) {
-                    type     = NavType.StringType
+                    type = NavType.StringType
                     nullable = false
                 }
             ),
@@ -98,7 +96,7 @@ fun AppNavGraph(
             route = AppRoutes.PRODUCT,        // "product/{menuItemId}"
             arguments = listOf(
                 navArgument(AppRoutes.ARG_MENU_ITEM_ID) {
-                    type     = NavType.StringType
+                    type = NavType.StringType
                     nullable = false
                 }
             ),

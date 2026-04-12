@@ -1,7 +1,11 @@
 package com.swapna.foodapp.di
 
-import com.swapna.foodapp.data.repository.*
-import com.swapna.foodapp.domain.repository.*
+import com.swapna.foodapp.data.repository.CartRepositoryImpl
+import com.swapna.foodapp.data.repository.RestaurantRepositoryImpl
+import com.swapna.foodapp.data.repository.UserRepositoryImpl
+import com.swapna.foodapp.domain.repository.CartRepository
+import com.swapna.foodapp.domain.repository.RestaurantRepository
+import com.swapna.foodapp.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

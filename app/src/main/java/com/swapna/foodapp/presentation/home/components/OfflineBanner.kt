@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.utils.AppConstants.NO_INTERNET
+import com.swapna.foodapp.utils.AppConstants.OFFLINE
 
 @Composable
 fun OfflineBanner(
@@ -30,8 +32,8 @@ fun OfflineBanner(
 ) {
     AnimatedVisibility(
         visible = isVisible,
-        enter   = expandVertically(),
-        exit    = shrinkVertically(),
+        enter = expandVertically(),
+        exit = shrinkVertically(),
         modifier = modifier,
     ) {
         Row(
@@ -40,21 +42,21 @@ fun OfflineBanner(
                 .background(Color(0xFF323232))
                 .padding(
                     horizontal = Dimens.SpaceL,
-                    vertical   = Dimens.SpaceS,
+                    vertical = Dimens.SpaceS,
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                imageVector        = Icons.Default.WifiOff,
-                contentDescription = "No internet",
-                tint               = Color.White,
-                modifier           = Modifier.size(16.dp),
+                imageVector = Icons.Default.WifiOff,
+                contentDescription = NO_INTERNET,
+                tint = Color.White,
+                modifier = Modifier.size(16.dp),
             )
             Spacer(Modifier.width(Dimens.SpaceS))
             Text(
-                text       = "You're offline — showing cached data",
-                color      = Color.White,
-                style      = MaterialTheme.typography.labelMedium,
+                text = OFFLINE,
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Medium,
             )
         }

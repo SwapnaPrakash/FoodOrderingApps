@@ -10,7 +10,6 @@ import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.repository.RestaurantRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlin.String
 
 class FakeRestaurantRepository : RestaurantRepository {
 
@@ -63,5 +62,6 @@ class FakeRestaurantRepository : RestaurantRepository {
         distanceKm = 0.0,
         hasDelivery = true,
         offers = emptyList(),
-        avgCostForTwo = 9)
+        avgCostForTwo = 9
+    )
 }

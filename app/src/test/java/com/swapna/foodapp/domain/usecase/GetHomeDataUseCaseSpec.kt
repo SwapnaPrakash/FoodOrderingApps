@@ -34,11 +34,11 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
     )
 
     beforeEach { Dispatchers.setMain(UnconfinedTestDispatcher()) }
-    afterEach  { Dispatchers.resetMain() }
+    afterEach { Dispatchers.resetMain() }
 
     describe("GetHomeDataUseCase") {
 
-        // ── All three flows succeed ────────────────────────────
+        // ── All three flows succeed
         context("all repositories return data successfully") {
 
             beforeEach {
@@ -52,30 +52,30 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
             it("should return HomeData with all three lists populated") {
                 val useCase = GetHomeDataUseCase(restaurantRepository)
-                val result  = useCase().first()
+                val result = useCase().first()
 
                 result.isSuccess shouldBe true
-                result.getOrNull()!!.collections.size  shouldBe 1
-                result.getOrNull()!!.categories.size   shouldBe 2
-                result.getOrNull()!!.restaurants.size  shouldBe 2
+                result.getOrNull()!!.collections.size shouldBe 1
+                result.getOrNull()!!.categories.size shouldBe 2
+                result.getOrNull()!!.restaurants.size shouldBe 2
             }
 
             it("collection title should match first collection") {
                 val useCase = GetHomeDataUseCase(restaurantRepository)
-                val result  = useCase().first()
+                val result = useCase().first()
 
                 result.getOrNull()!!.collections.first().title shouldBe "Trending"
             }
 
             it("first restaurant id should match") {
                 val useCase = GetHomeDataUseCase(restaurantRepository)
-                val result  = useCase().first()
+                val result = useCase().first()
 
                 result.getOrNull()!!.restaurants.first().id shouldBe "r1"
             }
         }
 
-        // ── Collections fail — non-critical ───────────────────
+        // ── Collections fail — non-critical
         context("collections fail but categories and restaurants succeed") {
 
             beforeEach {
@@ -89,7 +89,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
             it("should still return HomeData with empty collections") {
                 val useCase = GetHomeDataUseCase(restaurantRepository)
-                val result  = useCase().first()
+                val result = useCase().first()
 
                 result.isSuccess shouldBe true
                 result.getOrNull()!!.collections.shouldBeEmpty()
@@ -97,7 +97,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
             }
         }
 
-        // ── All data empty ────────────────────────────────────
+        // ── All data empty
         context("all repositories return empty lists") {
 
             beforeEach {
@@ -111,7 +111,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
             it("should return HomeData with all empty lists — not an error") {
                 val useCase = GetHomeDataUseCase(restaurantRepository)
-                val result  = useCase().first()
+                val result = useCase().first()
 
                 result.isSuccess shouldBe true
                 result.getOrNull()!!.collections.shouldBeEmpty()
@@ -120,7 +120,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
             }
         }
 
-        // ── Restaurants fail — critical ───────────────────────
+        // ── Restaurants fail — critical
         context("restaurants fail with network error") {
 
             beforeEach {
@@ -136,7 +136,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
                 // combine() waits for all flows to emit
                 // even if one fails, Result wraps it
                 val useCase = GetHomeDataUseCase(restaurantRepository)
-                val result  = useCase().first()
+                val result = useCase().first()
 
                 // getOrDefault returns empty on failure
                 result.isSuccess shouldBe true

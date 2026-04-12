@@ -1,11 +1,18 @@
 package com.swapna.foodapp.utils
 
-import com.swapna.foodapp.domain.model.*
+import com.swapna.foodapp.domain.model.Address
+import com.swapna.foodapp.domain.model.CartItem
+import com.swapna.foodapp.domain.model.CustomisationOption
+import com.swapna.foodapp.domain.model.MenuItem
+import com.swapna.foodapp.domain.model.Order
+import com.swapna.foodapp.domain.model.OrderItem
+import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.domain.model.User
 import com.swapna.foodapp.utils.testdata.TestConstants
 
 fun fakeUser(
-    id: String    = TestConstants.USER_ID,
-    name: String  = TestConstants.USER_NAME,
+    id: String = TestConstants.USER_ID,
+    name: String = TestConstants.USER_NAME,
     email: String = TestConstants.USER_EMAIL,
     phone: String = TestConstants.USER_PHONE,
 ) = User(

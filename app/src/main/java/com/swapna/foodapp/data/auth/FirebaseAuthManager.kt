@@ -7,28 +7,29 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import com.swapna.foodapp.utils.AppConstants.ERROR
+import com.swapna.foodapp.utils.AppConstants.FIREBASE_ERROR
+import com.swapna.foodapp.utils.AppConstants.LOGIN_FAILED
+import com.swapna.foodapp.utils.AppConstants.OTP_SEND_FAILED
+import com.swapna.foodapp.utils.AppConstants.PHONE_COUNTRY_CODE
+import com.swapna.foodapp.utils.AppConstants.PHONE_LENGTH
+import com.swapna.foodapp.utils.AppConstants.SESSION_EXPIRED
+import com.swapna.foodapp.utils.AppConstants.VERIFY_FAILED
+import com.swapna.foodapp.utils.AppConstants.WRONG_OTP
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import android.util.Log
-import com.google.firebase.FirebaseTooManyRequestsException
 
 @Singleton
 class FirebaseAuthManager @Inject constructor() {
 
-    private val TAG = "FirebaseAuthManager"
     private val auth = FirebaseAuth.getInstance()
-
     private var storedVerificationId: String? = null
     private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
 
     init {
-        // ✅ KEY FIX: Disable App Verification for debug builds
-        // Forces reCAPTCHA flow instead of Play Integrity
-        // reCAPTCHA works on ALL devices including debug builds
         if (com.swapna.foodapp.BuildConfig.DEBUG) {
             auth.firebaseAuthSettings.setAppVerificationDisabledForTesting(false)
         }
@@ -38,20 +39,12 @@ class FirebaseAuthManager @Inject constructor() {
         phoneNumber: String,
         activity: Activity,
     ): Result<Unit> = suspendCancellableCoroutine { cont ->
-
         val formatted = formatPhone(phoneNumber)
-        Log.d(TAG, "Sending OTP to: $formatted")
-
-       /* FirebaseAuth.getInstance().firebaseAuthSettings
-            .setAppVerificationDisabledForTesting(true)*/
-
         val callbacks = object :
             PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-
             override fun onVerificationCompleted(
                 credential: PhoneAuthCredential,
             ) {
-                Log.d(TAG, "Auto verified")
                 if (cont.isActive) cont.resume(Result.success(Unit))
             }
 
@@ -62,7 +55,7 @@ class FirebaseAuthManager @Inject constructor() {
                     cont.resume(
                         Result.failure(
                             Exception(
-                                exception.message ?: "OTP sending failed"
+                                exception.message ?: OTP_SEND_FAILED
                             )
                         )
                     )
@@ -73,9 +66,8 @@ class FirebaseAuthManager @Inject constructor() {
                 verificationId: String,
                 token: PhoneAuthProvider.ForceResendingToken,
             ) {
-                Log.d(TAG, "OTP sent successfully ✅")
                 storedVerificationId = verificationId
-                resendToken          = token
+                resendToken = token
                 if (cont.isActive) {
                     cont.resume(Result.success(Unit))
                 }
@@ -94,21 +86,20 @@ class FirebaseAuthManager @Inject constructor() {
             PhoneAuthProvider.verifyPhoneNumber(builder.build())
 
         } catch (e: Exception) {
-            Log.e(TAG, "Exception: ${e.message}")
             if (cont.isActive) {
                 cont.resume(
-                    Result.failure(Exception(e.message ?: "Firebase error"))
+                    Result.failure(Exception(e.message ?: FIREBASE_ERROR))
                 )
             }
         }
 
-        cont.invokeOnCancellation { Log.d(TAG, "Cancelled") }
+        cont.invokeOnCancellation {}
     }
 
     suspend fun verifyOtp(otp: String): Result<String> {
         val verificationId = storedVerificationId
             ?: return Result.failure(
-                Exception("Session expired. Tap Send OTP again.")
+                Exception(SESSION_EXPIRED)
             )
 
         return suspendCancellableCoroutine { cont ->
@@ -124,7 +115,7 @@ class FirebaseAuthManager @Inject constructor() {
                                 cont.resume(Result.success(uid))
                             } else {
                                 cont.resume(
-                                    Result.failure(Exception("Login failed."))
+                                    Result.failure(Exception(LOGIN_FAILED))
                                 )
                             }
                         }
@@ -132,8 +123,9 @@ class FirebaseAuthManager @Inject constructor() {
                     .addOnFailureListener { e ->
                         val msg = when (e) {
                             is FirebaseAuthInvalidCredentialsException ->
-                                "Wrong OTP. Please check and try again."
-                            else -> e.message ?: "Verification failed"
+                                WRONG_OTP
+
+                            else -> e.message ?: VERIFY_FAILED
                         }
                         if (cont.isActive) {
                             cont.resume(Result.failure(Exception(msg)))
@@ -142,7 +134,7 @@ class FirebaseAuthManager @Inject constructor() {
             } catch (e: Exception) {
                 if (cont.isActive) {
                     cont.resume(
-                        Result.failure(Exception(e.message ?: "Error"))
+                        Result.failure(Exception(e.message ?: ERROR))
                     )
                 }
             }
@@ -150,13 +142,13 @@ class FirebaseAuthManager @Inject constructor() {
     }
 
     private fun formatPhone(phone: String): String = when {
-        phone.startsWith("+")                        -> phone
-        phone.startsWith("91") && phone.length == 12 -> "+$phone"
-        phone.length == 10                           -> "+91$phone"
-        else                                         -> "+91$phone"
+        phone.startsWith("+") -> phone
+        phone.startsWith(PHONE_COUNTRY_CODE) && phone.length == 12 -> "+$phone"
+        phone.length == PHONE_LENGTH  -> "$PHONE_COUNTRY_CODE$phone"
+        else -> "$PHONE_COUNTRY_CODE$phone"
     }
 
     fun isSignedIn(): Boolean = auth.currentUser != null
-    fun getUid(): String?     = auth.currentUser?.uid
-    fun signOut()             = auth.signOut()
+    fun getUid(): String? = auth.currentUser?.uid
+    fun signOut() = auth.signOut()
 }

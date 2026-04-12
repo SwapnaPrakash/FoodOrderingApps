@@ -3,27 +3,27 @@ package com.swapna.foodapp.data.local.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.swapna.foodapp.utils.AppConstants
 
-@Entity(tableName = "user")
+@Entity(tableName = AppConstants.TABLE_USER)
 data class UserEntity(
 
     @PrimaryKey
-    @ColumnInfo(name = "id")
+    @ColumnInfo(name = AppConstants.COL_ID)
     val id: String,
 
-    @ColumnInfo(name = "name")
+    @ColumnInfo(name = AppConstants.COL_NAME)
     val name: String,
 
-    @ColumnInfo(name = "email")
+    @ColumnInfo(name = AppConstants.COL_EMAIL)
     val email: String,
 
-    @ColumnInfo(name = "phone")
+    @ColumnInfo(name = AppConstants.COL_PHONE)
     val phone: String,
 
-    @ColumnInfo(name = "profile_image")
+    @ColumnInfo(name = AppConstants.COL_PROFILE_IMAGE)
     val profileImage: String = "",
 
-    // List of Address objects serialized as JSON
-    @ColumnInfo(name = "addresses_json")
+    @ColumnInfo(name = AppConstants.COL_ADDRESSES_JSON)
     val addressesJson: String = "[]",
 )

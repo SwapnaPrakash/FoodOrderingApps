@@ -1,7 +1,12 @@
 package com.swapna.foodapp.domain.repository
 
-import com.swapna.foodapp.domain.model.*
-import com.swapna.foodapp.domain.model.*
+import com.swapna.foodapp.domain.model.Collections
+import com.swapna.foodapp.domain.model.Cuisine
+import com.swapna.foodapp.domain.model.FoodCategory
+import com.swapna.foodapp.domain.model.MenuItem
+import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.domain.model.Review
+import com.swapna.foodapp.domain.model.SearchFilters
 import kotlinx.coroutines.flow.Flow
 
 interface RestaurantRepository {

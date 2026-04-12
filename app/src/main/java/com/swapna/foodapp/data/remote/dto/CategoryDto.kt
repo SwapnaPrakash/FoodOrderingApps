@@ -1,96 +1,109 @@
 package com.swapna.foodapp.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
-
-// ── Categories ────────────────────────────────────────────────
+import com.swapna.foodapp.utils.AppConstants
+import com.swapna.foodapp.utils.AppConstants.KEY_CATEGORY
+import com.swapna.foodapp.utils.AppConstants.KEY_CATEGORY_ID
+import com.swapna.foodapp.utils.AppConstants.KEY_CATEGORY_IMAGE
+import com.swapna.foodapp.utils.AppConstants.KEY_CATEGORY_NAME
+import com.swapna.foodapp.utils.AppConstants.KEY_CITY_ID
+import com.swapna.foodapp.utils.AppConstants.KEY_CITY_NAME
+import com.swapna.foodapp.utils.AppConstants.KEY_CUISINE
+import com.swapna.foodapp.utils.AppConstants.KEY_CUISINES
+import com.swapna.foodapp.utils.AppConstants.KEY_CUISINE_ID
+import com.swapna.foodapp.utils.AppConstants.KEY_CUISINE_NAME
+import com.swapna.foodapp.utils.AppConstants.KEY_ENTITY_ID
+import com.swapna.foodapp.utils.AppConstants.KEY_ENTITY_TYPE
+import com.swapna.foodapp.utils.AppConstants.KEY_ESTABLISHMENT
+import com.swapna.foodapp.utils.AppConstants.KEY_ESTABLISHMENTS
+import com.swapna.foodapp.utils.AppConstants.KEY_ESTABLISHMENT_ID
+import com.swapna.foodapp.utils.AppConstants.KEY_ESTABLISHMENT_NAME
+import com.swapna.foodapp.utils.AppConstants.KEY_LATITUDE
+import com.swapna.foodapp.utils.AppConstants.KEY_LOCATION_SUGGESTIONS
+import com.swapna.foodapp.utils.AppConstants.KEY_LONGITUDE
+import com.swapna.foodapp.utils.AppConstants.KEY_TITLE
 
 data class CategoriesResponse(
-    @SerializedName("categories")
+    @SerializedName(AppConstants.KEY_CATEGORIES)
     val categories: List<CategoryWrapper>,
 )
 
 data class CategoryWrapper(
-    @SerializedName("categories")       // ⚠️ Same key name as outer array — API quirk
+    @SerializedName(KEY_CATEGORY)
     val category: CategoryDto,
 )
 
 data class CategoryDto(
-    @SerializedName("id")
+    @SerializedName(KEY_CATEGORY_ID)
     val id: Int,
 
-    @SerializedName("name")
+    @SerializedName(KEY_CATEGORY_NAME)
     val name: String,
 
-    @SerializedName("image_url")
+    @SerializedName(KEY_CATEGORY_IMAGE)
     val imageUrl: String? = null,
 )
 
-// ── Cuisines ──────────────────────────────────────────────────
-
 data class CuisinesResponse(
-    @SerializedName("cuisines")
+    @SerializedName(KEY_CUISINES)
     val cuisines: List<CuisineWrapper>,
 )
 
 data class CuisineWrapper(
-    @SerializedName("cuisine")
+    @SerializedName(KEY_CUISINE)
     val cuisine: CuisineDto,
 )
 
 data class CuisineDto(
-    @SerializedName("cuisine_id")
+    @SerializedName(KEY_CUISINE_ID)
     val id: Int,
 
-    @SerializedName("cuisine_name")
+    @SerializedName(KEY_CUISINE_NAME)
     val name: String,
 )
 
-// ── Establishments ────────────────────────────────────────────
-
 data class EstablishmentsResponse(
-    @SerializedName("establishments")
+    @SerializedName(KEY_ESTABLISHMENTS)
     val establishments: List<EstablishmentWrapper>,
 )
 
 data class EstablishmentWrapper(
-    @SerializedName("establishment")
+    @SerializedName(KEY_ESTABLISHMENT)
     val establishment: EstablishmentDto,
 )
 
 data class EstablishmentDto(
-    @SerializedName("id")
+    @SerializedName(KEY_ESTABLISHMENT_ID)
     val id: Int,
 
-    @SerializedName("name")
+    @SerializedName(KEY_ESTABLISHMENT_NAME)
     val name: String,
 )
 
-// ── Locations ─────────────────────────────────────────────────
-
 data class LocationSuggestionsResponse(
-    @SerializedName("location_suggestions")
+    @SerializedName(KEY_LOCATION_SUGGESTIONS)
     val suggestions: List<LocationSuggestionDto>,
 )
 
 data class LocationSuggestionDto(
-    @SerializedName("entity_id")
+    @SerializedName(KEY_ENTITY_ID)
     val entityId: Int,
 
-    @SerializedName("entity_type")
-    val entityType: String,         // "city", "subzone"
+    @SerializedName(KEY_ENTITY_TYPE)
+    val entityType: String,
 
-    @SerializedName("title")
-    val title: String,              // "Koramangala, Bengaluru"
+    @SerializedName(KEY_TITLE)
+    val title: String,
 
-    @SerializedName("latitude")
+    @SerializedName(KEY_LATITUDE)
     val latitude: Double,
 
-    @SerializedName("longitude")
+    @SerializedName(KEY_LONGITUDE)
     val longitude: Double,
 
-    @SerializedName("city_id")
+    @SerializedName(KEY_CITY_ID)
     val cityId: Int,
 
-    @SerializedName("city_name")
+    @SerializedName(KEY_CITY_NAME)
     val cityName: String,
 )

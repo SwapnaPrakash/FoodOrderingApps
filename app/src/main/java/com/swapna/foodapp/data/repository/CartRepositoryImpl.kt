@@ -18,50 +18,35 @@ class CartRepositoryImpl @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : CartRepository {
 
-    // Flow — every DB change auto-emits to observers
-    override fun getCartItems(): Flow<List<CartItem>> =
-        cartDao.getAllItems()
-            .map { entities ->
-                entities.map { entityMapper.cartItemToDomain(it) }
-            }
-            .flowOn(ioDispatcher)
+    override fun getCartItems(): Flow<List<CartItem>> = cartDao.getAllItems().map { entities ->
+        entities.map { entityMapper.cartItemToDomain(it) }
+    }.flowOn(ioDispatcher)
 
-    override fun getCartItemCount(): Flow<Int> =
-        cartDao.getItemCount()
-            .flowOn(ioDispatcher)
+    override fun getCartItemCount(): Flow<Int> = cartDao.getItemCount().flowOn(ioDispatcher)
 
-    // Calculates total from Room in real time
-    override fun getCartTotal(): Flow<Double> =
-        cartDao.getAllItems()
-            .map { entities ->
-                entities.sumOf { entity ->
-                    entityMapper.cartItemToDomain(entity).totalPrice
-                }
-            }
-            .flowOn(ioDispatcher)
-
-    override suspend fun addItem(item: CartItem) =
-        withContext(ioDispatcher) {
-            cartDao.insert(entityMapper.cartItemToEntity(item))
+    override fun getCartTotal(): Flow<Double> = cartDao.getAllItems().map { entities ->
+        entities.sumOf { entity ->
+            entityMapper.cartItemToDomain(entity).totalPrice
         }
+    }.flowOn(ioDispatcher)
 
-    override suspend fun updateQuantity(itemId: String, quantity: Int) =
-        withContext(ioDispatcher) {
-            cartDao.updateQuantity(itemId, quantity)
-        }
+    override suspend fun addItem(item: CartItem) = withContext(ioDispatcher) {
+        cartDao.insert(entityMapper.cartItemToEntity(item))
+    }
 
-    override suspend fun removeItem(itemId: String) =
-        withContext(ioDispatcher) {
-            cartDao.deleteById(itemId)
-        }
+    override suspend fun updateQuantity(itemId: String, quantity: Int) = withContext(ioDispatcher) {
+        cartDao.updateQuantity(itemId, quantity)
+    }
 
-    override suspend fun clearCart() =
-        withContext(ioDispatcher) {
-            cartDao.clearAll()
-        }
+    override suspend fun removeItem(itemId: String) = withContext(ioDispatcher) {
+        cartDao.deleteById(itemId)
+    }
 
-    override suspend fun itemExists(menuItemId: String): Boolean =
-        withContext(ioDispatcher) {
-            cartDao.getByMenuItemId(menuItemId) != null
-        }
+    override suspend fun clearCart() = withContext(ioDispatcher) {
+        cartDao.clearAll()
+    }
+
+    override suspend fun itemExists(menuItemId: String): Boolean = withContext(ioDispatcher) {
+        cartDao.getByMenuItemId(menuItemId) != null
+    }
 }

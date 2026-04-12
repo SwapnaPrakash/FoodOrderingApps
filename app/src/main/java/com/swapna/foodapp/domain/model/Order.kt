@@ -5,8 +5,8 @@ data class Order(
     val restaurantId: String,
     val restaurantName: String,
     val restaurantImage: String,
-    val status: String,           // "Delivered", "Cancelled"
-    val timeFriendly: String,     // "Yesterday, 1:45 PM"
+    val status: String,
+    val timeFriendly: String,
     val totalAmount: Double,
     val items: List<OrderItem>,
     val canReorder: Boolean = true,

@@ -35,12 +35,12 @@ class FakeUserRepository : UserRepository {
 
     companion object {
         fun fakeUser() = User(
-            id           = "u_001",
-            name         = "Test User",
-            email        = "test@foodapp.com",
-            phone        = "9876543210",
+            id = "u_001",
+            name = "Test User",
+            email = "test@foodapp.com",
+            phone = "9876543210",
             profileImage = "",
-            addresses    = emptyList(),
+            addresses = emptyList(),
         )
     }
 }

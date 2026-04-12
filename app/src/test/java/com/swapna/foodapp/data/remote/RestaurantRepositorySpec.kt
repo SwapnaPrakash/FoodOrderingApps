@@ -1,64 +1,64 @@
-package com.swapna.foodapp.data
+package com.swapna.foodapp.data.remote
 
+import com.swapna.foodapp.data.local.dao.MenuItemDao
+import com.swapna.foodapp.data.local.dao.RestaurantDao
 import com.swapna.foodapp.data.local.entity.RestaurantEntity
+import com.swapna.foodapp.data.mapper.EntityMapper
+import com.swapna.foodapp.data.mapper.MenuMapper
+import com.swapna.foodapp.data.mapper.RestaurantMapper
+import com.swapna.foodapp.data.remote.api.FoodApi
 import com.swapna.foodapp.data.remote.dto.CategoriesResponse
 import com.swapna.foodapp.data.remote.dto.CategoryDto
 import com.swapna.foodapp.data.remote.dto.CategoryWrapper
+import com.swapna.foodapp.data.remote.dto.CollectionDto
+import com.swapna.foodapp.data.remote.dto.CollectionWrapper
+import com.swapna.foodapp.data.remote.dto.CollectionsResponse
 import com.swapna.foodapp.data.remote.dto.GeocodeResponse
 import com.swapna.foodapp.data.remote.dto.LocationDto
 import com.swapna.foodapp.data.remote.dto.RatingDto
 import com.swapna.foodapp.data.remote.dto.RestaurantDto
 import com.swapna.foodapp.data.remote.dto.RestaurantWrapper
 import com.swapna.foodapp.data.remote.dto.SearchResponse
-import com.swapna.foodapp.data.local.dao.MenuItemDao
-import com.swapna.foodapp.data.local.dao.RestaurantDao
-import com.swapna.foodapp.data.mapper.EntityMapper
-import com.swapna.foodapp.data.mapper.MenuMapper
-import com.swapna.foodapp.data.mapper.RestaurantMapper
-import com.swapna.foodapp.data.remote.api.FoodApi
-import com.swapna.foodapp.data.remote.dto.CollectionDto
-import com.swapna.foodapp.data.remote.dto.CollectionWrapper
-import com.swapna.foodapp.data.remote.dto.CollectionsResponse
 import com.swapna.foodapp.data.repository.RestaurantRepositoryImpl
 import com.swapna.foodapp.domain.model.SearchFilters
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import java.io.IOException
-import io.mockk.clearAllMocks
-import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.just
-import io.mockk.Runs
-import kotlinx.coroutines.flow.flowOf
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RestaurantRepositorySpec : FunSpec({
 
-    val api           = mockk<FoodApi>()
+    val api = mockk<FoodApi>()
     val restaurantDao = mockk<RestaurantDao>()
-    val menuItemDao   = mockk<MenuItemDao>()
+    val menuItemDao = mockk<MenuItemDao>()
     val restaurantMapper = RestaurantMapper()
-    val menuMapper       = MenuMapper()
-    val entityMapper     = EntityMapper()
+    val menuMapper = MenuMapper()
+    val entityMapper = EntityMapper()
 
     fun createRepo() = RestaurantRepositoryImpl(
-        api              = api,
-        restaurantDao    = restaurantDao,
-        menuItemDao      = menuItemDao,
+        api = api,
+        restaurantDao = restaurantDao,
+        menuItemDao = menuItemDao,
         restaurantMapper = restaurantMapper,
-        menuMapper       = menuMapper,
-        entityMapper     = entityMapper,
-        ioDispatcher     = UnconfinedTestDispatcher(),
+        menuMapper = menuMapper,
+        entityMapper = entityMapper,
+        ioDispatcher = UnconfinedTestDispatcher(),
     )
 
     beforeEach {
@@ -66,23 +66,20 @@ class RestaurantRepositorySpec : FunSpec({
         Dispatchers.setMain(UnconfinedTestDispatcher())
 
         every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
-        coEvery { restaurantDao.insertAll(any()) }  just Runs
-        coEvery { restaurantDao.insert(any()) }     just Runs
-        coEvery { restaurantDao.getById(any()) }    returns null
-        coEvery { restaurantDao.count() }           returns 0
+        coEvery { restaurantDao.insertAll(any()) } just Runs
+        coEvery { restaurantDao.insert(any()) } just Runs
+        coEvery { restaurantDao.getById(any()) } returns null
+        coEvery { restaurantDao.count() } returns 0
         coEvery { menuItemDao.getMenuByRestaurant(any()) } returns flowOf(emptyList())
-        coEvery { menuItemDao.insertAll(any()) }           just Runs
-        coEvery { menuItemDao.clearForRestaurant(any()) }  just Runs
+        coEvery { menuItemDao.insertAll(any()) } just Runs
+        coEvery { menuItemDao.clearForRestaurant(any()) } just Runs
     }
 
     afterEach {
         Dispatchers.resetMain()
     }
 
-    // ══════════════════════════════════════════════════════════
     // getNearbyRestaurants
-    // ══════════════════════════════════════════════════════════
-
     test("getNearbyRestaurants: emits cached data when Room has restaurants") {
         // Pre-populate mock DAO with cached entity
         val entity = fakeRestaurantEntity("r1", "Meghana Foods")
@@ -140,15 +137,12 @@ class RestaurantRepositorySpec : FunSpec({
         emissions.last() shouldBe "New Name"
     }
 
-    // ══════════════════════════════════════════════════════════
     // getCollections
-    // ══════════════════════════════════════════════════════════
-
     test("getCollections: returns mapped collections from API") {
         coEvery { api.getCollections() } returns CollectionsResponse(
             collections = listOf(
                 CollectionWrapper(CollectionDto(1, "Trending", "Hot", "", 20, "60% OFF")),
-                CollectionWrapper(CollectionDto(2, "New",      "Fresh", "", 10, "Free Delivery")),
+                CollectionWrapper(CollectionDto(2, "New", "Fresh", "", 10, "Free Delivery")),
             )
         )
 
@@ -170,10 +164,7 @@ class RestaurantRepositorySpec : FunSpec({
         result.getOrNull()!!.shouldBeEmpty()
     }
 
-    // ══════════════════════════════════════════════════════════
     // getCategories
-    // ══════════════════════════════════════════════════════════
-
     test("getCategories: returns mapped categories from API") {
         coEvery { api.getCategories() } returns fakeCategoriesResponse()
 
@@ -193,10 +184,7 @@ class RestaurantRepositorySpec : FunSpec({
         result.getOrNull()!!.shouldBeEmpty()
     }
 
-    // ══════════════════════════════════════════════════════════
     // getRestaurantDetail
-    // ══════════════════════════════════════════════════════════
-
     test("getRestaurantDetail: serves cached restaurant first") {
         val entity = fakeRestaurantEntity("r1", "Meghana Foods")
         coEvery { restaurantDao.getById("r1") } returns entity
@@ -229,10 +217,7 @@ class RestaurantRepositorySpec : FunSpec({
         coVerify { restaurantDao.insert(match { it.name == "Fresh Restaurant" }) }
     }
 
-    // ══════════════════════════════════════════════════════════
     // searchRestaurants
-    // ══════════════════════════════════════════════════════════
-
     test("searchRestaurants: returns results from API") {
         every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
         coEvery { api.searchRestaurants() } returns fakeSearchResponse(
@@ -266,42 +251,42 @@ class RestaurantRepositorySpec : FunSpec({
     }
 })
 
-// ── Test helper functions ──────────────────────────────────────
+// ── Test helper functions
 
 fun fakeRestaurantEntity(id: String, name: String) = RestaurantEntity(
-    id              = id,
-    name            = name,
-    imageUrl        = "",
-    thumbUrl        = "",
-    rating          = 4.2,
-    ratingText      = "Very Good",
-    ratingColor     = "5BA829",
-    totalVotes      = 100,
+    id = id,
+    name = name,
+    imageUrl = "",
+    thumbUrl = "",
+    rating = 4.2,
+    ratingText = "Very Good",
+    ratingColor = "5BA829",
+    totalVotes = 100,
     avgDeliveryTime = 30,
-    deliveryFee     = 30.0,
-    minOrder        = 0,
-    cuisinesJson    = "[\"Biryani\"]",
-    address         = "Bengaluru",
-    locality        = "Koramangala",
-    isOpen          = true,
-    hasDelivery     = true,
+    deliveryFee = 30.0,
+    minOrder = 0,
+    cuisinesJson = "[\"Biryani\"]",
+    address = "Bengaluru",
+    locality = "Koramangala",
+    isOpen = true,
+    hasDelivery = true,
 )
 
 fun fakeRestaurantDto(id: String, name: String) = RestaurantDto(
-    id              = id,
-    name            = name,
-    featuredImage   = "",
-    thumb           = "",
-    location        = LocationDto("Bengaluru", "Koramangala", "Bengaluru", 4, "12.93", "77.62", "560095"),
-    cuisines        = "Biryani, South Indian",
-    avgCostForTwo   = 600,
-    priceRange      = 2,
-    currency        = "Rs.",
-    rating          = RatingDto("4.2", "Very Good", "5BA829", "1000"),
-    hasDelivery     = 1,
+    id = id,
+    name = name,
+    featuredImage = "",
+    thumb = "",
+    location = LocationDto("Bengaluru", "Koramangala", "Bengaluru", 4, "12.93", "77.62", "560095"),
+    cuisines = "Biryani, South Indian",
+    avgCostForTwo = 600,
+    priceRange = 2,
+    currency = "Rs.",
+    rating = RatingDto("4.2", "Very Good", "5BA829", "1000"),
+    hasDelivery = 1,
     isDeliveringNow = 1,
-    deliveryTime    = 30,
-    minOrder        = 100,
+    deliveryTime = 30,
+    minOrder = 100,
 )
 
 fun fakeGeocodeResponse(restaurants: List<Pair<String, String>>) = GeocodeResponse(
@@ -312,8 +297,8 @@ fun fakeGeocodeResponse(restaurants: List<Pair<String, String>>) = GeocodeRespon
 )
 
 fun fakeSearchResponse(restaurants: List<Pair<String, String>>) = SearchResponse(
-    totalFound  = restaurants.size,
-    shown       = restaurants.size,
+    totalFound = restaurants.size,
+    shown = restaurants.size,
     restaurants = restaurants.map { (id, name) ->
         RestaurantWrapper(fakeRestaurantDto(id, name))
     },

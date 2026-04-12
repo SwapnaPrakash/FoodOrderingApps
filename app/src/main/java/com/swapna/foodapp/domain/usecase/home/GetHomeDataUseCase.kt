@@ -17,9 +17,9 @@ class GetHomeDataUseCase @Inject constructor(
         ) { collectionsResult, categoriesResult, restaurantsResult ->
             Result.success(
                 HomeData(
-                    collections  = collectionsResult.getOrDefault(emptyList()),
-                    categories   = categoriesResult.getOrDefault(emptyList()),
-                    restaurants  = restaurantsResult.getOrDefault(emptyList()),
+                    collections = collectionsResult.getOrDefault(emptyList()),
+                    categories = categoriesResult.getOrDefault(emptyList()),
+                    restaurants = restaurantsResult.getOrDefault(emptyList()),
                 )
             )
         }

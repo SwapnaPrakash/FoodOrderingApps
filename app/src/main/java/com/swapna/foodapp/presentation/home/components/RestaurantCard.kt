@@ -23,13 +23,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.presentation.common.RatingBadge
 import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
-import com.swapna.foodapp.presentation.common.RatingBadge
+import com.swapna.foodapp.utils.AppConstants.DELIVERY
+import com.swapna.foodapp.utils.AppConstants.DELIVERY_TIME
 
 @Composable
 fun RestaurantCard(
@@ -45,12 +46,11 @@ fun RestaurantCard(
     ) {
         Spacer(Modifier.height(Dimens.SpaceM))
 
-        // ── Restaurant Banner Image ────────────────────────────
         AsyncImage(
-            model              = restaurant.imageUrl,
+            model = restaurant.imageUrl,
             contentDescription = restaurant.name,
-            contentScale       = ContentScale.Crop,
-            modifier           = Modifier
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
                 .fillMaxWidth()
                 .height(Dimens.RestaurantCardHeight)
                 .clip(RoundedCornerShape(Dimens.RadiusM)),
@@ -58,71 +58,65 @@ fun RestaurantCard(
 
         Spacer(Modifier.height(Dimens.SpaceS))
 
-        // ── Restaurant Info ───────────────────────────────────
         Row(
-            modifier          = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Name — takes all available space
             Text(
-                text       = restaurant.name,
-                style      = MaterialTheme.typography.titleLarge,
+                text = restaurant.name,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis,
-                modifier   = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
             )
 
             Spacer(Modifier.width(Dimens.SpaceS))
 
-            // Rating badge — colored background
             RatingBadge(rating = restaurant.rating)
         }
 
         Spacer(Modifier.height(Dimens.SpaceXS))
 
-        // ── Cuisines ──────────────────────────────────────────
         Text(
-            text     = restaurant.cuisines.joinToString(", "),
-            style    = MaterialTheme.typography.bodySmall,
-            color    = AppGray,
+            text = restaurant.cuisines.joinToString(", "),
+            style = MaterialTheme.typography.bodySmall,
+            color = AppGray,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
 
         Spacer(Modifier.height(Dimens.SpaceXS))
 
-        // ── Delivery info row ─────────────────────────────────
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                imageVector        = Icons.Default.AccessTime,
-                contentDescription = "Delivery time",
-                tint               = AppGray,
+                imageVector = Icons.Default.AccessTime,
+                contentDescription = DELIVERY_TIME,
+                tint = AppGray,
                 modifier = Modifier.size(Dimens.IconXXS),
             )
             Spacer(Modifier.width(Dimens.SpaceXS))
             Text(
-                text  = "${restaurant.avgDeliveryTime} min",
+                text = "${restaurant.avgDeliveryTime} min",
                 style = MaterialTheme.typography.bodySmall,
                 color = AppGray,
             )
             Text(
-                text  = "  •  ",
+                text = "  •  ",
                 style = MaterialTheme.typography.bodySmall,
                 color = AppGray,
             )
             Text(
-                text  = "₹${restaurant.deliveryFee.toInt()} delivery",
+                text = "₹${restaurant.deliveryFee.toInt()} $DELIVERY",
                 style = MaterialTheme.typography.bodySmall,
                 color = AppGray,
             )
         }
 
-        // ── Offer Tag ─────────────────────────────────────────
         if (restaurant.offers.isNotEmpty()) {
             Spacer(Modifier.height(Dimens.SpaceXS))
             Text(
-                text  = "🏷 ${restaurant.offers.first()}",
+                text = "🏷 ${restaurant.offers.first()}",
                 style = MaterialTheme.typography.labelMedium,
                 color = ZomatoRed,
                 fontWeight = FontWeight.Medium,

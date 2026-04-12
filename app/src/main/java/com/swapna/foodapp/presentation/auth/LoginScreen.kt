@@ -51,14 +51,26 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import com.swapna.foodapp.presentation.navigation.AppRoutes
+import com.swapna.foodapp.presentation.ui.theme.AppGray
+import com.swapna.foodapp.presentation.ui.theme.AppLightGray
+import com.swapna.foodapp.presentation.ui.theme.AppWhite
 import com.swapna.foodapp.presentation.ui.theme.Dimens
-import com.swapna.foodapp.presentation.ui.theme.*
+import com.swapna.foodapp.presentation.ui.theme.ErrorRed
+import com.swapna.foodapp.presentation.ui.theme.ErrorRedBg
+import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.ENTER_MOB_NUM
+import com.swapna.foodapp.utils.AppConstants.ERROR
+import com.swapna.foodapp.utils.AppConstants.LOGIN
+import com.swapna.foodapp.utils.AppConstants.PHONE
+import com.swapna.foodapp.utils.AppConstants.PHONE_DIG
+import com.swapna.foodapp.utils.AppConstants.PHONE_NUMBER
+import com.swapna.foodapp.utils.AppConstants.PHONE_OTP
+import com.swapna.foodapp.utils.AppConstants.RESEND_OTP
+import com.swapna.foodapp.utils.AppConstants.SEND_OTP
+import com.swapna.foodapp.utils.AppConstants.SENT_OTP
+import com.swapna.foodapp.utils.AppConstants.VERIFY_OTP
 import com.swapna.foodapp.utils.LoginTestTags
 
 @Composable
@@ -66,13 +78,13 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     viewModel: AuthViewModel,
 ) {
-    val state        by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHost = remember { SnackbarHostState() }
 
     var phone by rememberSaveable { mutableStateOf("") }
-    var otp   by rememberSaveable { mutableStateOf("") }
+    var otp by rememberSaveable { mutableStateOf("") }
 
-    // ✅ Navigate via callback — not navController directly
+    // Navigate via callback — not navController directly
     LaunchedEffect(state) {
         if (state is AuthViewModel.AuthState.Success) {
             onLoginSuccess()
@@ -80,16 +92,16 @@ fun LoginScreen(
     }
 
     Scaffold(
-        modifier     = Modifier.testTag(LoginTestTags.SCREEN_ROOT),
+        modifier = Modifier.testTag(LoginTestTags.SCREEN_ROOT),
         snackbarHost = {
             SnackbarHost(snackbarHost) { data ->
                 Snackbar(
-                    snackbarData   = data,
+                    snackbarData = data,
                     containerColor = Color(0xFF323232),
-                    contentColor   = AppWhite,
-                    actionColor    = ZomatoRed,
-                    shape          = RoundedCornerShape(Dimens.RadiusM),
-                    modifier       = Modifier.padding(Dimens.SpaceM),
+                    contentColor = AppWhite,
+                    actionColor = ZomatoRed,
+                    shape = RoundedCornerShape(Dimens.RadiusM),
+                    modifier = Modifier.padding(Dimens.SpaceM),
                 )
             }
         },
@@ -102,14 +114,14 @@ fun LoginScreen(
                 .padding(paddingValues)
                 .padding(horizontal = Dimens.SpaceXXL)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement    = Arrangement.Center,
-            horizontalAlignment    = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
             Spacer(Modifier.height(Dimens.Space64))
 
             Text(
-                text     = "🍔",
+                text = "🍔",
                 fontSize = 64.sp,
                 modifier = Modifier.testTag(LoginTestTags.LOGO),
             )
@@ -117,20 +129,20 @@ fun LoginScreen(
             Spacer(Modifier.height(Dimens.Space32))
 
             Text(
-                text       = "Login",
-                style      = MaterialTheme.typography.displaySmall,
+                text = LOGIN,
+                style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                modifier   = Modifier.testTag(LoginTestTags.TITLE),
+                modifier = Modifier.testTag(LoginTestTags.TITLE),
             )
 
             Spacer(Modifier.height(Dimens.SpaceS))
 
             Text(
-                text      = "Enter your mobile number to continue",
-                style     = MaterialTheme.typography.bodyMedium,
-                color     = AppGray,
+                text = ENTER_MOB_NUM,
+                style = MaterialTheme.typography.bodyMedium,
+                color = AppGray,
                 textAlign = TextAlign.Center,
-                modifier  = Modifier.testTag(LoginTestTags.SUBTITLE),
+                modifier = Modifier.testTag(LoginTestTags.SUBTITLE),
             )
 
             Spacer(Modifier.height(Dimens.SpaceXXL))
@@ -139,27 +151,28 @@ fun LoginScreen(
                     && otp.isEmpty()
 
             OutlinedTextField(
-                value         = phone,
+                value = phone,
                 onValueChange = { input ->
                     if (input.length <= 10 &&
-                        input.all { it.isDigit() }) {
+                        input.all { it.isDigit() }
+                    ) {
                         phone = input
                         if (state is AuthViewModel.AuthState.Error) {
                             viewModel.resetState()
                         }
                     }
                 },
-                label       = { Text("Phone Number") },
-                prefix      = {
+                label = { Text(PHONE_NUMBER) },
+                prefix = {
                     Text(
-                        text  = "+91  ",
+                        text = PHONE_DIG,
                         color = if (isPhoneError) ErrorRed else AppGray,
                     )
                 },
                 leadingIcon = {
                     Icon(
-                        imageVector        = Icons.Default.Phone,
-                        contentDescription = "Phone",
+                        imageVector = Icons.Default.Phone,
+                        contentDescription = PHONE,
                         tint = if (isPhoneError) ErrorRed else AppGray,
                     )
                 },
@@ -167,18 +180,18 @@ fun LoginScreen(
                     keyboardType = KeyboardType.Phone,
                 ),
                 singleLine = true,
-                isError    = isPhoneError,
-                enabled    = state !is AuthViewModel.AuthState.OtpSent
+                isError = isPhoneError,
+                enabled = state !is AuthViewModel.AuthState.OtpSent
                         && state !is AuthViewModel.AuthState.Loading,
-                colors     = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor      = ZomatoRed,
-                    unfocusedBorderColor    = AppGray.copy(alpha = 0.5f),
-                    errorBorderColor        = ErrorRed,
-                    errorLabelColor         = ErrorRed,
-                    errorLeadingIconColor   = ErrorRed,
-                    disabledBorderColor     = AppGray.copy(alpha = 0.3f),
-                    disabledLabelColor      = AppGray.copy(alpha = 0.5f),
-                    disabledPrefixColor     = AppGray.copy(alpha = 0.5f),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = ZomatoRed,
+                    unfocusedBorderColor = AppGray.copy(alpha = 0.5f),
+                    errorBorderColor = ErrorRed,
+                    errorLabelColor = ErrorRed,
+                    errorLeadingIconColor = ErrorRed,
+                    disabledBorderColor = AppGray.copy(alpha = 0.3f),
+                    disabledLabelColor = AppGray.copy(alpha = 0.5f),
+                    disabledPrefixColor = AppGray.copy(alpha = 0.5f),
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,37 +201,37 @@ fun LoginScreen(
             AnimatedVisibility(
                 visible = state is AuthViewModel.AuthState.Error
                         && otp.isEmpty(),
-                enter   = fadeIn() + expandVertically(),
-                exit    = fadeOut() + shrinkVertically(),
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
             ) {
                 val errorMsg = (state as? AuthViewModel.AuthState.Error)
                     ?.message ?: ""
                 Spacer(Modifier.height(Dimens.SpaceS))
                 Surface(
-                    color    = ErrorRedBg,
-                    shape    = RoundedCornerShape(Dimens.RadiusS),
+                    color = ErrorRedBg,
+                    shape = RoundedCornerShape(Dimens.RadiusS),
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(LoginTestTags.PHONE_ERROR_CARD),
                 ) {
                     Row(
-                        modifier          = Modifier.padding(
+                        modifier = Modifier.padding(
                             horizontal = Dimens.SpaceM,
-                            vertical   = Dimens.SpaceS,
+                            vertical = Dimens.SpaceS,
                         ),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            imageVector        = Icons.Default.ErrorOutline,
-                            contentDescription = "Error",
-                            tint               = ErrorRed,
-                            modifier           = Modifier.size(Dimens.IconS),
+                            imageVector = Icons.Default.ErrorOutline,
+                            contentDescription = ERROR,
+                            tint = ErrorRed,
+                            modifier = Modifier.size(Dimens.IconS),
                         )
                         Spacer(Modifier.width(Dimens.SpaceS))
                         Text(
-                            text       = errorMsg,
-                            style      = MaterialTheme.typography.bodySmall,
-                            color      = ErrorRed,
+                            text = errorMsg,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ErrorRed,
                             fontWeight = FontWeight.Medium,
                         )
                     }
@@ -231,8 +244,8 @@ fun LoginScreen(
                         && otp.isNotEmpty())
                         || (state is AuthViewModel.AuthState.Loading
                         && otp.isNotEmpty()),
-                enter   = fadeIn() + expandVertically(),
-                exit    = fadeOut() + shrinkVertically(),
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
             ) {
                 Column {
                     Spacer(Modifier.height(Dimens.SpaceL))
@@ -241,28 +254,29 @@ fun LoginScreen(
                             && otp.isNotEmpty()
 
                     OutlinedTextField(
-                        value         = otp,
+                        value = otp,
                         onValueChange = { input ->
                             if (input.length <= 6 &&
-                                input.all { it.isDigit() }) {
+                                input.all { it.isDigit() }
+                            ) {
                                 otp = input
                                 if (state is AuthViewModel.AuthState.Error) {
                                     viewModel.resetState()
                                 }
                             }
                         },
-                        label           = { Text("Enter 6-digit OTP") },
+                        label = { Text(PHONE_OTP) },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.NumberPassword,
                         ),
                         singleLine = true,
-                        isError    = isOtpError,
-                        enabled    = state !is AuthViewModel.AuthState.Loading,
-                        colors     = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor   = ZomatoRed,
+                        isError = isOtpError,
+                        enabled = state !is AuthViewModel.AuthState.Loading,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = ZomatoRed,
                             unfocusedBorderColor = AppGray.copy(alpha = 0.5f),
-                            errorBorderColor     = ErrorRed,
-                            errorLabelColor      = ErrorRed,
+                            errorBorderColor = ErrorRed,
+                            errorLabelColor = ErrorRed,
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -271,15 +285,15 @@ fun LoginScreen(
 
                     AnimatedVisibility(
                         visible = isOtpError,
-                        enter   = fadeIn() + expandVertically(),
-                        exit    = fadeOut() + shrinkVertically(),
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically(),
                     ) {
                         val otpError = (state as? AuthViewModel.AuthState.Error)
                             ?.message ?: ""
                         Spacer(Modifier.height(Dimens.SpaceS))
                         Surface(
-                            color    = ErrorRedBg,
-                            shape    = RoundedCornerShape(Dimens.RadiusS),
+                            color = ErrorRedBg,
+                            shape = RoundedCornerShape(Dimens.RadiusS),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .testTag(LoginTestTags.OTP_ERROR_CARD),
@@ -287,21 +301,21 @@ fun LoginScreen(
                             Row(
                                 modifier = Modifier.padding(
                                     horizontal = Dimens.SpaceM,
-                                    vertical   = Dimens.SpaceS,
+                                    vertical = Dimens.SpaceS,
                                 ),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Icon(
-                                    imageVector        = Icons.Default.ErrorOutline,
-                                    contentDescription = "Error",
-                                    tint               = ErrorRed,
-                                    modifier           = Modifier.size(Dimens.IconS),
+                                    imageVector = Icons.Default.ErrorOutline,
+                                    contentDescription = ERROR,
+                                    tint = ErrorRed,
+                                    modifier = Modifier.size(Dimens.IconS),
                                 )
                                 Spacer(Modifier.width(Dimens.SpaceS))
                                 Text(
-                                    text       = otpError,
-                                    style      = MaterialTheme.typography.bodySmall,
-                                    color      = ErrorRed,
+                                    text = otpError,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = ErrorRed,
                                     fontWeight = FontWeight.Medium,
                                 )
                             }
@@ -309,19 +323,19 @@ fun LoginScreen(
                     }
 
                     Row(
-                        modifier              = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                     ) {
                         TextButton(
-                            onClick  = {
+                            onClick = {
                                 otp = ""
                                 viewModel.sendOtp(phone)
                             },
-                            enabled  = state !is AuthViewModel.AuthState.Loading,
+                            enabled = state !is AuthViewModel.AuthState.Loading,
                             modifier = Modifier.testTag(LoginTestTags.RESEND_BUTTON),
                         ) {
                             Text(
-                                text  = "Resend OTP",
+                                text = RESEND_OTP,
                                 color = ZomatoRed,
                                 style = MaterialTheme.typography.labelLarge,
                             )
@@ -329,8 +343,8 @@ fun LoginScreen(
                     }
 
                     Surface(
-                        color    = Color(0xFFE8FAF0),
-                        shape    = RoundedCornerShape(Dimens.RadiusS),
+                        color = Color(0xFFE8FAF0),
+                        shape = RoundedCornerShape(Dimens.RadiusS),
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag(LoginTestTags.SUCCESS_CARD),
@@ -338,16 +352,16 @@ fun LoginScreen(
                         Row(
                             modifier = Modifier.padding(
                                 horizontal = Dimens.SpaceM,
-                                vertical   = Dimens.SpaceS,
+                                vertical = Dimens.SpaceS,
                             ),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(text = "✅", fontSize = 14.sp)
                             Spacer(Modifier.width(Dimens.SpaceS))
                             Text(
-                                text       = "OTP sent to +91 $phone",
-                                style      = MaterialTheme.typography.bodySmall,
-                                color      = Color(0xFF1B8A3E),
+                                text = "$SENT_OTP $phone",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF1B8A3E),
                                 fontWeight = FontWeight.Medium,
                             )
                         }
@@ -362,6 +376,7 @@ fun LoginScreen(
                     when (state) {
                         is AuthViewModel.AuthState.OtpSent ->
                             viewModel.verifyOtp(otp)
+
                         else ->
                             viewModel.sendOtp(phone)
                     }
@@ -370,30 +385,30 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(Dimens.ButtonHeight)
                     .testTag(LoginTestTags.AUTH_BUTTON),
-                colors  = ButtonDefaults.buttonColors(
-                    containerColor         = ZomatoRed,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ZomatoRed,
                     disabledContainerColor = AppLightGray,
                 ),
-                shape   = RoundedCornerShape(Dimens.RadiusM),
+                shape = RoundedCornerShape(Dimens.RadiusM),
                 enabled = state !is AuthViewModel.AuthState.Loading,
             ) {
                 if (state is AuthViewModel.AuthState.Loading) {
                     CircularProgressIndicator(
-                        color       = AppWhite,
-                        modifier    = Modifier
+                        color = AppWhite,
+                        modifier = Modifier
                             .size(Dimens.IconM)
                             .testTag(LoginTestTags.LOADING_INDICATOR),
                         strokeWidth = Dimens.SpaceXS,
                     )
                 } else {
                     Text(
-                        text       = when (state) {
-                            is AuthViewModel.AuthState.OtpSent -> "Verify OTP"
-                            else                               -> "Send OTP"
+                        text = when (state) {
+                            is AuthViewModel.AuthState.OtpSent -> VERIFY_OTP
+                            else -> SEND_OTP
                         },
-                        style      = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color      = AppWhite,
+                        color = AppWhite,
                     )
                 }
             }

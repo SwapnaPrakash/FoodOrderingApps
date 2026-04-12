@@ -3,34 +3,27 @@ package com.swapna.foodapp.data.local.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.swapna.foodapp.utils.AppConstants
 
-@Entity(tableName = "cart_items")
+@Entity(tableName = AppConstants.TABLE_CART_ITEMS)
 data class CartItemEntity(
 
-    // UUID generated in AddToCartUseCase
     @PrimaryKey
-    @ColumnInfo(name = "id")
+    @ColumnInfo(name = AppConstants.COL_ID)
     val id: String,
 
-    // Needed to check if same item already in cart
-    @ColumnInfo(name = "menu_item_id")
+    @ColumnInfo(name = AppConstants.COL_MENU_ITEM_ID)
     val menuItemId: String,
 
-    // Full MenuItem serialized as JSON string
-    // Reason: MenuItem has nested objects (customisations)
-    // Storing as JSON is simpler than separate tables
-    @ColumnInfo(name = "menu_item_json")
+    @ColumnInfo(name = AppConstants.COL_MENU_ITEM_JSON)
     val menuItemJson: String,
 
-    @ColumnInfo(name = "quantity")
+    @ColumnInfo(name = AppConstants.COL_QUANTITY)
     val quantity: Int,
 
-    // Selected customisations serialized as JSON
-    // e.g. [{"id":"o2","label":"Large","extraPrice":80.0}]
-    @ColumnInfo(name = "customisations_json")
+    @ColumnInfo(name = AppConstants.COL_CUSTOMISATIONS_JSON)
     val customisationsJson: String = "[]",
 
-    // Used to maintain order items were added
-    @ColumnInfo(name = "added_at")
+    @ColumnInfo(name = AppConstants.COL_ADDED_AT)
     val addedAt: Long = System.currentTimeMillis(),
 )

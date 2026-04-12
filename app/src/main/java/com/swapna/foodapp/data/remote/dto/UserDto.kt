@@ -1,140 +1,137 @@
 package com.swapna.foodapp.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
+import com.swapna.foodapp.utils.AppConstants
 
 data class UserResponse(
-    @SerializedName("user")
+    @SerializedName(AppConstants.KEY_USER)
     val user: UserDto,
 )
 
 data class UserDto(
-    @SerializedName("id")
+    @SerializedName(AppConstants.KEY_ID)
     val id: String,
 
-    @SerializedName("name")
+    @SerializedName(AppConstants.KEY_NAME)
     val name: String,
 
-    @SerializedName("email")
+    @SerializedName(AppConstants.KEY_EMAIL)
     val email: String,
 
-    @SerializedName("phone")
+    @SerializedName(AppConstants.KEY_PHONE)
     val phone: String,
 
-    @SerializedName("profile_image")
+    @SerializedName(AppConstants.KEY_PROFILE_IMAGE)
     val profileImage: String? = null,
 
-    @SerializedName("addresses")
+    @SerializedName(AppConstants.KEY_ADDRESSES)
     val addresses: List<AddressDto>? = null,
 )
 
 data class AddressDto(
-    @SerializedName("id")
+    @SerializedName(AppConstants.KEY_ID)
     val id: String,
 
-    @SerializedName("label")
+    @SerializedName(AppConstants.KEY_LABEL)
     val label: String,
 
-    @SerializedName("full_address")
+    @SerializedName(AppConstants.KEY_FULL_ADDRESS)
     val fullAddress: String,
 
-    @SerializedName("landmark")
+    @SerializedName(AppConstants.KEY_LANDMARK)
     val landmark: String? = null,
 
-    @SerializedName("latitude")
+    @SerializedName(AppConstants.KEY_LATITUDE)
     val latitude: Double = 0.0,
 
-    @SerializedName("longitude")
+    @SerializedName(AppConstants.KEY_LONGITUDE)
     val longitude: Double = 0.0,
 )
 
-// ── Orders ────────────────────────────────────────────────────
-
 data class OrdersResponse(
-    @SerializedName("orders")
+    @SerializedName(AppConstants.KEY_ORDERS)
     val orders: List<OrderWrapper>,
 )
 
 data class OrderWrapper(
-    @SerializedName("order")
+    @SerializedName(AppConstants.KEY_ORDER)
     val order: OrderDto,
 )
 
 data class OrderDto(
-    @SerializedName("id")
+    @SerializedName(AppConstants.KEY_ID)
     val id: String,
 
-    @SerializedName("restaurant_id")
+    @SerializedName(AppConstants.KEY_RESTAURANT_ID)
     val restaurantId: String,
 
-    @SerializedName("restaurant_name")
+    @SerializedName(AppConstants.KEY_RESTAURANT_NAME)
     val restaurantName: String,
 
-    @SerializedName("restaurant_image")
+    @SerializedName(AppConstants.KEY_RESTAURANT_IMAGE)
     val restaurantImage: String,
 
-    @SerializedName("status")
+    @SerializedName(AppConstants.KEY_STATUS)
     val status: String,
 
-    @SerializedName("time_friendly")
+    @SerializedName(AppConstants.KEY_TIME_FRIENDLY)
     val timeFriendly: String,
 
-    @SerializedName("total_amount")
+    @SerializedName(AppConstants.KEY_TOTAL_AMOUNT)
     val totalAmount: Double,
 
-    @SerializedName("items")
+    @SerializedName(AppConstants.KEY_ITEMS)
     val items: List<OrderItemDto>,
 
-    @SerializedName("can_reorder")
+    @SerializedName(AppConstants.KEY_CAN_REORDER)
     val canReorder: Boolean = true,
 )
 
 data class OrderItemDto(
-    @SerializedName("name")
+    @SerializedName(AppConstants.KEY_NAME)
     val name: String,
 
-    @SerializedName("quantity")
+    @SerializedName(AppConstants.KEY_QUANTITY)
     val quantity: Int,
 
-    @SerializedName("price")
+    @SerializedName(AppConstants.KEY_PRICE)
     val price: Double,
 )
 
-// ── Reviews ───────────────────────────────────────────────────
-
 data class ReviewsResponse(
-    @SerializedName("reviews_count")
+    @SerializedName(AppConstants.KEY_REVIEWS_COUNT)
     val totalCount: Int,
 
-    @SerializedName("user_reviews")
+    @SerializedName(AppConstants.KEY_USER_REVIEWS)
     val reviews: List<ReviewWrapper>,
 )
 
 data class ReviewWrapper(
-    @SerializedName("review")
+    @SerializedName(AppConstants.KEY_REVIEW)
     val review: ReviewDto,
 )
 
 data class ReviewDto(
-    @SerializedName("id")
+    @SerializedName(AppConstants.KEY_ID)
     val id: Long,
 
-    @SerializedName("rating")
+    @SerializedName(AppConstants.KEY_RATING)
     val rating: Int,
 
-    @SerializedName("review_text")
+    @SerializedName(AppConstants.KEY_REVIEW_TEXT)
     val text: String,
 
-    @SerializedName("review_time_friendly")
+    @SerializedName(AppConstants.KEY_REVIEW_TIME)
     val timeAgo: String,
 
-    @SerializedName("user")
+    @SerializedName(AppConstants.KEY_USER)
     val user: ReviewUserDto,
 )
 
 data class ReviewUserDto(
-    @SerializedName("name")
+    @SerializedName(AppConstants.KEY_NAME)
     val name: String,
 
-    @SerializedName("profile_image")
+    @SerializedName(AppConstants.KEY_PROFILE_IMAGE)
     val profileImage: String? = null,
 )

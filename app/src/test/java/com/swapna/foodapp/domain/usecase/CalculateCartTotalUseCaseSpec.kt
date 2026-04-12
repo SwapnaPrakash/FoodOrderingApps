@@ -15,14 +15,14 @@ class CalculateCartTotalUseCaseSpec : DescribeSpec({
 
     describe("CalculateCartTotalUseCase") {
 
-        // ── Empty cart ─────────────────────────────────────────
+        // ── Empty cart
         context("cart is empty") {
             it("all values should be 0.0") {
                 val result = useCase(emptyList())
-                result.subtotal    shouldBe 0.0
+                result.subtotal shouldBe 0.0
                 result.deliveryFee shouldBe 0.0
-                result.taxes       shouldBe 0.0
-                result.total       shouldBe 0.0
+                result.taxes shouldBe 0.0
+                result.total shouldBe 0.0
             }
 
             it("no delivery fee charged on empty cart") {
@@ -31,11 +31,11 @@ class CalculateCartTotalUseCaseSpec : DescribeSpec({
             }
         }
 
-        // ── Single item ────────────────────────────────────────
+        // ── Single item
         context("cart has one item — Chicken Biryani ₹249, qty 1") {
-            val item   = fakeCartItem(
+            val item = fakeCartItem(
                 price = AppTestConstants.TEST_PRICE_BIRYANI,
-                qty   = 1,
+                qty = 1,
             )
             val result = useCase(listOf(item))
 
@@ -61,7 +61,7 @@ class CalculateCartTotalUseCaseSpec : DescribeSpec({
             }
         }
 
-        // ── Multiple items ─────────────────────────────────────
+        // ── Multiple items
         context("cart has 2 items — ₹249 qty1 + ₹449 qty1") {
             val items = listOf(
                 fakeCartItem("c1", qty = 1, price = AppTestConstants.TEST_PRICE_BIRYANI),
@@ -95,11 +95,11 @@ class CalculateCartTotalUseCaseSpec : DescribeSpec({
             }
         }
 
-        // ── Quantity > 1 ───────────────────────────────────────
+        // ── Quantity > 1
         context("cart has one item — ₹249 qty 3") {
-            val item   = fakeCartItem(
+            val item = fakeCartItem(
                 price = AppTestConstants.TEST_PRICE_BIRYANI,
-                qty   = 3,
+                qty = 3,
             )
             val result = useCase(listOf(item))
 
@@ -114,12 +114,12 @@ class CalculateCartTotalUseCaseSpec : DescribeSpec({
             }
         }
 
-        // ── With customisations ────────────────────────────────
+        // ── With customisations
         context("item has customisation adding ₹80 extra, qty 2") {
             val option = fakeCustomisationOption(extraPrice = AppTestConstants.TEST_PRICE_EXTRA)
-            val item   = fakeCartItem(
+            val item = fakeCartItem(
                 price = AppTestConstants.TEST_PRICE_BIRYANI,
-                qty   = 2,
+                qty = 2,
             ).copy(selectedCustomisations = listOf(option))
             val result = useCase(listOf(item))
 
@@ -130,18 +130,18 @@ class CalculateCartTotalUseCaseSpec : DescribeSpec({
             }
 
             it("taxes should be 5% of 658 = 32.9") {
-                val subtotal    = (AppTestConstants.TEST_PRICE_BIRYANI +
+                val subtotal = (AppTestConstants.TEST_PRICE_BIRYANI +
                         AppTestConstants.TEST_PRICE_EXTRA) * 2
                 val expectedTax = subtotal * AppBusinessRules.GST_RATE
                 result.taxes shouldBe expectedTax.plusOrMinus(0.001)
             }
         }
 
-        // ── Max quantity boundary ──────────────────────────────
+        // ── Max quantity boundary
         context("item with maximum allowed quantity (20)") {
-            val item   = fakeCartItem(
+            val item = fakeCartItem(
                 price = AppTestConstants.TEST_PRICE_BIRYANI,
-                qty   = AppBusinessRules.MAX_CART_QUANTITY,
+                qty = AppBusinessRules.MAX_CART_QUANTITY,
             )
             val result = useCase(listOf(item))
 
@@ -152,9 +152,9 @@ class CalculateCartTotalUseCaseSpec : DescribeSpec({
             }
         }
 
-        // ── Breakdown consistency ──────────────────────────────
+        // ── Breakdown consistency
         context("any cart with items") {
-            val items  = listOf(
+            val items = listOf(
                 fakeCartItem("c1", qty = 2, price = AppTestConstants.TEST_PRICE_BIRYANI),
                 fakeCartItem("c2", qty = 1, price = AppTestConstants.TEST_PRICE_PIZZA),
             )

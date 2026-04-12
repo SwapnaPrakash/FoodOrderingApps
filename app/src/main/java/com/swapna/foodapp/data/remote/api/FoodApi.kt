@@ -1,6 +1,17 @@
 package com.swapna.foodapp.data.remote.api
 
-import com.swapna.foodapp.data.remote.dto.*
+import com.swapna.foodapp.data.remote.dto.CategoriesResponse
+import com.swapna.foodapp.data.remote.dto.CollectionsResponse
+import com.swapna.foodapp.data.remote.dto.CuisinesResponse
+import com.swapna.foodapp.data.remote.dto.DailyMenuResponse
+import com.swapna.foodapp.data.remote.dto.EstablishmentsResponse
+import com.swapna.foodapp.data.remote.dto.GeocodeResponse
+import com.swapna.foodapp.data.remote.dto.LocationSuggestionsResponse
+import com.swapna.foodapp.data.remote.dto.OrdersResponse
+import com.swapna.foodapp.data.remote.dto.RestaurantDto
+import com.swapna.foodapp.data.remote.dto.ReviewsResponse
+import com.swapna.foodapp.data.remote.dto.SearchResponse
+import com.swapna.foodapp.data.remote.dto.UserResponse
 import retrofit2.http.GET
 
 interface FoodApi {

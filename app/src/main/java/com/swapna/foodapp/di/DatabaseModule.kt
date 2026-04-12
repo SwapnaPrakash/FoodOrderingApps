@@ -3,7 +3,10 @@ package com.swapna.foodapp.di
 import android.content.Context
 import androidx.room.Room
 import com.swapna.foodapp.data.local.AppDatabase
-import com.swapna.foodapp.data.local.dao.*
+import com.swapna.foodapp.data.local.dao.CartDao
+import com.swapna.foodapp.data.local.dao.MenuItemDao
+import com.swapna.foodapp.data.local.dao.RestaurantDao
+import com.swapna.foodapp.data.local.dao.UserDao
 import com.swapna.foodapp.utils.AppConstants
 import dagger.Module
 import dagger.Provides

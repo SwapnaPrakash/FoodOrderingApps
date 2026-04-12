@@ -1,19 +1,30 @@
 package com.swapna.foodapp.data.repository
 
-import com.swapna.foodapp.data.local.dao.*
-import com.swapna.foodapp.data.mapper.*
+import com.swapna.foodapp.data.local.dao.MenuItemDao
+import com.swapna.foodapp.data.local.dao.RestaurantDao
+import com.swapna.foodapp.data.mapper.EntityMapper
+import com.swapna.foodapp.data.mapper.MenuMapper
+import com.swapna.foodapp.data.mapper.RestaurantMapper
 import com.swapna.foodapp.data.remote.api.FoodApi
-import com.swapna.foodapp.domain.model.*
+import com.swapna.foodapp.domain.model.Collections
+import com.swapna.foodapp.domain.model.Cuisine
+import com.swapna.foodapp.domain.model.FoodCategory
+import com.swapna.foodapp.domain.model.MenuItem
+import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.domain.model.Review
+import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.repository.RestaurantRepository
+import com.swapna.foodapp.utils.AppConstants.COULD_NOT_LOAD_MENU
+import com.swapna.foodapp.utils.AppConstants.NO_INTERNET
+import com.swapna.foodapp.utils.AppConstants.NO_INTERNET_LOAD_RESTAURANT
 import com.swapna.foodapp.utils.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import javax.inject.Inject
-import kotlinx.coroutines.flow.first
 import java.io.IOException
-
+import javax.inject.Inject
 
 class RestaurantRepositoryImpl @Inject constructor(
     private val api: FoodApi,
@@ -25,12 +36,10 @@ class RestaurantRepositoryImpl @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : RestaurantRepository {
 
-    // ══════════════════════════════════════════════════════════
     // GET NEARBY RESTAURANTS — Offline-first
-    // ══════════════════════════════════════════════════════════
     override fun getNearbyRestaurants(): Flow<Result<List<Restaurant>>> = flow {
 
-        // ── Step 1: Serve cache immediately ───────────────────
+        // Step 1: Serve cache immediately
         val cachedEntities = restaurantDao.getAllRestaurants().first()
 
         if (cachedEntities.isNotEmpty()) {
@@ -41,9 +50,9 @@ class RestaurantRepositoryImpl @Inject constructor(
             emit(Result.success(cachedDomain))
         }
 
-        // ── Step 2: Always try network in background ──────────
+        // Step 2: Always try network in background
         try {
-            val response    = api.getNearbyRestaurants()
+            val response = api.getNearbyRestaurants()
             val freshDomain = response.nearbyRestaurants.map {
                 restaurantMapper.toDomain(it.restaurant)
             }
@@ -63,7 +72,7 @@ class RestaurantRepositoryImpl @Inject constructor(
             // Network failed
             if (cachedEntities.isEmpty()) {
                 // Nothing in cache either — show error
-                emit(Result.failure(IOException("No internet. Please check your connection.")))
+                emit(Result.failure(IOException(NO_INTERNET)))
             }
             // If cache exists: silently ignore — user already sees cached data
         } catch (e: Exception) {
@@ -75,20 +84,18 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     }.flowOn(ioDispatcher)
 
-    // ══════════════════════════════════════════════════════════
     // GET COLLECTIONS — (Exciting Offers)
-    // ══════════════════════════════════════════════════════════
     override fun getCollections(): Flow<Result<List<Collections>>> = flow {
         try {
-            val response    = api.getCollections()
+            val response = api.getCollections()
             val collections = response.collections.map { wrapper ->
                 Collections(
-                    id              = wrapper.collection.id,
-                    title           = wrapper.collection.title,
-                    description     = wrapper.collection.description,
-                    imageUrl        = wrapper.collection.imageUrl,
+                    id = wrapper.collection.id,
+                    title = wrapper.collection.title,
+                    description = wrapper.collection.description,
+                    imageUrl = wrapper.collection.imageUrl,
                     restaurantCount = wrapper.collection.restaurantCount,
-                    discount        = wrapper.collection.discount ?: "",
+                    discount = wrapper.collection.discount ?: "",
                 )
             }
             emit(Result.success(collections))
@@ -99,16 +106,14 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    // ══════════════════════════════════════════════════════════
     // GET CATEGORIES
-    // ══════════════════════════════════════════════════════════
     override fun getCategories(): Flow<Result<List<FoodCategory>>> = flow {
         try {
-            val response   = api.getCategories()
+            val response = api.getCategories()
             val categories = response.categories.map { wrapper ->
                 FoodCategory(
-                    id       = wrapper.category.id,
-                    name     = wrapper.category.name,
+                    id = wrapper.category.id,
+                    name = wrapper.category.name,
                     imageUrl = wrapper.category.imageUrl ?: "",
                 )
             }
@@ -118,20 +123,18 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    // ══════════════════════════════════════════════════════════
     // GET RESTAURANT DETAIL
-    // ══════════════════════════════════════════════════════════
     override fun getRestaurantDetail(id: String): Flow<Result<Restaurant>> = flow {
 
-        // ── Try Room cache first ───────────────────────────────
+        // Try Room cache first
         val cached = restaurantDao.getById(id)
         if (cached != null) {
             emit(Result.success(entityMapper.restaurantToDomain(cached)))
         }
 
-        // ── Fetch fresh from API ───────────────────────────────
+        // Fetch fresh from API
         try {
-            val dto    = api.getRestaurantDetail()
+            val dto = api.getRestaurantDetail()
             val domain = restaurantMapper.toDomain(dto)
 
             // Update cache
@@ -142,20 +145,21 @@ class RestaurantRepositoryImpl @Inject constructor(
 
         } catch (e: Exception) {
             if (cached == null) {
-                emit(Result.failure(Exception("Could not load restaurant. Check your connection.")))
+                emit(
+                    Result.failure(
+                        Exception(NO_INTERNET_LOAD_RESTAURANT)
+                    )
+                )
             }
         }
-
     }.flowOn(ioDispatcher)
 
-    // ══════════════════════════════════════════════════════════
     // GET MENU ITEMS — with Room caching per restaurant
-    // ══════════════════════════════════════════════════════════
     override fun getMenuItems(
         restaurantId: String,
     ): Flow<Result<Map<String, List<MenuItem>>>> = flow {
 
-        // ── Serve cached menu ──────────────────────────────────
+        // Serve cached menu
         val cachedItems = menuItemDao
             .getMenuByRestaurant(restaurantId)
             .first()
@@ -167,10 +171,10 @@ class RestaurantRepositoryImpl @Inject constructor(
             emit(Result.success(cachedMap))
         }
 
-        // ── Fetch fresh menu ───────────────────────────────────
+        // Fetch fresh menu
         try {
             val response = api.getDailyMenu()
-            val menuMap  = menuMapper.toDomain(response, restaurantId)
+            val menuMap = menuMapper.toDomain(response, restaurantId)
 
             // Save to Room — clear old first to avoid stale items
             menuItemDao.clearForRestaurant(restaurantId)
@@ -183,47 +187,37 @@ class RestaurantRepositoryImpl @Inject constructor(
 
         } catch (e: Exception) {
             if (cachedItems.isEmpty()) {
-                emit(Result.failure(Exception("Could not load menu.")))
+                emit(Result.failure(Exception(COULD_NOT_LOAD_MENU)))
             }
         }
 
     }.flowOn(ioDispatcher)
 
-    // ══════════════════════════════════════════════════════════
     // GET REVIEWS
-    // ══════════════════════════════════════════════════════════
     override fun getReviews(restaurantId: String): Flow<Result<List<Review>>> = flow {
         try {
             val response = api.getReviews()
-            val reviews  = response.reviews.map { wrapper ->
+            val reviews = response.reviews.map { wrapper ->
                 Review(
-                    id        = wrapper.review.id,
-                    rating    = wrapper.review.rating,
-                    text      = wrapper.review.text,
-                    timeAgo   = wrapper.review.timeAgo,
-                    userName  = wrapper.review.user.name,
+                    id = wrapper.review.id,
+                    rating = wrapper.review.rating,
+                    text = wrapper.review.text,
+                    timeAgo = wrapper.review.timeAgo,
+                    userName = wrapper.review.user.name,
                     userImage = wrapper.review.user.profileImage ?: "",
                 )
             }
             emit(Result.success(reviews))
         } catch (e: Exception) {
-            // Reviews non-critical — emit empty
             emit(Result.success(emptyList()))
         }
     }.flowOn(ioDispatcher)
 
-    // ══════════════════════════════════════════════════════════
     // SEARCH RESTAURANTS
-    // Fetches full list then filters locally
-    // (GitHub Pages is static — no query param support)
-    // ══════════════════════════════════════════════════════════
-    // In searchRestaurants() inside RestaurantRepositoryImpl:
     override fun searchRestaurants(
         query: String,
         filters: SearchFilters,
     ): Flow<Result<List<Restaurant>>> = flow {
-
-        // Serve cache with images during search for instant results
         val cached = restaurantDao.getAllRestaurants().first()
         if (cached.isNotEmpty() && query.isNotBlank()) {
             val cachedDomain = cached
@@ -232,15 +226,13 @@ class RestaurantRepositoryImpl @Inject constructor(
                     it.name.contains(query, ignoreCase = true) ||
                             it.cuisines.any { c -> c.contains(query, ignoreCase = true) }
                 }
-            // ✅ Cache already has images from geocode.json
             if (cachedDomain.isNotEmpty()) {
                 emit(Result.success(cachedDomain))
             }
         }
 
-        // Fetch fresh from search endpoint (now has images too)
         try {
-            val response    = api.searchRestaurants()
+            val response = api.searchRestaurants()
             val restaurants = response.restaurants
                 .map { restaurantMapper.toDomain(it.restaurant) }
             emit(Result.success(restaurants))
@@ -251,15 +243,13 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    // ══════════════════════════════════════════════════════════
     // GET CUISINES
-    // ══════════════════════════════════════════════════════════
     override fun getCuisines(): Flow<Result<List<Cuisine>>> = flow {
         try {
             val response = api.getCuisines()
             val cuisines = response.cuisines.map { wrapper ->
                 Cuisine(
-                    id   = wrapper.cuisine.id,
+                    id = wrapper.cuisine.id,
                     name = wrapper.cuisine.name,
                 )
             }

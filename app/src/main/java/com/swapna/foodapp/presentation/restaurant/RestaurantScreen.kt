@@ -7,10 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import com.swapna.foodapp.utils.AppConstants.RESTAURANT
 
 @Composable
 fun RestaurantScreen(navController: NavController) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Restaurant Screen")
+        Text(RESTAURANT)
     }
 }

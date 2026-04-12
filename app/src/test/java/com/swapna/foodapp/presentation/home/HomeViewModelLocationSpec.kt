@@ -21,31 +21,28 @@ import kotlinx.coroutines.test.setMain
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelLocationSpec : BehaviorSpec({
 
-    val getHomeDataUseCase   = mockk<GetHomeDataUseCase>()
-    val cartRepository       = mockk<CartRepository>()
+    val getHomeDataUseCase = mockk<GetHomeDataUseCase>()
+    val cartRepository = mockk<CartRepository>()
     val connectivityObserver = mockk<ConnectivityObserver>()
-    val networkStatusFlow    = MutableStateFlow<NetworkStatus>(NetworkStatus.Available)
+    val networkStatusFlow = MutableStateFlow<NetworkStatus>(NetworkStatus.Available)
 
     fun createViewModel() = HomeViewModel(
-        getHomeDataUseCase   = getHomeDataUseCase,
-        cartRepository       = cartRepository,
+        getHomeDataUseCase = getHomeDataUseCase,
+        cartRepository = cartRepository,
         connectivityObserver = connectivityObserver,
     )
 
     beforeEach {
         clearAllMocks()
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        every { cartRepository.getCartItemCount() }  returns flowOf(0)
+        every { cartRepository.getCartItemCount() } returns flowOf(0)
         every { connectivityObserver.networkStatus } returns networkStatusFlow
         every { getHomeDataUseCase() } returns flowOf(Result.success(HomeData()))
     }
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Location picker
-    // ══════════════════════════════════════════════════════════
-
     given("location picker is closed by default") {
         `when`("ViewModel is created") {
             then("showLocationPicker should be false") {
@@ -80,16 +77,13 @@ class HomeViewModelLocationSpec : BehaviorSpec({
                 vm.onLocationClicked()
                 vm.onLocationSelected("Indiranagar, Bengaluru")
 
-                vm.uiState.value.userLocation      shouldBe "Indiranagar, Bengaluru"
+                vm.uiState.value.userLocation shouldBe "Indiranagar, Bengaluru"
                 vm.uiState.value.showLocationPicker shouldBe false
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Connectivity changes
-    // ══════════════════════════════════════════════════════════
-
     given("device is online") {
         `when`("ViewModel is created") {
             then("isOffline should be false") {
@@ -131,10 +125,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Default location
-    // ══════════════════════════════════════════════════════════
-
     given("app just launched") {
         `when`("ViewModel is created") {
             then("default location should be Koramangala, Bengaluru") {

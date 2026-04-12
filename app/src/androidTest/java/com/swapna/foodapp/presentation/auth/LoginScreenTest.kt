@@ -1,30 +1,22 @@
 package com.swapna.foodapp.presentation.auth
 
 import androidx.activity.ComponentActivity
-import com.swapna.foodapp.utils.LoginTestTags
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.printToLog
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.swapna.foodapp.domain.repository.UserRepository
 import com.swapna.foodapp.fakes.FakeUserRepository
+import com.swapna.foodapp.utils.LoginTestTags
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.After
 import javax.inject.Inject
 
 @HiltAndroidTest
@@ -59,7 +51,7 @@ class LoginScreenTest {
             MaterialTheme {
                 LoginScreen(
                     viewModel = viewModel,
-                    onLoginSuccess = {} // ✅ REQUIRED
+                    onLoginSuccess = {}
                 )
             }
         }
@@ -88,7 +80,6 @@ class LoginScreenTest {
         composeRule.waitForIdle()
     }
 
-    // ✅ TEST 1
     @Test
     fun sendOtp_showsOtpField() {
         launchScreen()
@@ -101,7 +92,6 @@ class LoginScreenTest {
             .assertExists()
     }
 
-    // ✅ TEST 2
     @Test
     fun sendOtp_disablesPhoneField() {
         launchScreen()
@@ -112,7 +102,6 @@ class LoginScreenTest {
             .assertIsNotEnabled()
     }
 
-    // ✅ TEST 3
     @Test
     fun verifyOtp_successFlow() {
         launchScreen()
@@ -127,7 +116,6 @@ class LoginScreenTest {
 
         composeRule.waitForIdle()
 
-        // Since onLoginSuccess is empty, just ensure no crash
         composeRule.onRoot().assertExists()
     }
 
@@ -140,8 +128,7 @@ class LoginScreenTest {
 
         launchScreen()
 
-        sendOtp("123") // invalid
-
+        sendOtp("123")
         composeRule.waitForIdle()
 
         composeRule.onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
@@ -162,6 +149,6 @@ class LoginScreenTest {
 
         composeRule.waitForIdle()
 
-        composeRule.onRoot().assertExists() // no crash = success
+        composeRule.onRoot().assertExists()
     }
 }

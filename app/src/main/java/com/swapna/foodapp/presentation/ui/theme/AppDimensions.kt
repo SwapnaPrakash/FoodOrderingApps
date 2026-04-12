@@ -24,7 +24,7 @@ object Dimens {
     val RadiusM    = 12.dp
     val RadiusL    = 16.dp
     val RadiusXL   = 24.dp
-    val RadiusFull = 999.dp   // fully rounded (pill shape)
+    val RadiusFull = 999.dp
 
     val ButtonHeight       = 52.dp
     val SmallButtonHeight  = 40.dp
@@ -34,19 +34,19 @@ object Dimens {
     val ChipHeight         = 32.dp
     val FilterBarHeight    = 56.dp
 
-    val MinTouchTarget     = 48.dp   // never go below this for tappable items
+    val MinTouchTarget     = 48.dp
 
     val OfferCardWidth         = 280.dp
     val OfferCardHeight        = 160.dp
-    val RestaurantCardHeight   = 180.dp   // banner image height
-    val CategoryChipSize       = 72.dp    // chip outer width
-    val CategoryChipImageSize  = 56.dp    // circular image inside chip
-    val MenuItemImageSize      = 96.dp    // square image on menu row
-    val ProductImageHeight     = 280.dp   // full-width product hero image
-    val SearchResultThumb      = 80.dp    // thumbnail in search result row
-    val CartItemThumb          = 60.dp    // thumbnail in cart row
-    val ProfileImageSize       = 80.dp    // user avatar on profile screen
-    val ReviewAvatarSize       = 36.dp    // reviewer avatar
+    val RestaurantCardHeight   = 180.dp
+    val CategoryChipSize       = 72.dp
+    val CategoryChipImageSize  = 56.dp
+    val MenuItemImageSize      = 96.dp
+    val ProductImageHeight     = 280.dp
+    val SearchResultThumb      = 80.dp
+    val CartItemThumb          = 60.dp
+    val ProfileImageSize       = 80.dp
+    val ReviewAvatarSize       = 36.dp
 
     val IconXXS = 12.dp
     val IconXS  = 16.dp
@@ -66,7 +66,7 @@ object Dimens {
     val BorderNormal    = 1.5.dp
     val BorderThick     = 2.dp
 
-    val BadgeSize       = 18.dp    // cart count badge
+    val BadgeSize       = 18.dp
     val BadgeFontSize   = 10.sp
 
     val RatingBadgePaddingH = 6.dp

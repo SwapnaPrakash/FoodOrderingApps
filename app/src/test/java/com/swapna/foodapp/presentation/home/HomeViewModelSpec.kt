@@ -1,10 +1,14 @@
 package com.swapna.foodapp.presentation.home
+
 import app.cash.turbine.test
 import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.repository.CartRepository
 import com.swapna.foodapp.domain.usecase.home.GetHomeDataUseCase
+import com.swapna.foodapp.utils.ConnectivityObserver
 import com.swapna.foodapp.utils.HomeData
+import com.swapna.foodapp.utils.NetworkStatus
+import com.swapna.foodapp.utils.fakeRestaurant
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -18,51 +22,47 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
-import com.swapna.foodapp.utils.fakeRestaurant
-import com.swapna.foodapp.utils.ConnectivityObserver
-import com.swapna.foodapp.utils.NetworkStatus
-import kotlinx.coroutines.test.advanceUntilIdle
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelSpec : BehaviorSpec({
 
-    // ── Test doubles ──────────────────────────────────────────
-    val getHomeDataUseCase   = mockk<GetHomeDataUseCase>()
-    val cartRepository       = mockk<CartRepository>()
+    // ── Test doubles
+    val getHomeDataUseCase = mockk<GetHomeDataUseCase>()
+    val cartRepository = mockk<CartRepository>()
     val connectivityObserver = mockk<ConnectivityObserver>()
 
     // Shared fake data
     val fakeCollections = listOf(
         Collections(1, "Trending This Week", "Popular now", "", 20, "60% OFF"),
-        Collections(2, "Newly Opened",       "Just launched", "", 10, "Free Delivery"),
+        Collections(2, "Newly Opened", "Just launched", "", 10, "Free Delivery"),
     )
     val fakeCategories = listOf(
         FoodCategory(1, "Biryani", ""),
-        FoodCategory(2, "Pizza",   ""),
-        FoodCategory(3, "Burger",  ""),
+        FoodCategory(2, "Pizza", ""),
+        FoodCategory(3, "Burger", ""),
     )
     val fakeRestaurants = listOf(
-        fakeRestaurant("r1", "Meghana Foods",   rating = 4.6),
+        fakeRestaurant("r1", "Meghana Foods", rating = 4.6),
         fakeRestaurant("r2", "Empire Restaurant", rating = 4.4),
-        fakeRestaurant("r3", "Pizza Hut",         rating = 4.1),
+        fakeRestaurant("r3", "Pizza Hut", rating = 4.1),
     )
     val fakeHomeData = HomeData(
         collections = fakeCollections,
-        categories  = fakeCategories,
+        categories = fakeCategories,
         restaurants = fakeRestaurants,
     )
 
-    // ── Reusable network flow ─────────────────────────────────
+    // ── Reusable network flow
     val networkFlow = MutableStateFlow<NetworkStatus>(NetworkStatus.Available)
 
-    // ── Helper — creates ViewModel with all 3 deps ────────────
+    // ── Helper — creates ViewModel with all 3 deps
     fun createViewModel() = HomeViewModel(
-        getHomeDataUseCase   = getHomeDataUseCase,
-        cartRepository       = cartRepository,
+        getHomeDataUseCase = getHomeDataUseCase,
+        cartRepository = cartRepository,
         connectivityObserver = connectivityObserver,
     )
 
-    // ── Setup / Teardown ──────────────────────────────────────
+    // ── Setup / Teardown
     beforeEach {
         clearAllMocks()
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -79,9 +79,7 @@ class HomeViewModelSpec : BehaviorSpec({
         Dispatchers.resetMain()
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: API returns full home data
-    // ══════════════════════════════════════════════════════════
     given("API returns full home data") {
 
         `when`("ViewModel is created") {
@@ -129,9 +127,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: API returns empty data
-    // ══════════════════════════════════════════════════════════
     given("API returns empty HomeData") {
 
         `when`("ViewModel is created") {
@@ -142,19 +138,16 @@ class HomeViewModelSpec : BehaviorSpec({
 
                 val vm = createViewModel()
                 vm.uiState.value.collections shouldBe emptyList()
-                vm.uiState.value.categories  shouldBe emptyList()
+                vm.uiState.value.categories shouldBe emptyList()
                 vm.uiState.value.restaurants shouldBe emptyList()
-                vm.uiState.value.error       shouldBe null
-                vm.uiState.value.isLoading   shouldBe false
+                vm.uiState.value.error shouldBe null
+                vm.uiState.value.isLoading shouldBe false
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: API throws exception — offline
-    // ══════════════════════════════════════════════════════════
     given("API throws IOException — device is offline") {
-
         `when`("ViewModel is created") {
 
             then("error should not be null") {
@@ -191,9 +184,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Cart has items
-    // ══════════════════════════════════════════════════════════
     given("cart has 3 items") {
 
         `when`("ViewModel is created") {
@@ -229,9 +220,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Tab selection
-    // ══════════════════════════════════════════════════════════
     given("default selected tab is DELIVERY") {
 
         `when`("ViewModel is created") {
@@ -271,9 +260,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Navigation events via SharedFlow
-    // ══════════════════════════════════════════════════════════
     given("home data is loaded") {
 
         `when`("onRestaurantClicked is called with 'r_001'") {
@@ -323,14 +310,11 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Retry after error
-    // ══════════════════════════════════════════════════════════
     given("first load fails, then retry succeeds") {
 
         `when`("retry is called after error") {
             then("restaurants should load successfully") {
-                // ✅ Use returnsMany for sequential calls
                 every { getHomeDataUseCase() } returnsMany listOf(
                     flowOf(Result.failure(Exception("Network error"))),
                     flowOf(Result.success(fakeHomeData)),
@@ -348,9 +332,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Connectivity changes
-    // ══════════════════════════════════════════════════════════
     given("device is online") {
         `when`("ViewModel is created") {
             then("isOffline should be false") {

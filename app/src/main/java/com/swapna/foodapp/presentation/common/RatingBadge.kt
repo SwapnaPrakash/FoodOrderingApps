@@ -19,44 +19,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.swapna.foodapp.domain.model.AppBusinessRules
-import com.swapna.foodapp.presentation.ui.theme.*
+import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.presentation.ui.theme.RatingExcellent
+import com.swapna.foodapp.presentation.ui.theme.RatingGood
+import com.swapna.foodapp.presentation.ui.theme.RatingVeryGood
 
 @Composable
 fun RatingBadge(
     rating: Double,
     modifier: Modifier = Modifier,
 ) {
-    // Use AppBusinessRules constants — no magic numbers
     val bgColor = when {
-        rating >= AppBusinessRules.RATING_EXCELLENT  -> RatingExcellent
-        rating >= AppBusinessRules.RATING_VERY_GOOD  -> RatingVeryGood
-        rating >= AppBusinessRules.RATING_GOOD       -> RatingGood
-        else                                         -> RatingGood
+        rating >= AppBusinessRules.RATING_EXCELLENT -> RatingExcellent
+        rating >= AppBusinessRules.RATING_VERY_GOOD -> RatingVeryGood
+        rating >= AppBusinessRules.RATING_GOOD -> RatingGood
+        else -> RatingGood
     }
 
     Row(
         modifier = modifier
             .background(
                 color = bgColor,
-                shape = RoundedCornerShape(Dimens.RadiusXS), // 4dp — Figma
+                shape = RoundedCornerShape(Dimens.RadiusXS),
             )
             .padding(
-                horizontal = Dimens.RatingBadgePaddingH, // 6dp
-                vertical   = Dimens.RatingBadgePaddingV, // 3dp
+                horizontal = Dimens.RatingBadgePaddingH,
+                vertical = Dimens.RatingBadgePaddingV,
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            imageVector        = Icons.Default.Star,
+            imageVector = Icons.Default.Star,
             contentDescription = null,
-            tint               = Color.White,
-            modifier           = Modifier.size(Dimens.RatingIconSize), // 10dp
+            tint = Color.White,
+            modifier = Modifier.size(Dimens.RatingIconSize),
         )
         Spacer(Modifier.width(3.dp))
         Text(
-            text       = String.format("%.1f", rating),
-            color      = Color.White,
-            fontSize   = Dimens.RatingFontSize,  // 12sp
+            text = String.format("%.1f", rating),
+            color = Color.White,
+            fontSize = Dimens.RatingFontSize,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.sp,
         )

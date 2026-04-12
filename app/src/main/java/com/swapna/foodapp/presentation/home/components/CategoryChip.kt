@@ -36,38 +36,27 @@ fun CategoryChip(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier          = modifier
+        modifier = modifier
             .width(Dimens.CategoryChipSize)
             .clickable { onClick() }
             .padding(Dimens.SpaceXS),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Circular image container
         Surface(
-            shape     = CircleShape,
-            modifier  = Modifier.size(56.dp),
+            shape = CircleShape,
+            modifier = Modifier.size(56.dp),
             shadowElevation = 2.dp,
         ) {
             AsyncImage(
-                /*model = category.imageUrl.ifEmpty {
-                    // Fallback emoji background if no image
-                    null
-                },
-                contentDescription = category.name,
-                contentScale       = ContentScale.Crop,
-                modifier           = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape),
-*/
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(category.imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = category.name,
-                contentScale       = ContentScale.Crop,
-                placeholder        = painterResource(android.R.drawable.ic_menu_gallery),
-                error              = painterResource(android.R.drawable.ic_menu_gallery),
-                modifier           = Modifier
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                error = painterResource(android.R.drawable.ic_menu_gallery),
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(Dimens.RestaurantCardHeight)
                     .clip(RoundedCornerShape(Dimens.RadiusM)),
@@ -76,13 +65,12 @@ fun CategoryChip(
 
         Spacer(Modifier.height(Dimens.SpaceXS))
 
-        // Category name below image
         Text(
-            text      = category.name,
-            style     = MaterialTheme.typography.labelMedium,
+            text = category.name,
+            style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
-            maxLines  = 1,
-            overflow  = TextOverflow.Ellipsis,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
         )
     }

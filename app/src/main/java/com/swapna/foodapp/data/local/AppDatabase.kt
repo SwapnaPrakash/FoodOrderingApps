@@ -4,8 +4,14 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.swapna.foodapp.data.local.converter.Converters
-import com.swapna.foodapp.data.local.dao.*
-import com.swapna.foodapp.data.local.entity.*
+import com.swapna.foodapp.data.local.dao.CartDao
+import com.swapna.foodapp.data.local.dao.MenuItemDao
+import com.swapna.foodapp.data.local.dao.RestaurantDao
+import com.swapna.foodapp.data.local.dao.UserDao
+import com.swapna.foodapp.data.local.entity.CartItemEntity
+import com.swapna.foodapp.data.local.entity.MenuItemEntity
+import com.swapna.foodapp.data.local.entity.RestaurantEntity
+import com.swapna.foodapp.data.local.entity.UserEntity
 import com.swapna.foodapp.utils.AppConstants
 
 @Database(
@@ -15,7 +21,7 @@ import com.swapna.foodapp.utils.AppConstants
         MenuItemEntity::class,
         UserEntity::class,
     ],
-    version  = AppConstants.DB_VERSION,
+    version = AppConstants.DB_VERSION,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

@@ -1,110 +1,290 @@
 package com.swapna.foodapp.utils
 
 object AppConstants {
-
-    // ══════════════════════════════════════════════════════════
-    // NETWORK
-    // ══════════════════════════════════════════════════════════
-
-    // Timeout durations
-    const val CONNECT_TIMEOUT_SEC  = 30L
-    const val READ_TIMEOUT_SEC     = 30L
-    const val WRITE_TIMEOUT_SEC    = 30L
-
-    // Cache config
-    // Data older than this triggers a background refresh
-    const val CACHE_DURATION_MIN   = 15
-
-    // Set in build.gradle.kts as BuildConfig.BASE_URL
-    const val BASE_URL_PLACEHOLDER = "https://raw.githubusercontent.com/SwapnaPrakash/zomato-mock-api/main/"
-
-    // ══════════════════════════════════════════════════════════
-    // DATABASE
-    // ══════════════════════════════════════════════════════════
-
-    const val DB_NAME     = "food_app.db"
-    const val DB_VERSION  = 1
-
-    // ══════════════════════════════════════════════════════════
-    // CART BUSINESS RULES
-    // ══════════════════════════════════════════════════════════
-
-    const val MIN_CART_QUANTITY      = 1
-    const val MAX_CART_QUANTITY      = 20
-    const val DEFAULT_DELIVERY_FEE   = 30.0      // ₹30 flat delivery
-    const val FREE_DELIVERY_THRESHOLD = 199.0    // Free delivery above ₹199
-    const val GST_RATE               = 0.05      // 5% GST on food orders
-    const val PLATFORM_FEE           = 5.0       // ₹5 platform fee
-
-    // ══════════════════════════════════════════════════════════
-    // PRICE FORMATTING
-    // ══════════════════════════════════════════════════════════
-
-    const val CURRENCY_SYMBOL        = "₹"
-    const val PRICE_DECIMAL_PLACES   = 0        // Show ₹249, not ₹249.00
-
-    // ══════════════════════════════════════════════════════════
-    // SEARCH
-    // ══════════════════════════════════════════════════════════
-
-    const val SEARCH_DEBOUNCE_MS     = 300L     // ms to wait after last keystroke
-    const val SEARCH_MIN_CHARS       = 2        // min chars before triggering search
-    const val SEARCH_MAX_RESULTS     = 20       // max results from API per page
-    const val CATEGORY_CHIPS_MAX     = 5        // max cuisine chips shown in row
-
-    // ══════════════════════════════════════════════════════════
-    // AUTH — OTP
-    // ══════════════════════════════════════════════════════════
-
-    const val OTP_LENGTH             = 6
-    const val OTP_TIMEOUT_SEC        = 60       // OTP expires after 60 seconds
-    const val PHONE_LENGTH           = 10       // Indian mobile numbers
-    const val PHONE_COUNTRY_CODE     = "+91"
-
-    // ══════════════════════════════════════════════════════════
-    // SPLASH SCREEN
-    // ══════════════════════════════════════════════════════════
-
-    const val SPLASH_DELAY_MS        = 1500L    // 1.5 seconds
-
-    // ══════════════════════════════════════════════════════════
-    // HOME SCREEN
-    // ══════════════════════════════════════════════════════════
-
-    const val DEFAULT_LOCATION       = "Koramangala, Bengaluru"
-    const val MAX_OFFER_CARDS        = 5        // max banners shown
-    const val MAX_RECOMMENDED_ITEMS  = 5        // max recommended dishes
-
-    // ══════════════════════════════════════════════════════════
-    // RESTAURANT / MENU
-    // ══════════════════════════════════════════════════════════
-
-    const val DEFAULT_DELIVERY_TIME  = 30       // minutes fallback if API null
-    const val MAX_REVIEWS_SHOWN      = 5        // free tier limit from API
-
-    // ══════════════════════════════════════════════════════════
-    // RATING THRESHOLDS
-    // ══════════════════════════════════════════════════════════
-
-    const val RATING_EXCELLENT       = 4.5
-    const val RATING_VERY_GOOD       = 4.0
-    const val RATING_GOOD            = 3.5
-    const val RATING_AVERAGE         = 3.0
-
-    // ══════════════════════════════════════════════════════════
-    // PAGINATION
-    // ══════════════════════════════════════════════════════════
-
-    const val PAGE_SIZE              = 20
-    const val PAGE_START             = 0
-
-    // ══════════════════════════════════════════════════════════
-    // DATASTORE / SHARED PREFS KEYS
-    // ══════════════════════════════════════════════════════════
-
-    const val KEY_AUTH_TOKEN         = "auth_token"
-    const val KEY_USER_ID            = "user_id"
-    const val KEY_IS_LOGGED_IN       = "is_logged_in"
-    const val KEY_LAST_LOCATION      = "last_location"
-    const val KEY_ONBOARDING_DONE    = "onboarding_done"
+    const val CONNECT_TIMEOUT_SEC = 30L
+    const val READ_TIMEOUT_SEC = 30L
+    const val WRITE_TIMEOUT_SEC = 30L
+    const val CACHE_DURATION_MIN = 15
+    const val BASE_URL_PLACEHOLDER =
+        "https://raw.githubusercontent.com/SwapnaPrakash/zomato-mock-api/main/"
+    const val DB_NAME = "food_app.db"
+    const val DB_VERSION = 1
+    const val APP_NAME = "FoodApp"
+    const val TAG_NAME = "Order food you love"
+    const val MIN_CART_QUANTITY = 1
+    const val MAX_CART_QUANTITY = 20
+    const val DEFAULT_DELIVERY_FEE = 30.0
+    const val FREE_DELIVERY_THRESHOLD = 199.0
+    const val PLATFORM_FEE = 5.0
+    const val GST_RATE = 0.05
+    const val SPLASH = "Splash"
+    const val LOGIN = "Login"
+    const val HOME = "Home"
+    const val SEARCH = "Search"
+    const val CART = "Cart"
+    const val PROFILE = "Profile"
+    const val RESTAURANT = "Restaurant"
+    const val PRODUCT = "Product"
+    const val KEY_CATEGORIES = "categories"
+    const val KEY_CATEGORY = "categories"
+    const val KEY_CATEGORY_ID = "id"
+    const val KEY_CATEGORY_NAME = "name"
+    const val KEY_CATEGORY_IMAGE = "image_url"
+    const val KEY_CUISINES = "cuisines"
+    const val KEY_CUISINE = "cuisine"
+    const val KEY_CUISINE_ID = "cuisine_id"
+    const val KEY_CUISINE_NAME = "cuisine_name"
+    const val KEY_ESTABLISHMENTS = "establishments"
+    const val KEY_ESTABLISHMENT = "establishment"
+    const val KEY_ESTABLISHMENT_ID = "id"
+    const val KEY_ESTABLISHMENT_NAME = "name"
+    const val KEY_LOCATION_SUGGESTIONS = "location_suggestions"
+    const val KEY_ENTITY_ID = "entity_id"
+    const val KEY_ENTITY_TYPE = "entity_type"
+    const val KEY_TITLE = "title"
+    const val KEY_LATITUDE = "latitude"
+    const val KEY_LONGITUDE = "longitude"
+    const val KEY_CITY_ID = "city_id"
+    const val KEY_CITY_NAME = "city_name"
+    const val SEARCH_FAILED = "Search failed"
+    const val RESULTS = "results"
+    const val FILTER_ACTIVE = "filter(s) active  •  "
+    const val RESTAURANT_FOUND = "restaurants found"
+    const val RESTAURANT_SEARCH = "Search for restaurants,\ncuisines or dishes"
+    const val RESTAURANT_SEARCH_CUISINE = "Search restaurants, cuisines..."
+    const val ENTER_MOB_NUM = "Enter your mobile number to continue"
+    const val PHONE_NUMBER = "Phone Number"
+    const val PHONE = "Phone"
+    const val PHONE_DIG = "+91  "
+    const val PHONE_OTP = "Enter 6-digit OTP"
+    const val RESEND_OTP = "Resend OTP"
+    const val SENT_OTP = "OTP sent to +91 "
+    const val VERIFY_OTP = "Verify OTP"
+    const val SEND_OTP = "Send OTP"
+    const val OTP_LENGTH = 6
+    const val PHONE_LENGTH = 10
+    const val KEY_RATING = "rating"
+    const val OTP_TIMEOUT_SEC = 60
+    const val PHONE_COUNTRY_CODE = "+91"
+    const val DELIVERY = "delivery"
+    const val DINING = "Dining"
+    const val VEG_ONLY = "Veg only"
+    const val VEG = "Veg"
+    const val NON_VEG = "Non-veg"
+    const val RELEVANCE = "Relevance"
+    const val RATING = "Rating"
+    const val DELIVERY_TIME = "Delivery Time"
+    const val COST_LOW = "Cost: Low–High"
+    const val COST_HIGH = "Cost: High–Low"
+    const val FILTERS_TITLE = "Filters"
+    const val ACTIVE = "active"
+    const val FILTER_DIETARY = "Dietary"
+    const val FILTER_MIN_RATING = "Minimum Rating"
+    const val FILTER_DELIVERY_TIME = "Delivery Time"
+    const val FILTER_SORT_BY = "Sort By"
+    const val FILTER_CUISINES = "Cuisines"
+    const val DELIVERY_UNDER_20 = "Under 20 min"
+    const val DELIVERY_UNDER_30 = "Under 30 min"
+    const val DELIVERY_UNDER_45 = "Under 45 min"
+    const val CLEAR_ALL = "Clear All"
+    const val APPLY = "Apply"
+    const val SELECTED = "Selected"
+    const val NO_RESULTS = "No results"
+    const val WRONG = "Something went wrong"
+    const val TRY_AGAIN = "Try Again"
+    const val ERROR = "Error"
+    const val DELIVERING_TO = "Delivering to"
+    const val CHANGE_LOCATION = "Change location"
+    const val SELECT_DELIVERY_LOCATION = "Select Delivery Location"
+    const val SEARCH_LOCATION_HINT = "Search for area, street name..."
+    const val CURRENT_LOCATION = "Current Location"
+    const val USE_CURRENT_LOCATION = "Use Current Location"
+    const val DEFAULT_LOCATION = "Koramangala, Bengaluru"
+    const val KEY_COLLECTIONS = "collections"
+    const val KEY_COLLECTION = "collection"
+    const val KEY_COLLECTION_ID = "collection_id"
+    const val KEY_COLLECTION_TITLE = "title"
+    const val KEY_COLLECTION_DESCRIPTION = "description"
+    const val KEY_COLLECTION_IMAGE = "image_url"
+    const val KEY_COLLECTION_RES_COUNT = "res_count"
+    const val KEY_COLLECTION_DISCOUNT = "discount"
+    const val SEARCH_DEBOUNCE_MS = 300L
+    const val SEARCH_MIN_CHARS = 2
+    const val SPLASH_DELAY_MS = 1500L
+    const val KEY_DAILY_MENUS = "daily_menus"
+    const val KEY_DAILY_MENU = "daily_menu"
+    const val KEY_DAILY_MENU_ID = "daily_menu_id"
+    const val KEY_DISHES = "dishes"
+    const val KEY_DISH = "dish"
+    const val KEY_DISH_ID = "dish_id"
+    const val KEY_NAME = "name"
+    const val KEY_PRICE = "price"
+    const val KEY_DESCRIPTION = "description"
+    const val KEY_IMAGE_URL = "image_url"
+    const val KEY_IS_VEG = "is_veg"
+    const val KEY_IS_RECOMMENDED = "is_recommended"
+    const val KEY_CUSTOMISATIONS = "customisations"
+    const val KEY_OPTIONS = "options"
+    const val KEY_LABEL = "label"
+    const val KEY_EXTRA_PRICE = "extra_price"
+    const val KEY_USER = "user"
+    const val KEY_EMAIL = "email"
+    const val KEY_PHONE = "phone"
+    const val KEY_PROFILE_IMAGE = "profile_image"
+    const val KEY_ADDRESSES = "addresses"
+    const val KEY_FULL_ADDRESS = "full_address"
+    const val KEY_LANDMARK = "landmark"
+    const val KEY_ORDERS = "orders"
+    const val KEY_ORDER = "order"
+    const val KEY_RESTAURANT_ID = "restaurant_id"
+    const val KEY_RESTAURANT_NAME = "restaurant_name"
+    const val KEY_RESTAURANT_IMAGE = "restaurant_image"
+    const val KEY_STATUS = "status"
+    const val KEY_TIME_FRIENDLY = "time_friendly"
+    const val KEY_TOTAL_AMOUNT = "total_amount"
+    const val KEY_ITEMS = "items"
+    const val KEY_QUANTITY = "quantity"
+    const val KEY_CAN_REORDER = "can_reorder"
+    const val KEY_REVIEWS_COUNT = "reviews_count"
+    const val KEY_USER_REVIEWS = "user_reviews"
+    const val KEY_REVIEW = "review"
+    const val KEY_REVIEW_TEXT = "review_text"
+    const val KEY_REVIEW_TIME = "review_time_friendly"
+    const val PAGE_SIZE = 20
+    const val PAGE_START = 0
+    const val KEY_AUTH_TOKEN = "auth_token"
+    const val KEY_USER_ID = "user_id"
+    const val KEY_IS_LOGGED_IN = "is_logged_in"
+    const val KEY_LAST_LOCATION = "last_location"
+    const val KEY_ONBOARDING_DONE = "onboarding_done"
+    const val APP_BCK = "App is in background. Please reopen and try again."
+    const val FAILED_OTP_SEND = "Failed to send OTP"
+    const val FAILED_VERIFICATION = "Verification failed"
+    const val FAILED_PROFILE = "Failed to load profile"
+    const val FAILED_UPDATED_PROFILE = "Failed to update profile"
+    const val NO_INTERNET = "No internet. Please check your connection."
+    const val COULD_NOT_LOAD_MENU = "Could not load menu."
+    const val KEY_LOCATION = "location"
+    const val KEY_NEARBY_RESTAURANTS = "nearby_restaurants"
+    const val KEY_RESTAURANT = "restaurant"
+    const val KEY_RESTAURANTS = "restaurants"
+    const val KEY_RESULTS_FOUND = "results_found"
+    const val KEY_RESULTS_SHOWN = "results_shown"
+    const val KEY_ID = "id"
+    const val KEY_FEATURED_IMAGE = "featured_image"
+    const val KEY_THUMB = "thumb"
+    const val KEY_AVG_COST_FOR_TWO = "average_cost_for_two"
+    const val KEY_PRICE_RANGE = "price_range"
+    const val KEY_CURRENCY = "currency"
+    const val KEY_USER_RATING = "user_rating"
+    const val KEY_AGGREGATE_RATING = "aggregate_rating"
+    const val KEY_RATING_TEXT = "rating_text"
+    const val KEY_RATING_COLOR = "rating_color"
+    const val KEY_VOTES = "votes"
+    const val KEY_HAS_DELIVERY = "has_online_delivery"
+    const val KEY_IS_DELIVERING_NOW = "is_delivering_now"
+    const val KEY_DELIVERY_TIME = "estimated_delivery_time"
+    const val KEY_MIN_ORDER = "minimum_order"
+    const val KEY_OFFERS = "offers"
+    const val KEY_ADDRESS = "address"
+    const val KEY_LOCALITY = "locality"
+    const val KEY_CITY = "city"
+    const val KEY_ZIPCODE = "zipcode"
+    const val NO_INTERNET_LOAD_RESTAURANT =
+        "Could not load restaurant. Check your connection."
+    const val URI_FALL_BACK =
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=200&h=200&fit=crop"
+    const val TABLE_CART_ITEMS = "cart_items"
+    const val COL_ID = "id"
+    const val COL_MENU_ITEM_ID = "menu_item_id"
+    const val COL_MENU_ITEM_JSON = "menu_item_json"
+    const val COL_QUANTITY = "quantity"
+    const val COL_CUSTOMISATIONS_JSON = "customisations_json"
+    const val COL_ADDED_AT = "added_at"
+    const val OFFERS_TITLE = "Exciting Offers 🔥"
+    const val CATEGORIES_TITLE = "What's on your mind?"
+    const val CURRENCY_SYMBOL = "₹"
+    const val PRICE_DECIMAL_PLACES = 0
+    const val ERROR_INVALID_PHONE = "Enter a valid 10-digit phone number"
+    const val ERROR_SEND_OTP_FAILED = "Failed to send OTP"
+    const val ERROR_INVALID_OTP = "Enter a %d-digit OTP"
+    const val ERROR_INCORRECT_OTP = "Incorrect OTP. Try again."
+    const val LOCATION_ICON_DESC = "Location"
+    const val GO_TO_CART = "Go to cart"
+    const val SEARCH_HINT = "Search for restaurants and food"
+    const val SEARCH_ICON_DESC = "Search"
+    const val CURRENT_LOCATION_DESC = "Current location"
+    const val ENABLE_LOCATION_PERMISSION = "Enable location permission"
+    const val SAVED_ADDRESSES = "SAVED ADDRESSES"
+    const val POPULAR_LOCATIONS = "POPULAR LOCATIONS"
+    const val WORK = "work"
+    const val LOC_KORAMANGALA = "Koramangala, Bengaluru"
+    const val LOC_KORAMANGALA_SUB = "5th Block, Bengaluru - 560095"
+    const val LOC_INDIRANAGAR = "Indiranagar, Bengaluru"
+    const val LOC_INDIRANAGAR_SUB = "100 Feet Road, Bengaluru - 560038"
+    const val LOC_HSR = "HSR Layout, Bengaluru"
+    const val LOC_HSR_SUB = "Sector 7, Bengaluru - 560102"
+    const val LOC_WHITEFIELD = "Whitefield, Bengaluru"
+    const val LOC_WHITEFIELD_SUB = "ITPL Main Road, Bengaluru - 560066"
+    const val LOC_ECITY = "Electronic City, Bengaluru"
+    const val LOC_ECITY_SUB = "Phase 1, Bengaluru - 560100"
+    const val ERROR_MIN_QUANTITY = "Quantity must be at least %d"
+    const val ERROR_MAX_QUANTITY = "Quantity cannot exceed %d"
+    const val TABLE_USER = "user"
+    const val COL_EMAIL = "email"
+    const val COL_PHONE = "phone"
+    const val COL_PROFILE_IMAGE = "profile_image"
+    const val COL_ADDRESSES_JSON = "addresses_json"
+    const val TABLE_RESTAURANTS = "restaurants"
+    const val COL_THUMB_URL = "thumb_url"
+    const val COL_RATING = "rating"
+    const val COL_RATING_TEXT = "rating_text"
+    const val COL_RATING_COLOR = "rating_color"
+    const val COL_TOTAL_VOTES = "total_votes"
+    const val COL_AVG_DELIVERY_TIME = "avg_delivery_time"
+    const val COL_DELIVERY_FEE = "delivery_fee"
+    const val COL_MIN_ORDER = "min_order"
+    const val COL_CUISINES_JSON = "cuisines_json"
+    const val COL_ADDRESS = "address"
+    const val COL_LOCALITY = "locality"
+    const val COL_IS_OPEN = "is_open"
+    const val COL_HAS_DELIVERY = "has_delivery"
+    const val COL_OFFERS_JSON = "offers_json"
+    const val COL_AVG_COST_FOR_TWO = "avg_cost_for_two"
+    const val COL_NAME = "name"
+    const val COL_DESCRIPTION = "description"
+    const val COL_PRICE = "price"
+    const val COL_IMAGE_URL = "image_url"
+    const val COL_IS_VEG = "is_veg"
+    const val COL_IS_RECOMMENDED = "is_recommended"
+    const val TABLE_MENU_ITEMS = "menu_items"
+    const val COL_RESTAURANT_ID = "restaurant_id"
+    const val COL_CATEGORY = "category"
+    const val COL_CACHED_AT = "cached_at"
+    const val SOMETHING_WRONG = "Something went wrong"
+    const val STORE_NEAR = "Stores Near You"
+    const val RETRY = "Retry button"
+    const val SHIMMER = "shimmer"
+    const val SHIMMER_X = "shimmer_x"
+    const val BACK = "Back"
+    const val CLEAR = "Clear"
+    const val RESTAURANT_CHECK = "Try a different spelling or check\nfor nearby restaurants"
+    const val DIGIT_OTP = " -digit OTP"
+    const val OTP_SEND_FAILED = "OTP sending failed"
+    const val FIREBASE_ERROR = "Firebase error"
+    const val SESSION_EXPIRED = "Session expired. Tap Send OTP again."
+    const val LOGIN_FAILED = "Login failed."
+    const val WRONG_OTP = "Wrong OTP. Please check and try again."
+    const val VERIFY_FAILED = "Verification failed"
+    const val OFFLINE = "You're offline — showing cached data"
+    const val SEARCH_MAX_RESULTS = 20
+    const val CATEGORY_CHIPS_MAX = 5
+    const val MAX_OFFER_CARDS = 5
+    const val MAX_RECOMMENDED_ITEMS = 5
+    const val DEFAULT_DELIVERY_TIME = 30
+    const val MAX_REVIEWS_SHOWN = 5
+    const val RATING_EXCELLENT = 4.5
+    const val RATING_VERY_GOOD = 4.0
+    const val RATING_GOOD = 3.5
+    const val RATING_AVERAGE = 3.0
 }

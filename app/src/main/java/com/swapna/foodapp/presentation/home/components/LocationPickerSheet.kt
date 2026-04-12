@@ -26,7 +26,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,8 +41,26 @@ import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.AppLightGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.CURRENT_LOCATION
+import com.swapna.foodapp.utils.AppConstants.ENABLE_LOCATION_PERMISSION
+import com.swapna.foodapp.utils.AppConstants.HOME
+import com.swapna.foodapp.utils.AppConstants.LOC_ECITY
+import com.swapna.foodapp.utils.AppConstants.LOC_ECITY_SUB
+import com.swapna.foodapp.utils.AppConstants.LOC_HSR
+import com.swapna.foodapp.utils.AppConstants.LOC_HSR_SUB
+import com.swapna.foodapp.utils.AppConstants.LOC_INDIRANAGAR
+import com.swapna.foodapp.utils.AppConstants.LOC_INDIRANAGAR_SUB
+import com.swapna.foodapp.utils.AppConstants.LOC_KORAMANGALA
+import com.swapna.foodapp.utils.AppConstants.LOC_KORAMANGALA_SUB
+import com.swapna.foodapp.utils.AppConstants.LOC_WHITEFIELD
+import com.swapna.foodapp.utils.AppConstants.LOC_WHITEFIELD_SUB
+import com.swapna.foodapp.utils.AppConstants.POPULAR_LOCATIONS
+import com.swapna.foodapp.utils.AppConstants.SAVED_ADDRESSES
+import com.swapna.foodapp.utils.AppConstants.SEARCH_LOCATION_HINT
+import com.swapna.foodapp.utils.AppConstants.SELECT_DELIVERY_LOCATION
+import com.swapna.foodapp.utils.AppConstants.USE_CURRENT_LOCATION
+import com.swapna.foodapp.utils.AppConstants.WORK
 
-// Predefined location options for quick selection
 private data class QuickLocation(
     val label: String,
     val subtitle: String,
@@ -52,29 +69,29 @@ private data class QuickLocation(
 
 private val quickLocations = listOf(
     QuickLocation(
-        label    = "Koramangala, Bengaluru",
-        subtitle = "5th Block, Bengaluru - 560095",
-        icon     = Icons.Default.LocationOn,
+        label = LOC_KORAMANGALA,
+        subtitle = LOC_KORAMANGALA_SUB,
+        icon = Icons.Default.LocationOn,
     ),
     QuickLocation(
-        label    = "Indiranagar, Bengaluru",
-        subtitle = "100 Feet Road, Bengaluru - 560038",
-        icon     = Icons.Default.LocationOn,
+        label = LOC_INDIRANAGAR,
+        subtitle = LOC_INDIRANAGAR_SUB,
+        icon = Icons.Default.LocationOn,
     ),
     QuickLocation(
-        label    = "HSR Layout, Bengaluru",
-        subtitle = "Sector 7, Bengaluru - 560102",
-        icon     = Icons.Default.LocationOn,
+        label = LOC_HSR,
+        subtitle = LOC_HSR_SUB,
+        icon = Icons.Default.LocationOn,
     ),
     QuickLocation(
-        label    = "Whitefield, Bengaluru",
-        subtitle = "ITPL Main Road, Bengaluru - 560066",
-        icon     = Icons.Default.LocationOn,
+        label = LOC_WHITEFIELD,
+        subtitle = LOC_WHITEFIELD_SUB,
+        icon = Icons.Default.LocationOn,
     ),
     QuickLocation(
-        label    = "Electronic City, Bengaluru",
-        subtitle = "Phase 1, Bengaluru - 560100",
-        icon     = Icons.Default.LocationOn,
+        label = LOC_ECITY,
+        subtitle = LOC_ECITY_SUB,
+        icon = Icons.Default.LocationOn,
     ),
 )
 
@@ -98,7 +115,7 @@ fun LocationPickerSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState       = sheetState,
+        sheetState = sheetState,
     ) {
         Column(
             modifier = Modifier
@@ -106,71 +123,71 @@ fun LocationPickerSheet(
                 .padding(bottom = Dimens.Space32),
         ) {
 
-            // ── Header ────────────────────────────────────────
+            // Header
             Text(
-                text       = "Select Delivery Location",
-                style      = MaterialTheme.typography.headlineSmall,
+                text = SELECT_DELIVERY_LOCATION,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                modifier   = Modifier.padding(
+                modifier = Modifier.padding(
                     horizontal = Dimens.SpaceL,
-                    vertical   = Dimens.SpaceM,
+                    vertical = Dimens.SpaceM,
                 ),
             )
 
-            // ── Search Field ──────────────────────────────────
+            // Search Field
             OutlinedTextField(
-                value         = searchQuery,
+                value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder   = {
-                    Text("Search for area, street name...", color = AppGray)
+                placeholder = {
+                    Text(SEARCH_LOCATION_HINT, color = AppGray)
                 },
-                leadingIcon   = {
+                leadingIcon = {
                     Icon(Icons.Default.Search, null, tint = AppGray)
                 },
-                singleLine    = true,
-                colors        = OutlinedTextFieldDefaults.colors(
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = AppDivider,
-                    focusedBorderColor   = ZomatoRed,
+                    focusedBorderColor = ZomatoRed,
                     unfocusedContainerColor = AppLightGray,
-                    focusedContainerColor   = AppLightGray,
+                    focusedContainerColor = AppLightGray,
                 ),
-                modifier      = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Dimens.SpaceL),
             )
 
             Spacer(Modifier.height(Dimens.SpaceL))
 
-            // ── Use Current Location ───────────────────────────
+            // Use Current Location
             Row(
-                modifier          = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        onLocationSelected("Current Location")
+                        onLocationSelected(CURRENT_LOCATION)
                         onDismiss()
                     }
                     .padding(
                         horizontal = Dimens.SpaceL,
-                        vertical   = Dimens.SpaceM,
+                        vertical = Dimens.SpaceM,
                     ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector        = Icons.Default.MyLocation,
-                    contentDescription = "Current location",
-                    tint               = ZomatoRed,
-                    modifier           = Modifier.size(Dimens.IconM),
+                    imageVector = Icons.Default.MyLocation,
+                    contentDescription = CURRENT_LOCATION,
+                    tint = ZomatoRed,
+                    modifier = Modifier.size(Dimens.IconM),
                 )
                 Spacer(Modifier.width(Dimens.SpaceM))
                 Column {
                     Text(
-                        text       = "Use Current Location",
-                        style      = MaterialTheme.typography.bodyLarge,
+                        text = USE_CURRENT_LOCATION,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color      = ZomatoRed,
+                        color = ZomatoRed,
                     )
                     Text(
-                        text  = "Enable location permission",
+                        text = ENABLE_LOCATION_PERMISSION,
                         style = MaterialTheme.typography.bodySmall,
                         color = AppGray,
                     )
@@ -179,20 +196,21 @@ fun LocationPickerSheet(
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = Dimens.SpaceL))
 
-            // ── Saved Addresses (from Profile) ─────────────────
+            // Saved Addresses (from Profile)
             if (savedAddresses.isNotEmpty()) {
                 Text(
-                    text     = "SAVED ADDRESSES",
-                    style    = MaterialTheme.typography.labelSmall,
-                    color    = AppGray,
-                    modifier = Modifier.padding(horizontal = Dimens.SpaceL)
+                    text = SAVED_ADDRESSES,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AppGray,
+                    modifier = Modifier
+                        .padding(horizontal = Dimens.SpaceL)
                         .padding(top = Dimens.SpaceL, bottom = Dimens.SpaceS)
                 )
 
                 savedAddresses.forEach { address ->
                     SavedAddressRow(
-                        address  = address,
-                        onClick  = {
+                        address = address,
+                        onClick = {
                             onLocationSelected(address.label + ", " + address.fullAddress.take(30))
                             onDismiss()
                         },
@@ -204,12 +222,13 @@ fun LocationPickerSheet(
                 )
             }
 
-            // ── Popular Locations ─────────────────────────────
+            // Popular Locations
             Text(
-                text     = "POPULAR LOCATIONS",
-                style    = MaterialTheme.typography.labelSmall,
-                color    = AppGray,
-                modifier = Modifier.padding(horizontal = Dimens.SpaceL)
+                text = POPULAR_LOCATIONS,
+                style = MaterialTheme.typography.labelSmall,
+                color = AppGray,
+                modifier = Modifier
+                    .padding(horizontal = Dimens.SpaceL)
                     .padding(top = Dimens.SpaceL, bottom = Dimens.SpaceS)
             )
 
@@ -217,7 +236,7 @@ fun LocationPickerSheet(
                 items(filteredLocations) { location ->
                     QuickLocationRow(
                         location = location,
-                        onClick  = {
+                        onClick = {
                             onLocationSelected(location.label)
                             onDismiss()
                         },
@@ -228,75 +247,73 @@ fun LocationPickerSheet(
     }
 }
 
-// ── Saved Address Row ──────────────────────────────────────────
 @Composable
 private fun SavedAddressRow(
     address: Address,
     onClick: () -> Unit,
 ) {
     val icon = when (address.label.lowercase()) {
-        "home" -> Icons.Default.Home
-        "work" -> Icons.Default.Work
-        else   -> Icons.Default.LocationOn
+        HOME -> Icons.Default.Home
+        WORK -> Icons.Default.Work
+        else -> Icons.Default.LocationOn
     }
 
     Row(
-        modifier          = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(horizontal = Dimens.SpaceL, vertical = Dimens.SpaceM),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            imageVector        = icon,
+            imageVector = icon,
             contentDescription = address.label,
-            tint               = AppGray,
-            modifier           = Modifier.size(Dimens.IconM),
+            tint = AppGray,
+            modifier = Modifier.size(Dimens.IconM),
         )
         Spacer(Modifier.width(Dimens.SpaceM))
         Column {
             Text(
-                text       = address.label,
-                style      = MaterialTheme.typography.bodyLarge,
+                text = address.label,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text     = address.fullAddress,
-                style    = MaterialTheme.typography.bodySmall,
-                color    = AppGray,
+                text = address.fullAddress,
+                style = MaterialTheme.typography.bodySmall,
+                color = AppGray,
                 maxLines = 1,
             )
         }
     }
 }
 
-// ── Quick Location Row ────────────────────────────────────────
 @Composable
 private fun QuickLocationRow(
     location: QuickLocation,
     onClick: () -> Unit,
 ) {
     Row(
-        modifier          = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(horizontal = Dimens.SpaceL, vertical = Dimens.SpaceM),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            imageVector        = location.icon,
+            imageVector = location.icon,
             contentDescription = location.label,
-            tint               = AppGray,
-            modifier           = Modifier.size(Dimens.IconM),
+            tint = AppGray,
+            modifier = Modifier.size(Dimens.IconM),
         )
         Spacer(Modifier.width(Dimens.SpaceM))
         Column {
             Text(
-                text  = location.label,
+                text = location.label,
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                text  = location.subtitle,
+                text = location.subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = AppGray,
             )

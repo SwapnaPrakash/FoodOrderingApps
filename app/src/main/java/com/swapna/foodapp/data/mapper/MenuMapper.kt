@@ -31,29 +31,29 @@ class MenuMapper @Inject constructor() {
         restaurantId: String,
         category: String,
     ): MenuItem = MenuItem(
-        id             = dto.id,
-        restaurantId   = restaurantId,
-        name           = dto.name,
-        description    = dto.description,
+        id = dto.id,
+        restaurantId = restaurantId,
+        name = dto.name,
+        description = dto.description,
 
-        // ⚠️ "249 Rs." → 249.0
-        price          = dto.price.parsePriceString(),
+        // "249 Rs." → 249.0
+        price = dto.price.parsePriceString(),
 
-        imageUrl       = dto.imageUrl ?: "",
-        category       = category,
+        imageUrl = dto.imageUrl ?: "",
+        category = category,
 
-        // ⚠️ Int 1/0 → Boolean
-        isVeg          = dto.isVeg == 1,
-        isRecommended  = dto.isRecommended == 1,
+        // Int 1/0 → Boolean
+        isVeg = dto.isVeg == 1,
+        isRecommended = dto.isRecommended == 1,
 
         customisations = dto.customisations?.map { c ->
             Customisation(
-                id      = c.id,
-                name    = c.name,
+                id = c.id,
+                name = c.name,
                 options = c.options.map { o ->
                     CustomisationOption(
-                        id         = o.id,
-                        label      = o.label,
+                        id = o.id,
+                        label = o.label,
                         extraPrice = o.extraPrice,
                     )
                 },

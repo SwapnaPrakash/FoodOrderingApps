@@ -1,42 +1,46 @@
 package com.swapna.foodapp.presentation.search
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.swapna.foodapp.presentation.navigation.AppRoutes
-import com.swapna.foodapp.presentation.search.components.EmptySearchResult
-import com.swapna.foodapp.presentation.search.components.FilterChipsRow
-import com.swapna.foodapp.presentation.search.components.SearchResultItem
-import com.swapna.foodapp.presentation.search.components.SearchTopBar
-import com.swapna.foodapp.presentation.ui.theme.AppGray
-import com.swapna.foodapp.presentation.ui.theme.Dimens
-import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import com.swapna.foodapp.presentation.navigation.AppRoutes
+import com.swapna.foodapp.presentation.search.components.EmptySearchResult
 import com.swapna.foodapp.presentation.search.components.FilterBottomSheet
 import com.swapna.foodapp.presentation.search.components.FilterButton
+import com.swapna.foodapp.presentation.search.components.FilterChipsRow
+import com.swapna.foodapp.presentation.search.components.SearchResultItem
+import com.swapna.foodapp.presentation.search.components.SearchTopBar
 import com.swapna.foodapp.presentation.search.components.activeCount
+import com.swapna.foodapp.presentation.ui.theme.AppGray
+import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.FILTER_ACTIVE
+import com.swapna.foodapp.utils.AppConstants.RESTAURANT_FOUND
+import com.swapna.foodapp.utils.AppConstants.RESTAURANT_SEARCH
+import com.swapna.foodapp.utils.AppConstants.RESULTS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,9 +49,9 @@ fun SearchScreen(
     initialQuery: String = "",
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
-    val state           by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var showFilterSheet  by remember { mutableStateOf(false) }
+    var showFilterSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(initialQuery) {
         if (initialQuery.isNotEmpty()) {
@@ -55,30 +59,30 @@ fun SearchScreen(
         }
     }
 
-    // ── Filter bottom sheet ───────────────────────────────────
+    // Filter bottom sheet
     if (showFilterSheet) {
         FilterBottomSheet(
-            sheetState             = filterSheetState,
-            filters                = state.filters,
-            cuisines               = state.cuisines,
-            onVegToggle            = viewModel::onVegToggle,
-            onSortChange           = viewModel::onSortChange,
-            onCuisineSelected      = viewModel::onCuisineSelected,
-            onMinRatingSelected    = viewModel::onMinRatingSelected,
+            sheetState = filterSheetState,
+            filters = state.filters,
+            cuisines = state.cuisines,
+            onVegToggle = viewModel::onVegToggle,
+            onSortChange = viewModel::onSortChange,
+            onCuisineSelected = viewModel::onCuisineSelected,
+            onMinRatingSelected = viewModel::onMinRatingSelected,
             onDeliveryTimeSelected = viewModel::onDeliveryTimeSelected,
-            onClearAll             = viewModel::clearFilters,
-            onApply                = { /* filters already reactive */ },
-            onDismiss              = { showFilterSheet = false },
+            onClearAll = viewModel::clearFilters,
+            onApply = { /* filters already reactive */ },
+            onDismiss = { showFilterSheet = false },
         )
     }
 
     Scaffold(
         topBar = {
             SearchTopBar(
-                query         = state.query,
+                query = state.query,
                 onQueryChange = viewModel::onQueryChange,
-                onClear       = viewModel::clearSearch,
-                onBack        = { navController.popBackStack() },
+                onClear = viewModel::clearSearch,
+                onBack = { navController.popBackStack() },
             )
         },
     ) { paddingValues ->
@@ -89,64 +93,64 @@ fun SearchScreen(
                 .padding(paddingValues),
         ) {
 
-            // ── Loading indicator ─────────────────────────────
+            // Loading indicator
             if (state.isLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
-                    color    = ZomatoRed,
+                    color = ZomatoRed,
                 )
             } else {
                 HorizontalDivider()
             }
 
-            // ── Filter row: chips + filter button ─────────────
+            // Filter row: chips + filter button
             Row(
-                modifier          = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Quick filter chips — scrollable horizontally
                 FilterChipsRow(
-                    filters             = state.filters,
-                    cuisines            = state.cuisines.take(4),
-                    onVegToggle         = viewModel::onVegToggle,
-                    onSortChange        = viewModel::onSortChange,
-                    onCuisineSelected   = viewModel::onCuisineSelected,
+                    filters = state.filters,
+                    cuisines = state.cuisines.take(4),
+                    onVegToggle = viewModel::onVegToggle,
+                    onSortChange = viewModel::onSortChange,
+                    onCuisineSelected = viewModel::onCuisineSelected,
                     onMinRatingSelected = viewModel::onMinRatingSelected,
-                    modifier            = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f),
                 )
 
                 // Filter button with active count badge
                 FilterButton(
-                    filters  = state.filters,
-                    onClick  = { showFilterSheet = true },
+                    filters = state.filters,
+                    onClick = { showFilterSheet = true },
                     modifier = Modifier.padding(end = Dimens.SpaceS),
                 )
             }
 
             HorizontalDivider()
 
-            // ── Active filter summary ─────────────────────────
+            // Active filter summary
             if (state.filters.activeCount() > 0 && state.hasSearched) {
                 Text(
-                    text     = "${state.filters.activeCount()} filter(s) active  •  " +
-                            "${state.results.size} results",
-                    style    = MaterialTheme.typography.labelSmall,
-                    color    = AppGray,
+                    text = "${state.filters.activeCount()} " + FILTER_ACTIVE +
+                            "${state.results.size} " + RESULTS,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AppGray,
                     modifier = Modifier.padding(
                         horizontal = Dimens.SpaceL,
-                        vertical   = Dimens.SpaceXS,
+                        vertical = Dimens.SpaceXS,
                     ),
                 )
             }
 
-            // ── Results / States ──────────────────────────────
+            // Results / States
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
                     // Error state
                     state.error != null && !state.isLoading -> {
                         Text(
-                            text     = "⚠️  ${state.error}",
-                            color    = AppGray,
+                            text = "⚠️  ${state.error}",
+                            color = AppGray,
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .padding(Dimens.SpaceXXL),
@@ -174,12 +178,12 @@ fun SearchScreen(
                             // Result count
                             item(key = "count") {
                                 Text(
-                                    text     = "${state.results.size} restaurants found",
-                                    color    = AppGray,
-                                    style    = MaterialTheme.typography.labelMedium,
+                                    text = "${state.results.size} " + RESTAURANT_FOUND,
+                                    color = AppGray,
+                                    style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier.padding(
                                         horizontal = Dimens.SpaceL,
-                                        vertical   = Dimens.SpaceS,
+                                        vertical = Dimens.SpaceS,
                                     ),
                                 )
                             }
@@ -187,7 +191,7 @@ fun SearchScreen(
                             items(state.results, key = { it.id }) { restaurant ->
                                 SearchResultItem(
                                     restaurant = restaurant,
-                                    onClick    = {
+                                    onClick = {
                                         navController.navigate(
                                             AppRoutes.restaurant(restaurant.id)
                                         )
@@ -202,11 +206,11 @@ fun SearchScreen(
     }
 }
 
-// ── Idle hint ──────────────────────────────────────────────────
+//Idle hint
 @Composable
 private fun IdleSearchHint(modifier: Modifier = Modifier) {
     Column(
-        modifier            = modifier.padding(Dimens.SpaceXXL),
+        modifier = modifier.padding(Dimens.SpaceXXL),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
     ) {
@@ -215,9 +219,9 @@ private fun IdleSearchHint(modifier: Modifier = Modifier) {
             Modifier.padding(Dimens.SpaceM)
         )
         Text(
-            text      = "Search for restaurants,\ncuisines or dishes",
-            style     = MaterialTheme.typography.bodyLarge,
-            color     = AppGray,
+            text = RESTAURANT_SEARCH,
+            style = MaterialTheme.typography.bodyLarge,
+            color = AppGray,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }

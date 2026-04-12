@@ -32,6 +32,7 @@ import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.GradientEnd
 import com.swapna.foodapp.presentation.ui.theme.GradientStart
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.RESTAURANT
 
 @Composable
 fun OfferCard(
@@ -42,35 +43,25 @@ fun OfferCard(
         modifier = modifier
             .width(Dimens.OfferCardWidth)
             .height(Dimens.OfferCardHeight),
-        shape     = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-
-            // Background image
-            /*AsyncImage(
-                model              = collection.imageUrl,
-                contentDescription = collection.title,
-                contentScale       = ContentScale.Crop,
-                modifier           = Modifier.fillMaxSize(),
-            )*/
-
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(collection.imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = collection.title,
-                contentScale       = ContentScale.Crop,
-                placeholder        = painterResource(android.R.drawable.ic_menu_gallery),
-                error              = painterResource(android.R.drawable.ic_menu_gallery),
-                modifier           = Modifier
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                error = painterResource(android.R.drawable.ic_menu_gallery),
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(Dimens.RestaurantCardHeight)
                     .clip(RoundedCornerShape(Dimens.RadiusM)),
             )
 
-            // Gradient overlay for text readability
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -81,26 +72,24 @@ fun OfferCard(
                     ),
             )
 
-            // Text content overlaid on image
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(Dimens.SpaceM),
             ) {
-                // Discount badge (e.g. "Up to 60% OFF")
                 if (collection.discount.isNotEmpty()) {
                     Box(
                         modifier = Modifier
                             .background(ZomatoRed, RoundedCornerShape(Dimens.RadiusXS))
                             .padding(
-                                horizontal = Dimens.SpaceS,   // 8dp
-                                vertical   = Dimens.SpaceXXS, // 2dp — tighter than before
+                                horizontal = Dimens.SpaceS,
+                                vertical = Dimens.SpaceXXS,
                             ),
                     ) {
                         Text(
-                            text       = collection.discount,
-                            color      = Color.White,
-                            style      = MaterialTheme.typography.labelMedium,
+                            text = collection.discount,
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                         )
                     }
@@ -108,17 +97,15 @@ fun OfferCard(
 
                 Spacer(Modifier.height(Dimens.SpaceXS))
 
-                // Collection title
                 Text(
-                    text       = collection.title,
-                    color      = Color.White,
-                    style      = MaterialTheme.typography.titleSmall,
+                    text = collection.title,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                 )
 
-                // Restaurant count
                 Text(
-                    text  = "${collection.restaurantCount} restaurants",
+                    text = "${collection.restaurantCount} " + RESTAURANT,
                     color = Color.White.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.bodySmall,
                 )

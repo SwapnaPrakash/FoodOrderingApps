@@ -56,10 +56,10 @@ class SearchRestaurantsUseCase @Inject constructor(
 
     private fun List<Restaurant>.applySort(sort: SortOption): List<Restaurant> =
         when (sort) {
-            SortOption.RATING        -> sortedByDescending { it.rating }
+            SortOption.RATING -> sortedByDescending { it.rating }
             SortOption.DELIVERY_TIME -> sortedBy { it.avgDeliveryTime }
-            SortOption.COST_LOW      -> sortedBy { it.avgCostForTwo }
-            SortOption.COST_HIGH     -> sortedByDescending { it.avgCostForTwo }
-            SortOption.RELEVANCE     -> this  // no change — original order
+            SortOption.COST_LOW -> sortedBy { it.avgCostForTwo }
+            SortOption.COST_HIGH -> sortedByDescending { it.avgCostForTwo }
+            SortOption.RELEVANCE -> this  // no change — original order
         }
 }

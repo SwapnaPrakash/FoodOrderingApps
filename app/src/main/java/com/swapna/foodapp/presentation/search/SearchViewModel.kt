@@ -9,22 +9,22 @@ import com.swapna.foodapp.domain.model.SortOption
 import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.usecase.search.SearchRestaurantsUseCase
 import com.swapna.foodapp.utils.AppConstants
+import com.swapna.foodapp.utils.AppConstants.SEARCH_FAILED
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
@@ -33,22 +33,21 @@ class SearchViewModel @Inject constructor(
     private val restaurantRepository: RestaurantRepository,
 ) : ViewModel() {
 
-    // ── UI State ──────────────────────────────────────────────
     data class SearchUiState(
-        val query: String              = "",
-        val filters: SearchFilters     = SearchFilters(),
-        val results: List<Restaurant>  = emptyList(),
-        val cuisines: List<Cuisine>    = emptyList(),
-        val isLoading: Boolean         = false,
-        val hasSearched: Boolean       = false,
-        val error: String?             = null,
+        val query: String = "",
+        val filters: SearchFilters = SearchFilters(),
+        val results: List<Restaurant> = emptyList(),
+        val cuisines: List<Cuisine> = emptyList(),
+        val isLoading: Boolean = false,
+        val hasSearched: Boolean = false,
+        val error: String? = null,
     )
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    // ── Separate flows for debounce pipeline ──────────────────
-    private val _query   = MutableStateFlow("")
+    // Separate flows for debounce pipeline
+    private val _query = MutableStateFlow("")
     private val _filters = MutableStateFlow(SearchFilters())
 
     init {
@@ -56,10 +55,8 @@ class SearchViewModel @Inject constructor(
         setupSearchPipeline()
     }
 
-    // ══════════════════════════════════════════════════════════
     // SEARCH PIPELINE
     // combine → debounce → distinctUntilChanged → flatMapLatest
-    // ══════════════════════════════════════════════════════════
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun setupSearchPipeline() {
         viewModelScope.launch {
@@ -74,13 +71,13 @@ class SearchViewModel @Inject constructor(
                     if (query.length < AppConstants.SEARCH_MIN_CHARS) {
                         _uiState.update {
                             it.copy(
-                                results     = emptyList(),
-                                isLoading   = false,
+                                results = emptyList(),
+                                isLoading = false,
                                 hasSearched = false,
-                                error       = null,
+                                error = null,
                             )
                         }
-                       // return@flatMapLatest flowOf(null)
+                        // return@flatMapLatest flowOf(null)
                         return@flatMapLatest emptyFlow()
                     }
 
@@ -92,10 +89,10 @@ class SearchViewModel @Inject constructor(
                         .catch { e ->
                             _uiState.update {
                                 it.copy(
-                                    isLoading   = false,
+                                    isLoading = false,
                                     hasSearched = true,
-                                    error       = e.message ?: "Search failed",
-                                    results     = emptyList(),
+                                    error = e.message ?: SEARCH_FAILED,
+                                    results = emptyList(),
                                 )
                             }
                             emit(Result.failure(e))
@@ -108,20 +105,20 @@ class SearchViewModel @Inject constructor(
                         onSuccess = { restaurants ->
                             _uiState.update {
                                 it.copy(
-                                    results     = restaurants,
-                                    isLoading   = false,
+                                    results = restaurants,
+                                    isLoading = false,
                                     hasSearched = true,
-                                    error       = null,
+                                    error = null,
                                 )
                             }
                         },
                         onFailure = { throwable ->
                             _uiState.update {
                                 it.copy(
-                                    results     = emptyList(),
-                                    isLoading   = false,
+                                    results = emptyList(),
+                                    isLoading = false,
                                     hasSearched = true,
-                                    error       = throwable.message ?: "Search failed",
+                                    error = throwable.message ?: SEARCH_FAILED,
                                 )
                             }
                         },
@@ -130,7 +127,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    // ── Load Cuisines ─────────────────────────────────────────
+    // Load Cuisines
     private fun loadCuisines() = viewModelScope.launch {
         restaurantRepository.getCuisines()
             .catch { /* non-critical — silently ignore */ }
@@ -141,8 +138,7 @@ class SearchViewModel @Inject constructor(
             }
     }
 
-    // ── User Actions ──────────────────────────────────────────
-
+    // User Actions
     fun onQueryChange(query: String) {
         _query.value = query
         _uiState.update { it.copy(query = query) }
@@ -163,7 +159,7 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onCuisineSelected(cuisineId: Int) {
-        val newId   = if (_filters.value.cuisineId == cuisineId) null else cuisineId
+        val newId = if (_filters.value.cuisineId == cuisineId) null else cuisineId
         val updated = _filters.value.copy(cuisineId = newId)
         _filters.value = updated
         _uiState.update { it.copy(filters = updated) }
@@ -185,11 +181,11 @@ class SearchViewModel @Inject constructor(
         _query.value = ""
         _uiState.update {
             it.copy(
-                query       = "",
-                results     = emptyList(),
+                query = "",
+                results = emptyList(),
                 hasSearched = false,
-                isLoading   = false,
-                error       = null,
+                isLoading = false,
+                error = null,
             )
         }
     }

@@ -22,6 +22,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.ERROR
+import com.swapna.foodapp.utils.AppConstants.RETRY
+import com.swapna.foodapp.utils.AppConstants.TRY_AGAIN
+import com.swapna.foodapp.utils.AppConstants.WRONG
 
 @Composable
 fun ErrorScreen(
@@ -38,44 +42,44 @@ fun ErrorScreen(
     ) {
         // Error icon
         Icon(
-            imageVector        = Icons.Default.WifiOff,
-            contentDescription = "Error",
-            tint               = ZomatoRed,
-            modifier           = Modifier.size(Dimens.IconXL),
+            imageVector = Icons.Default.WifiOff,
+            contentDescription = ERROR,
+            tint = ZomatoRed,
+            modifier = Modifier.size(Dimens.IconXL),
         )
 
         Spacer(Modifier.height(Dimens.SpaceL))
 
         Text(
-            text      = "Something went wrong",
-            style     = MaterialTheme.typography.headlineSmall,
+            text = WRONG,
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
         )
 
         Spacer(Modifier.height(Dimens.SpaceS))
 
         Text(
-            text      = message,
-            style     = MaterialTheme.typography.bodyMedium,
-            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier  = Modifier.semantics {
-                contentDescription = "Error: $message"
+            modifier = Modifier.semantics {
+                contentDescription = "$ERROR : $message"
             },
         )
 
         Spacer(Modifier.height(Dimens.SpaceXXL))
 
         Button(
-            onClick  = onRetry,
-            colors   = ButtonDefaults.buttonColors(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(
                 containerColor = ZomatoRed,
             ),
             modifier = Modifier.semantics {
-                contentDescription = "Retry button"
+                contentDescription = RETRY
             },
         ) {
-            Text("Try Again")
+            Text(TRY_AGAIN)
         }
     }
 }

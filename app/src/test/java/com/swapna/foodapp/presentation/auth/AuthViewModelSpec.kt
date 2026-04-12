@@ -19,11 +19,11 @@ import kotlinx.coroutines.test.setMain
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthViewModelSpec : BehaviorSpec({
 
-    // ── Test doubles ──────────────────────────────────────────
+    // ── Test doubles
     val userRepository = mockk<UserRepository>()
     lateinit var viewModel: AuthViewModel
 
-    // ── Setup / Teardown ──────────────────────────────────────
+    // ── Setup / Teardown
     beforeEach {
         clearAllMocks()
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -34,9 +34,7 @@ class AuthViewModelSpec : BehaviorSpec({
         Dispatchers.resetMain()
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Initial state
-    // ══════════════════════════════════════════════════════════
     given("ViewModel is just created") {
         `when`("no action has been taken") {
             then("state should be Idle") {
@@ -46,13 +44,11 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Invalid phone — all actions INSIDE then
-    // ══════════════════════════════════════════════════════════
     given("phone number is less than 10 digits") {
         `when`("sendOtp is called with '98765'") {
             then("state should be Error — no API call made") {
-                // ✅ action inside then — runs AFTER beforeEach
+
                 viewModel.sendOtp("98765")
 
                 viewModel.state.value
@@ -100,14 +96,11 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Valid phone + API outcomes
-    // ══════════════════════════════════════════════════════════
     given("phone number is valid 10 digits") {
 
         `when`("sendOtp is called and repository returns success") {
             then("state should be OtpSent with the phone number") {
-                // ✅ mock setup + action both inside then
                 coEvery {
                     userRepository.sendOtp("9876543210")
                 } returns Result.success(Unit)
@@ -135,13 +128,11 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: OTP has been sent
-    // Use nested beforeEach for shared OTP setup ✅
-    // ══════════════════════════════════════════════════════════
+    // Use nested beforeEach for shared OTP setup
     given("OTP was sent to 9876543210") {
 
-        // ✅ nested beforeEach — runs AFTER outer beforeEach
+        // nested beforeEach — runs AFTER outer beforeEach
         // Order: clearAllMocks → create viewModel → this block → then
         beforeEach {
             coEvery {
@@ -201,9 +192,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Slow network / loading transition
-    // ══════════════════════════════════════════════════════════
     given("valid phone and slow network") {
         `when`("sendOtp is called") {
             then("final state should be OtpSent — Loading was intermediate") {
@@ -221,9 +210,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: resetState
-    // ══════════════════════════════════════════════════════════
     given("state is currently Error") {
         `when`("resetState is called") {
             then("state should go back to Idle") {
@@ -241,9 +228,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Background activity error
-    // ══════════════════════════════════════════════════════════
     given("app is in background when OTP is requested") {
         `when`("sendOtp is called and repo returns activity error") {
             then("state should be Error with background message") {
@@ -263,9 +248,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Firebase rejects OTP
-    // ══════════════════════════════════════════════════════════
     given("OTP was sent successfully and Firebase rejects verify") {
 
         beforeEach {
@@ -294,9 +277,7 @@ class AuthViewModelSpec : BehaviorSpec({
     }
 
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Activity is in background (activityProvider returns null)
-    // ══════════════════════════════════════════════════════════
     given("app is in background when OTP is requested") {
         `when`("sendOtp is called and repo returns activity error") {
 
@@ -318,9 +299,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Firebase returns wrong OTP error
-    // ══════════════════════════════════════════════════════════
     given("OTP was sent successfully") {
 
         beforeEach {

@@ -3,10 +3,13 @@ package com.swapna.foodapp.utils
 import javax.inject.Qualifier
 
 @Retention(AnnotationRetention.BINARY)
-@Qualifier annotation class IoDispatcher
+@Qualifier
+annotation class IoDispatcher
 
 @Retention(AnnotationRetention.BINARY)
-@Qualifier annotation class MainDispatcher
+@Qualifier
+annotation class MainDispatcher
 
 @Retention(AnnotationRetention.BINARY)
-@Qualifier annotation class DefaultDispatcher
+@Qualifier
+annotation class DefaultDispatcher

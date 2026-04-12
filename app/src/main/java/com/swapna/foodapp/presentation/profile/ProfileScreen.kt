@@ -7,10 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import com.swapna.foodapp.utils.AppConstants.PROFILE
 
 @Composable
 fun ProfileScreen(navController: NavController) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Profile Screen")
+        Text(PROFILE)
     }
 }

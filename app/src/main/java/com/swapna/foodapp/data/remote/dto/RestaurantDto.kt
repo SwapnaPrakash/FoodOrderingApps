@@ -1,120 +1,116 @@
 package com.swapna.foodapp.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
-
-// ── Top-level wrappers matching JSON structure ─────────────────
+import com.swapna.foodapp.utils.AppConstants
 
 data class GeocodeResponse(
-    @SerializedName("location")
+    @SerializedName(AppConstants.KEY_LOCATION)
     val location: LocationDto,
 
-    @SerializedName("nearby_restaurants")
+    @SerializedName(AppConstants.KEY_NEARBY_RESTAURANTS)
     val nearbyRestaurants: List<RestaurantWrapper>,
 )
 
 // The API wraps each restaurant in { "restaurant": { ... } }
 data class RestaurantWrapper(
-    @SerializedName("restaurant")
+    @SerializedName(AppConstants.KEY_RESTAURANT)
     val restaurant: RestaurantDto,
 )
 
 data class SearchResponse(
-    @SerializedName("results_found")
+    @SerializedName(AppConstants.KEY_RESULTS_FOUND)
     val totalFound: Int,
 
-    @SerializedName("results_shown")
+    @SerializedName(AppConstants.KEY_RESULTS_SHOWN)
     val shown: Int,
 
-    @SerializedName("restaurants")
+    @SerializedName(AppConstants.KEY_RESTAURANTS)
     val restaurants: List<RestaurantWrapper>,
 )
 
-// ── Main Restaurant DTO ────────────────────────────────────────
-
+// Main Restaurant DTO
 data class RestaurantDto(
-    @SerializedName("id")
+    @SerializedName(AppConstants.KEY_ID)
     val id: String,
 
-    @SerializedName("name")
+    @SerializedName(AppConstants.KEY_NAME)
     val name: String,
 
-    @SerializedName("featured_image")
+    @SerializedName(AppConstants.KEY_FEATURED_IMAGE)
     val featuredImage: String,
 
-    @SerializedName("thumb")
+    @SerializedName(AppConstants.KEY_THUMB)
     val thumb: String,
 
-    @SerializedName("location")
+    @SerializedName(AppConstants.KEY_LOCATION)
     val location: LocationDto,
 
-    @SerializedName("cuisines")
-    val cuisines: String,           // ⚠️ "Biryani, North Indian" — split on ","
+    @SerializedName(AppConstants.KEY_CUISINES)
+    val cuisines: String,
 
-    @SerializedName("average_cost_for_two")
+    @SerializedName(AppConstants.KEY_AVG_COST_FOR_TWO)
     val avgCostForTwo: Int,
 
-    @SerializedName("price_range")
-    val priceRange: Int,            // 1=cheap, 4=expensive
+    @SerializedName(AppConstants.KEY_PRICE_RANGE)
+    val priceRange: Int,
 
-    @SerializedName("currency")
-    val currency: String,           // "Rs."
+    @SerializedName(AppConstants.KEY_CURRENCY)
+    val currency: String,
 
-    @SerializedName("user_rating")
+    @SerializedName(AppConstants.KEY_USER_RATING)
     val rating: RatingDto,
 
-    @SerializedName("has_online_delivery")
-    val hasDelivery: Int,           // ⚠️ Int not Boolean (1 or 0)
+    @SerializedName(AppConstants.KEY_HAS_DELIVERY)
+    val hasDelivery: Int,
 
-    @SerializedName("is_delivering_now")
-    val isDeliveringNow: Int,       // ⚠️ Int not Boolean (1 or 0)
+    @SerializedName(AppConstants.KEY_IS_DELIVERING_NOW)
+    val isDeliveringNow: Int,
 
-    @SerializedName("estimated_delivery_time")
-    val deliveryTime: Int? = null,  // nullable — not always present
+    @SerializedName(AppConstants.KEY_DELIVERY_TIME)
+    val deliveryTime: Int? = null,
 
-    @SerializedName("minimum_order")
+    @SerializedName(AppConstants.KEY_MIN_ORDER)
     val minOrder: Int? = null,
 
-    @SerializedName("offers")
+    @SerializedName(AppConstants.KEY_OFFERS)
     val offers: List<String>? = null,
 )
 
-// ── Rating sub-object ──────────────────────────────────────────
-
+// Rating sub-object
 data class RatingDto(
-    @SerializedName("aggregate_rating")
-    val rating: String,             // ⚠️ "4.3" as String — parse with toDoubleOrNull()
+    @SerializedName(AppConstants.KEY_AGGREGATE_RATING)
+    val rating: String,
 
-    @SerializedName("rating_text")
-    val text: String,               // "Very Good", "Excellent"
+    @SerializedName(AppConstants.KEY_RATING_TEXT)
+    val text: String,
 
-    @SerializedName("rating_color")
-    val color: String,              // "5BA829" hex, no #
+    @SerializedName(AppConstants.KEY_RATING_COLOR)
+    val color: String,
 
-    @SerializedName("votes")
-    val votes: String,              // ⚠️ "12,547" as String — strip comma, parse Int
+    @SerializedName(AppConstants.KEY_VOTES)
+    val votes: String,
 )
 
-// ── Location sub-object ───────────────────────────────────────
-
+// Location sub-object
 data class LocationDto(
-    @SerializedName("address")
+    @SerializedName(AppConstants.KEY_ADDRESS)
     val address: String,
 
-    @SerializedName("locality")
+    @SerializedName(AppConstants.KEY_LOCALITY)
     val locality: String,
 
-    @SerializedName("city")
+    @SerializedName(AppConstants.KEY_CITY)
     val city: String,
 
-    @SerializedName("city_id")
+    @SerializedName(AppConstants.KEY_CITY_ID)
     val cityId: Int,
 
-    @SerializedName("latitude")
-    val latitude: String,           // ⚠️ "12.9352" as String — parse with toDoubleOrNull()
+    @SerializedName(AppConstants.KEY_LATITUDE)
+    val latitude: String,
 
-    @SerializedName("longitude")
-    val longitude: String,          // ⚠️ "77.6245" as String — parse with toDoubleOrNull()
+    @SerializedName(AppConstants.KEY_LONGITUDE)
+    val longitude: String,
 
-    @SerializedName("zipcode")
+    @SerializedName(AppConstants.KEY_ZIPCODE)
     val zipcode: String,
 )

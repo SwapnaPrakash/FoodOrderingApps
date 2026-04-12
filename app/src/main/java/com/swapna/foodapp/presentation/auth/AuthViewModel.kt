@@ -5,6 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.swapna.foodapp.domain.model.User
 import com.swapna.foodapp.domain.repository.UserRepository
 import com.swapna.foodapp.utils.AppConstants
+import com.swapna.foodapp.utils.AppConstants.DIGIT_OTP
+import com.swapna.foodapp.utils.AppConstants.ERROR_INCORRECT_OTP
+import com.swapna.foodapp.utils.AppConstants.ERROR_INVALID_OTP
+import com.swapna.foodapp.utils.AppConstants.ERROR_INVALID_PHONE
+import com.swapna.foodapp.utils.AppConstants.ERROR_SEND_OTP_FAILED
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,41 +22,15 @@ class AuthViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    // ── State Definition ──────────────────────────────────────
-    // Sealed class = only these exact states are possible
-    // No magic booleans like isLoading + isError + isSuccess
-
-    sealed class AuthState {
-        // Initial state — nothing has happened yet
-        object Idle : AuthState()
-
-        // Spinner showing while API call is in flight
-        object Loading : AuthState()
-
-        // OTP was sent — phone is stored so UI can display it
-        data class OtpSent(val phone: String) : AuthState()
-
-        // Login complete — user object received
-        data class Success(val user: User) : AuthState()
-
-        // Something went wrong — message to show in UI
-        data class Error(val message: String) : AuthState()
-    }
-
-    // ── StateFlow ─────────────────────────────────────────────
-    // Private mutable — only ViewModel can change it
-    // Public read-only — UI observes this
     private val _state = MutableStateFlow<AuthState>(AuthState.Idle)
     val state: StateFlow<AuthState> = _state.asStateFlow()
 
-    // ── Send OTP ──────────────────────────────────────────────
     fun sendOtp(phone: String) {
-        // Validate BEFORE making any API call
         if (!isValidPhone(phone)) {
             _state.value = AuthState.Error(
-                "Enter a valid 10-digit phone number"
+                ERROR_INVALID_PHONE
             )
-            return   // Stop here — don't call repository
+            return
         }
 
         viewModelScope.launch {
@@ -63,18 +42,17 @@ class AuthViewModel @Inject constructor(
                 }
                 .onFailure { throwable ->
                     _state.value = AuthState.Error(
-                        throwable.message ?: "Failed to send OTP"
+                        throwable.message ?: ERROR_SEND_OTP_FAILED
                     )
                 }
         }
     }
 
-    // ── Verify OTP ────────────────────────────────────────────
     fun verifyOtp(otp: String) {
         // Validate length before API call
         if (otp.length != AppConstants.OTP_LENGTH) {
             _state.value = AuthState.Error(
-                "Enter the ${AppConstants.OTP_LENGTH}-digit OTP"
+                "$ERROR_INVALID_OTP ${AppConstants.OTP_LENGTH} $DIGIT_OTP"
             )
             return
         }
@@ -88,24 +66,29 @@ class AuthViewModel @Inject constructor(
                 }
                 .onFailure { throwable ->
                     _state.value = AuthState.Error(
-                        throwable.message ?: "Incorrect OTP. Try again."
+                        throwable.message ?: ERROR_INCORRECT_OTP
                     )
                 }
         }
     }
 
-    // ── Reset ─────────────────────────────────────────────────
     // Called when user dismisses error or wants to restart flow
     fun resetState() {
         _state.value = AuthState.Idle
     }
 
-    // ── Validation ────────────────────────────────────────────
-    // Private — only ViewModel uses this
     private fun isValidPhone(phone: String): Boolean {
         if (phone.isBlank()) return false
         if (phone.length != AppConstants.PHONE_LENGTH) return false
         if (!phone.all { it.isDigit() }) return false
         return true
+    }
+
+    sealed class AuthState {
+        object Idle : AuthState()
+        object Loading : AuthState()
+        data class OtpSent(val phone: String) : AuthState()
+        data class Success(val user: User) : AuthState()
+        data class Error(val message: String) : AuthState()
     }
 }

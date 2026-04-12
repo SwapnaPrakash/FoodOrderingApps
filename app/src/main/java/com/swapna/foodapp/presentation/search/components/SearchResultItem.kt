@@ -22,10 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.swapna.foodapp.domain.model.Restaurant
@@ -33,6 +31,8 @@ import com.swapna.foodapp.presentation.common.RatingBadge
 import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.DELIVERY
+import com.swapna.foodapp.utils.AppConstants.URI_FALL_BACK
 
 // Search result is a compact horizontal card (different from Home RestaurantCard)
 // Matches Figma search result design — image on left, text on right
@@ -53,7 +53,7 @@ fun SearchResultItem(
                 .fillMaxWidth()
                 .padding(
                     horizontal = Dimens.SpaceL,
-                    vertical   = Dimens.SpaceM,
+                    vertical = Dimens.SpaceM,
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -61,9 +61,9 @@ fun SearchResultItem(
             // ── Thumbnail Image ────────────────────────────────
             // ✅ Pick best available URL with fallback chain
             val imageUrl = when {
-                restaurant.thumbUrl.isNotEmpty()    -> restaurant.thumbUrl
-                restaurant.imageUrl.isNotEmpty()    -> restaurant.imageUrl
-                else -> "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=200&h=200&fit=crop"
+                restaurant.thumbUrl.isNotEmpty() -> restaurant.thumbUrl
+                restaurant.imageUrl.isNotEmpty() -> restaurant.imageUrl
+                else -> URI_FALL_BACK
             }
 
             AsyncImage(
@@ -74,8 +74,8 @@ fun SearchResultItem(
                     .error(android.R.drawable.ic_menu_gallery)
                     .build(),
                 contentDescription = restaurant.name,
-                contentScale       = ContentScale.Crop,
-                modifier           = Modifier
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
                     .size(Dimens.SearchResultThumb)        // 80dp
                     .clip(RoundedCornerShape(Dimens.RadiusM)),
             )
@@ -86,16 +86,16 @@ fun SearchResultItem(
             Column(modifier = Modifier.weight(1f)) {
 
                 Row(
-                    modifier          = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text       = restaurant.name,
-                        style      = MaterialTheme.typography.titleMedium,
+                        text = restaurant.name,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        maxLines   = 1,
-                        overflow   = TextOverflow.Ellipsis,
-                        modifier   = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
                     )
                     Spacer(Modifier.width(Dimens.SpaceS))
                     RatingBadge(rating = restaurant.rating)
@@ -104,9 +104,9 @@ fun SearchResultItem(
                 Spacer(Modifier.height(Dimens.SpaceXS))
 
                 Text(
-                    text     = restaurant.cuisines.take(3).joinToString(", "),
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = AppGray,
+                    text = restaurant.cuisines.take(3).joinToString(", "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppGray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -115,15 +115,15 @@ fun SearchResultItem(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector        = Icons.Default.AccessTime,
+                        imageVector = Icons.Default.AccessTime,
                         contentDescription = null,
-                        tint               = AppGray,
-                        modifier           = Modifier.size(Dimens.IconXXS),
+                        tint = AppGray,
+                        modifier = Modifier.size(Dimens.IconXXS),
                     )
                     Spacer(Modifier.width(Dimens.SpaceXXS))
                     Text(
-                        text  = "${restaurant.avgDeliveryTime} min  •  " +
-                                "₹${restaurant.deliveryFee.toInt()} delivery",
+                        text = "${restaurant.avgDeliveryTime} min  •  " +
+                                "₹${restaurant.deliveryFee.toInt()} " + DELIVERY,
                         style = MaterialTheme.typography.bodySmall,
                         color = AppGray,
                     )
@@ -132,7 +132,7 @@ fun SearchResultItem(
                 if (restaurant.offers.isNotEmpty()) {
                     Spacer(Modifier.height(Dimens.SpaceXS))
                     Text(
-                        text  = "🏷 ${restaurant.offers.first()}",
+                        text = "🏷 ${restaurant.offers.first()}",
                         style = MaterialTheme.typography.labelSmall,
                         color = ZomatoRed,
                     )

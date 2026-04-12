@@ -26,14 +26,15 @@ import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.model.SortOption
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.FILTERS_TITLE
 
 // Counts how many filters are currently active
 fun SearchFilters.activeCount(): Int {
     var count = 0
-    if (isVegOnly)              count++
-    if (minRating != null)      count++
+    if (isVegOnly) count++
+    if (minRating != null) count++
     if (maxDeliveryTime != null) count++
-    if (cuisineId != null)      count++
+    if (cuisineId != null) count++
     if (sortBy != SortOption.RELEVANCE) count++
     return count
 }
@@ -45,12 +46,12 @@ fun FilterButton(
     modifier: Modifier = Modifier,
 ) {
     val activeCount = filters.activeCount()
-    val hasFilters  = activeCount > 0
+    val hasFilters = activeCount > 0
 
     OutlinedButton(
-        onClick  = onClick,
+        onClick = onClick,
         modifier = modifier,
-        colors   = ButtonDefaults.outlinedButtonColors(
+        colors = ButtonDefaults.outlinedButtonColors(
             containerColor = if (hasFilters)
                 ZomatoRed.copy(alpha = 0.08f)
             else
@@ -60,16 +61,16 @@ fun FilterButton(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                imageVector        = Icons.Default.FilterList,
-                contentDescription = "Filters",
-                tint               = if (hasFilters) ZomatoRed else MaterialTheme.colorScheme.onSurface,
-                modifier           = Modifier.size(18.dp),
+                imageVector = Icons.Default.FilterList,
+                contentDescription = FILTERS_TITLE,
+                tint = if (hasFilters) ZomatoRed else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(18.dp),
             )
 
             Spacer(Modifier.width(Dimens.SpaceXS))
 
             Text(
-                text  = "Filters",
+                text = FILTERS_TITLE,
                 color = if (hasFilters) ZomatoRed else MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.labelLarge,
             )
@@ -78,15 +79,15 @@ fun FilterButton(
             if (hasFilters) {
                 Spacer(Modifier.width(Dimens.SpaceXS))
                 Box(
-                    modifier          = Modifier
+                    modifier = Modifier
                         .size(18.dp)
                         .background(ZomatoRed, CircleShape),
-                    contentAlignment  = Alignment.Center,
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text       = activeCount.toString(),
-                        color      = Color.White,
-                        fontSize   = 10.sp,
+                        text = activeCount.toString(),
+                        color = Color.White,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }

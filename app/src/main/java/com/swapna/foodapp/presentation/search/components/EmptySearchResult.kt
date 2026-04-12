@@ -19,6 +19,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.utils.AppConstants.NO_RESULTS
+import com.swapna.foodapp.utils.AppConstants.RESTAURANT_CHECK
 
 @Composable
 fun EmptySearchResult(
@@ -26,32 +28,32 @@ fun EmptySearchResult(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier            = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(
-            imageVector        = Icons.Default.SearchOff,
-            contentDescription = "No results",
-            tint               = AppGray,
-            modifier           = Modifier.size(64.dp),
+            imageVector = Icons.Default.SearchOff,
+            contentDescription = NO_RESULTS,
+            tint = AppGray,
+            modifier = Modifier.size(64.dp),
         )
 
         Spacer(Modifier.height(Dimens.SpaceL))
 
         Text(
-            text       = "No results for \"$query\"",
-            style      = MaterialTheme.typography.titleMedium,
+            text = "No results for \"$query\"",
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            textAlign  = TextAlign.Center,
+            textAlign = TextAlign.Center,
         )
 
         Spacer(Modifier.height(Dimens.SpaceS))
 
         Text(
-            text      = "Try a different spelling or check\nfor nearby restaurants",
-            style     = MaterialTheme.typography.bodyMedium,
-            color     = AppGray,
+            text = RESTAURANT_CHECK,
+            style = MaterialTheme.typography.bodyMedium,
+            color = AppGray,
             textAlign = TextAlign.Center,
         )
     }

@@ -5,14 +5,13 @@ import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.model.SortOption
 import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.usecase.search.SearchRestaurantsUseCase
-import com.swapna.foodapp.presentation.search.components.activeCount
 import com.swapna.foodapp.utils.AppConstants
 import com.swapna.foodapp.utils.fakeRestaurant
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -20,17 +19,17 @@ import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceTimeBy
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelSpec : BehaviorSpec({
 
-    val searchUseCase        = mockk<SearchRestaurantsUseCase>()
+    val searchUseCase = mockk<SearchRestaurantsUseCase>()
     val restaurantRepository = mockk<RestaurantRepository>()
 
     val testDispatcher = StandardTestDispatcher()
@@ -43,8 +42,8 @@ class SearchViewModelSpec : BehaviorSpec({
     )
     val fakeResults = listOf(
         fakeRestaurant("r1", "Meghana Foods", rating = 4.6),
-        fakeRestaurant("r2", "Pizza Hut",     rating = 4.1),
-        fakeRestaurant("r3", "Burger King",   rating = 3.9),
+        fakeRestaurant("r2", "Pizza Hut", rating = 4.1),
+        fakeRestaurant("r3", "Burger King", rating = 3.9),
     )
 
     fun createViewModel() = SearchViewModel(searchUseCase, restaurantRepository)
@@ -60,9 +59,7 @@ class SearchViewModelSpec : BehaviorSpec({
         Dispatchers.resetMain()
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Initial state
-    // ══════════════════════════════════════════════════════════
     given("ViewModel is just created") {
 
         `when`("no query has been entered") {
@@ -127,9 +124,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Query too short
-    // ══════════════════════════════════════════════════════════
     given("user types only 1 character") {
 
         `when`("onQueryChange called with 'p'") {
@@ -150,9 +145,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Valid query
-    // ══════════════════════════════════════════════════════════
     given("user types 'pizza' (5 chars — above minimum)") {
 
         `when`("API returns matching restaurants") {
@@ -162,16 +155,16 @@ class SearchViewModelSpec : BehaviorSpec({
                     every { searchUseCase("pizza", any()) } returns
                             flowOf(
                                 Result.success(
-                                fakeResults.filter {
-                                    it.name.contains("pizza", ignoreCase = true) ||
-                                            it.cuisines.any { c ->
-                                                c.contains(
-                                                    "pizza",
-                                                    ignoreCase = true
-                                                )
-                                            }
-                                }
-                            ))
+                                    fakeResults.filter {
+                                        it.name.contains("pizza", ignoreCase = true) ||
+                                                it.cuisines.any { c ->
+                                                    c.contains(
+                                                        "pizza",
+                                                        ignoreCase = true
+                                                    )
+                                                }
+                                    }
+                                ))
 
                     val vm = createViewModel()
                     advanceUntilIdle()
@@ -276,9 +269,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Query cleared
-    // ══════════════════════════════════════════════════════════
     given("user had searched and then clears query") {
 
         `when`("clearSearch is called") {
@@ -306,9 +297,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Veg filter toggle — no debounce needed (filter only)
-    // ══════════════════════════════════════════════════════════
     given("isVegOnly filter is off by default") {
 
         `when`("onVegToggle is called once") {
@@ -342,9 +331,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Sort option changes
-    // ══════════════════════════════════════════════════════════
     given("default sort is RELEVANCE") {
 
         `when`("ViewModel is created") {
@@ -387,9 +374,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Cuisine filter toggle
-    // ══════════════════════════════════════════════════════════
     given("no cuisine filter selected") {
 
         `when`("onCuisineSelected called with cuisineId 1") {
@@ -437,9 +422,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Rating filter
-    // ══════════════════════════════════════════════════════════
     given("no rating filter set") {
 
         `when`("onMinRatingSelected called with 4.0") {
@@ -472,9 +455,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Multiple filters applied
-    // ══════════════════════════════════════════════════════════
     given("user applies multiple filters") {
 
         `when`("veg + rating + sort all set") {
@@ -513,9 +494,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GIVEN: Cuisines fail to load
-    // ══════════════════════════════════════════════════════════
     given("getCuisines API throws exception") {
 
         `when`("ViewModel is created") {

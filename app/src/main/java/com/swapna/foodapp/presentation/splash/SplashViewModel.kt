@@ -17,11 +17,6 @@ class SplashViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    sealed class SplashDestination {
-        object Home  : SplashDestination()
-        object Login : SplashDestination()
-    }
-
     private val _navigateTo =
         MutableStateFlow<SplashDestination?>(null)
     val navigateTo: StateFlow<SplashDestination?> =
@@ -34,11 +29,15 @@ class SplashViewModel @Inject constructor(
     private fun checkLoginAndNavigate() = viewModelScope.launch {
         delay(AppConstants.SPLASH_DELAY_MS)
 
-        // ✅ isLoggedIn() is NOT suspend — call directly
         _navigateTo.value = if (userRepository.isLoggedIn()) {
             SplashDestination.Home
         } else {
             SplashDestination.Login
         }
+    }
+
+    sealed class SplashDestination {
+        object Home : SplashDestination()
+        object Login : SplashDestination()
     }
 }

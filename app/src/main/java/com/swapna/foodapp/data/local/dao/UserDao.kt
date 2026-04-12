@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.swapna.foodapp.data.local.entity.*
+import com.swapna.foodapp.data.local.entity.UserEntity
 
 @Dao
 interface UserDao {

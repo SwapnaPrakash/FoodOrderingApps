@@ -3,76 +3,66 @@ package com.swapna.foodapp.data.local.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.swapna.foodapp.utils.AppConstants
 
-@Entity(tableName = "restaurants")
+@Entity(tableName = AppConstants.TABLE_RESTAURANTS)
 data class RestaurantEntity(
 
     @PrimaryKey
-    @ColumnInfo(name = "id")
+    @ColumnInfo(name = AppConstants.COL_ID)
     val id: String,
 
-    @ColumnInfo(name = "name")
+    @ColumnInfo(name = AppConstants.COL_NAME)
     val name: String,
 
-    // Full image URL for restaurant banner
-    @ColumnInfo(name = "image_url")
+    @ColumnInfo(name = AppConstants.COL_IMAGE_URL)
     val imageUrl: String,
 
-    // Thumbnail URL for list cards
-    @ColumnInfo(name = "thumb_url")
+    @ColumnInfo(name = AppConstants.COL_THUMB_URL)
     val thumbUrl: String,
 
-    // Already parsed to Double — never store "4.3" as String in Room
-    @ColumnInfo(name = "rating")
+    @ColumnInfo(name = AppConstants.COL_RATING)
     val rating: Double,
 
-    @ColumnInfo(name = "rating_text")
+    @ColumnInfo(name = AppConstants.COL_RATING_TEXT)
     val ratingText: String,
 
-    // Hex color code e.g. "5BA829"
-    @ColumnInfo(name = "rating_color")
+    @ColumnInfo(name = AppConstants.COL_RATING_COLOR)
     val ratingColor: String,
 
-    @ColumnInfo(name = "total_votes")
+    @ColumnInfo(name = AppConstants.COL_TOTAL_VOTES)
     val totalVotes: Int,
 
-    // Minutes e.g. 30
-    @ColumnInfo(name = "avg_delivery_time")
+    @ColumnInfo(name = AppConstants.COL_AVG_DELIVERY_TIME)
     val avgDeliveryTime: Int,
 
-    @ColumnInfo(name = "delivery_fee")
+    @ColumnInfo(name = AppConstants.COL_DELIVERY_FEE)
     val deliveryFee: Double,
 
-    @ColumnInfo(name = "min_order")
+    @ColumnInfo(name = AppConstants.COL_MIN_ORDER)
     val minOrder: Int,
 
-    // Stored as JSON string via TypeConverter
-    // e.g. "[\"Biryani\",\"North Indian\"]"
-    @ColumnInfo(name = "cuisines_json")
+    @ColumnInfo(name = AppConstants.COL_CUISINES_JSON)
     val cuisinesJson: String,
 
-    @ColumnInfo(name = "address")
+    @ColumnInfo(name = AppConstants.COL_ADDRESS)
     val address: String,
 
-    @ColumnInfo(name = "locality")
+    @ColumnInfo(name = AppConstants.COL_LOCALITY)
     val locality: String,
 
-    // Room stores Boolean as INTEGER (0/1) automatically
-    @ColumnInfo(name = "is_open")
+    @ColumnInfo(name = AppConstants.COL_IS_OPEN)
     val isOpen: Boolean,
 
-    @ColumnInfo(name = "has_delivery")
+    @ColumnInfo(name = AppConstants.COL_HAS_DELIVERY)
     val hasDelivery: Boolean,
 
-    // Stored as JSON string e.g. "[\"50% off upto ₹100\"]"
-    @ColumnInfo(name = "offers_json")
+    @ColumnInfo(name = AppConstants.COL_OFFERS_JSON)
     val offersJson: String = "[]",
 
-    @ColumnInfo(name = "avg_cost_for_two")
+    @ColumnInfo(name = AppConstants.COL_AVG_COST_FOR_TWO)
     val avgCostForTwo: Int = 0,
 
-    // Unix timestamp — used to check if cache is stale
-    // Stale = older than AppConstants.CACHE_DURATION_MIN minutes
-    @ColumnInfo(name = "cached_at")
+    @ColumnInfo(name = AppConstants.COL_CACHED_AT)
     val cachedAt: Long = System.currentTimeMillis(),
 )
