@@ -2,7 +2,9 @@ package com.swapna.foodapp.data.repository
 
 import com.swapna.foodapp.data.local.dao.CartDao
 import com.swapna.foodapp.data.mapper.EntityMapper
+import com.swapna.foodapp.domain.model.AppBusinessRules
 import com.swapna.foodapp.domain.model.CartItem
+import com.swapna.foodapp.domain.model.CartPriceBreakdown
 import com.swapna.foodapp.domain.repository.CartRepository
 import com.swapna.foodapp.utils.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,11 +26,37 @@ class CartRepositoryImpl @Inject constructor(
 
     override fun getCartItemCount(): Flow<Int> = cartDao.getItemCount().flowOn(ioDispatcher)
 
-    override fun getCartTotal(): Flow<Double> = cartDao.getAllItems().map { entities ->
-        entities.sumOf { entity ->
-            entityMapper.cartItemToDomain(entity).totalPrice
-        }
-    }.flowOn(ioDispatcher)
+    // ── Get price breakdown ───────────────────────────────────
+    // ✅ Changed: was Flow<Double> → now Flow<CartPriceBreakdown>
+    // Adds delivery fee + GST calculation
+    override fun getCartTotal(): Flow<CartPriceBreakdown> =
+        cartDao.getAllItems()
+            .map { entities ->
+                val items = entities.map {
+                    entityMapper.cartItemToDomain(it)
+                }
+
+                val subtotal = items.sumOf { it.totalPrice }
+
+                val delivery = when {
+                    subtotal <= 0.0 ->
+                        0.0
+                    subtotal >= AppBusinessRules.FREE_DELIVERY_ABOVE ->
+                        0.0
+                    else ->
+                        AppBusinessRules.DEFAULT_DELIVERY_FEE
+                }
+
+                val taxes = subtotal * AppBusinessRules.GST_RATE
+
+                CartPriceBreakdown(
+                    subtotal    = subtotal,
+                    deliveryFee = delivery,
+                    taxes       = taxes,
+                    total       = subtotal + delivery + taxes,
+                )
+            }
+            .flowOn(ioDispatcher)
 
     override suspend fun addItem(item: CartItem) = withContext(ioDispatcher) {
         cartDao.insert(entityMapper.cartItemToEntity(item))
@@ -45,6 +73,10 @@ class CartRepositoryImpl @Inject constructor(
     override suspend fun clearCart() = withContext(ioDispatcher) {
         cartDao.clearAll()
     }
+
+    /*override suspend fun getItemQuantity(itemId: String): Int = withContext(ioDispatcher) {
+        cartDao.getByMenuItemId(itemId)?.quantity ?: 0
+    }*/
 
     override suspend fun itemExists(menuItemId: String): Boolean = withContext(ioDispatcher) {
         cartDao.getByMenuItemId(menuItemId) != null

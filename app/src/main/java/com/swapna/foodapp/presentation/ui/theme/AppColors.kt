@@ -15,6 +15,15 @@ val AppDivider   = Color(0xFFE5E5EA)
 val AppWhite     = Color(0xFFFFFFFF)
 val AppBackground   = Color(0xFFFAFAFA)
 
+val MenuTabSelected     = ZomatoRed          // active tab indicator
+val MenuTabUnselected   = AppGray            // inactive tab text
+val CategoryFooterBg    = Color(0xFFF8F8F8)  // footer background
+val CategoryFooterBorder = AppDivider        // top border of footer
+val RecommendedCardBg   = Color(0xFFFAFAFA)  // recommended card bg
+val AddButtonBg         = Color(0xFFFFFFFF)  // + button background
+val AddButtonBorder     = ZomatoRed          // + button border color
+val AddButtonText       = ZomatoRed          // + button text color
+
 val SuccessGreen   = Color(0xFF30D158)
 val SuccessGreenBg = Color(0xFFE8FAF0)
 val RatingGold     = Color(0xFFFFD60A)

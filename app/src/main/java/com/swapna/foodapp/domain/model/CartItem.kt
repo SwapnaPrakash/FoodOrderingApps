@@ -14,3 +14,10 @@ data class CartItem(
 
     fun withQuantity(qty: Int) = copy(quantity = qty)
 }
+
+data class CartPriceBreakdown(
+    val subtotal:    Double,
+    val deliveryFee: Double,
+    val taxes:       Double,
+    val total:       Double,
+)

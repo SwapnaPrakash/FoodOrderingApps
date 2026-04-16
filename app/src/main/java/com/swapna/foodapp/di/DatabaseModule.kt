@@ -33,7 +33,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             AppConstants.DB_NAME,                // "food_app.db" from AppConstants
         )
-            .fallbackToDestructiveMigration(false)
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .build()
 
     // ── DAOs ───────────────────────────────────────────────────
@@ -56,4 +56,5 @@ object DatabaseModule {
     @Provides
     fun provideUserDao(db: AppDatabase): UserDao =
         db.userDao()
+
 }

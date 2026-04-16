@@ -45,7 +45,6 @@ class LoginScreenTest {
         viewModel = AuthViewModel(fakeRepo)
     }
 
-    // ✅ Launch UI correctly
     private fun launchScreen() {
         composeRule.setContent {
             MaterialTheme {
@@ -64,7 +63,6 @@ class LoginScreenTest {
             .assertExists()
     }
 
-    // ✅ Helper
     private fun sendOtp(phone: String = "9876543210") {
 
         composeRule.onRoot().printToLog("TEST_TREE")
@@ -150,5 +148,47 @@ class LoginScreenTest {
         composeRule.waitForIdle()
 
         composeRule.onRoot().assertExists()
+    }
+
+    @Test
+    fun invalidPhone_showsError_withoutCallingApi() {
+        launchScreen()
+
+        composeRule.onNodeWithTag(LoginTestTags.PHONE_FIELD)
+            .performTextInput("123") // invalid
+
+        composeRule.onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performClick()
+
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
+            .assertExists()
+    }
+
+    @Test
+    fun otpField_notVisibleInitially() {
+        launchScreen()
+
+        composeRule.onNodeWithTag(LoginTestTags.OTP_FIELD)
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun invalidOtpLength_showsError() {
+        launchScreen()
+
+        sendOtp()
+
+        composeRule.onNodeWithTag(LoginTestTags.OTP_FIELD)
+            .performTextInput("123") // invalid
+
+        composeRule.onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performClick()
+
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
+            .assertExists()
     }
 }

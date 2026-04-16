@@ -20,4 +20,26 @@ data class Restaurant(
     val hasDelivery: Boolean,
     val offers: List<String> = emptyList(),
     val avgCostForTwo: Int = 0,
-)
+    val phoneNumber: String     = "",
+    val openingHours: String    = "11 AM - 11 PM",
+    val highlights: List<String> = emptyList(),
+    val knownFor: String        = "",
+) {
+
+    // Computed — used on restaurant screen info card
+    val costForTwoFormatted: String
+        get() = "₹$avgCostForTwo for two"
+
+    val priceRange: String
+        get() = when {
+            avgCostForTwo <= AppBusinessRules.COST_FOR_TWO_CHEAP    -> "₹"
+            avgCostForTwo <= AppBusinessRules.COST_FOR_TWO_MODERATE -> "₹₹"
+            else                                                     -> "₹₹₹"
+        }
+
+    val deliveryTimeFormatted: String
+        get() = "$avgDeliveryTime min"
+
+    val ratingFormatted: String
+        get() = String.format("%.1f", rating)
+}

@@ -1,5 +1,6 @@
 package com.swapna.foodapp.presentation.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swapna.foodapp.domain.model.Collections
@@ -10,8 +11,10 @@ import com.swapna.foodapp.domain.usecase.home.GetHomeDataUseCase
 import com.swapna.foodapp.utils.AppConstants.DEFAULT_LOCATION
 import com.swapna.foodapp.utils.AppConstants.WRONG
 import com.swapna.foodapp.utils.ConnectivityObserver
+import com.swapna.foodapp.utils.EVENT_BUFFER_DEFAULT
 import com.swapna.foodapp.utils.NetworkStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -33,8 +36,9 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private val _events = MutableSharedFlow<HomeEvent>(
-        replay = 0,
-        extraBufferCapacity = 1,
+        replay              = 0,
+        extraBufferCapacity = EVENT_BUFFER_DEFAULT,
+        onBufferOverflow    = BufferOverflow.DROP_OLDEST,
     )
     val events: SharedFlow<HomeEvent> = _events.asSharedFlow()
 
@@ -119,8 +123,30 @@ class HomeViewModel @Inject constructor(
     }
 
     // Navigation Actions
-    fun onTabSelected(tab: DeliveryTab) {
+    fun onTabSelected1(tab: DeliveryTab) {
         _uiState.update { it.copy(selectedTab = tab) }
+    }
+    // ── Tab selected ──────────────────────────────────────────────
+    fun onTabSelected(tab: DeliveryTab) {
+        when (tab) {
+            DeliveryTab.PROFILE -> {
+                viewModelScope.launch {
+                    _events.emit(HomeEvent.NavigateToProfile)
+                }
+            }
+            // DELIVERY + DINING → update tab only
+            else -> {
+                _uiState.update {
+                    it.copy(selectedTab = tab)
+                }
+            }
+        }
+    }
+
+    fun onProfileClicked() {
+        viewModelScope.launch {
+            _events.emit(HomeEvent.NavigateToProfile)
+        }
     }
 
     fun onRestaurantClicked(id: String) = viewModelScope.launch {
@@ -155,12 +181,13 @@ class HomeViewModel @Inject constructor(
         val error: String? = null,
     )
 
-    enum class DeliveryTab { DELIVERY, DINING }
+    enum class DeliveryTab { DELIVERY, DINING,PROFILE }
 
     // Events
     sealed class HomeEvent {
         data class NavigateToRestaurant(val id: String) : HomeEvent()
         data class NavigateToSearch(val query: String = "") : HomeEvent()
         object NavigateToCart : HomeEvent()
+        object NavigateToProfile : HomeEvent()
     }
 }

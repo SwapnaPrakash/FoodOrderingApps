@@ -24,12 +24,12 @@ object Dimens {
     val RadiusM    = 12.dp
     val RadiusL    = 16.dp
     val RadiusXL   = 24.dp
-    val RadiusFull = 999.dp
+    val RadiusFull = 999.dp // val RadiusFull = 50.dp
 
     val ButtonHeight       = 52.dp
-    val SmallButtonHeight  = 40.dp
+    val SmallButtonHeight  = 32.dp
     val TopBarHeight       = 56.dp
-    val BottomNavHeight    = 60.dp
+    val BottomNavHeight    = 64.dp
     val SearchBarHeight    = 48.dp
     val ChipHeight         = 32.dp
     val FilterBarHeight    = 56.dp
@@ -81,4 +81,14 @@ object Dimens {
     val ShimmerTitleHeight      = 20.dp
     val ShimmerSubtitleHeight   = 16.dp
     val ShimmerCategoryHeight   = 80.dp
+
+    val RestaurantHeroHeight    = 220.dp  // hero banner image
+    val RestaurantInfoCardHeight = 120.dp // info card below hero
+    val MenuCategoryHeaderHeight = 48.dp  // sticky category header
+    val MenuItemRowHeight        = 120.dp // one menu item row
+    val MenuItemImageSquare      = 96.dp  // square image on right
+    val CartBarHeight            = 64.dp  // bottom cart summary bar
+    val RecommendedCardWidth     = 160.dp // horizontal recommended card
+    val RecommendedCardHeight    = 200.dp // recommended card height
+    val RatingPillWidth          = 80.dp  // rating pill in info card
 }

@@ -41,4 +41,7 @@ interface CartDao {
     // Used by CalculateCartTotalUseCase via Repository
     @Query("SELECT * FROM cart_items WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): CartItemEntity?
+
+    @Query("SELECT quantity FROM cart_items WHERE id = :itemId LIMIT 1")
+    suspend fun getQuantityById(itemId: String): Int?
 }

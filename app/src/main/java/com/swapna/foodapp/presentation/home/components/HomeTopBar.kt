@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
@@ -53,6 +54,7 @@ fun HomeTopBar(
     onLocationClick: () -> Unit,
     onCartClick: () -> Unit,
     onSearchClick: () -> Unit,
+    onProfileClick:  () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -131,6 +133,13 @@ fun HomeTopBar(
         }
 
         Spacer(Modifier.height(Dimens.SpaceM))
+
+        IconButton(onClick = onProfileClick) {
+            Icon(
+                imageVector        = Icons.Default.Person,
+                contentDescription = "Profile",
+            )
+        }
 
         Box(
             modifier = Modifier

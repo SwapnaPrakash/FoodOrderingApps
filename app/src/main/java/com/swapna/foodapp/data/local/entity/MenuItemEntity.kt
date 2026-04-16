@@ -47,6 +47,12 @@ data class MenuItemEntity(
     @ColumnInfo(name = COL_IS_RECOMMENDED)
     val isRecommended: Boolean = false,
 
+    @ColumnInfo(name = AppConstants.COL_IS_BESTSELLER)
+    val isBestseller: Boolean = false,
+
+    @ColumnInfo(name = AppConstants.COL_IS_AVAILABLE)
+    val isAvailable: Boolean = true,
+
     // Full customisations list as JSON
     @ColumnInfo(name = COL_CUSTOMISATIONS_JSON)
     val customisationsJson: String = "[]",

@@ -77,17 +77,17 @@ fun AppNavGraph(
 
         // Restaurant screen receives restaurantId
         // Called via: navController.navigate(AppRoutes.restaurant("101"))
+        // Verify this exists in AppNavGraph.kt
         composable(
-            route = AppRoutes.RESTAURANT,     // "restaurant/{restaurantId}"
+            route = AppRoutes.RESTAURANT,  // "restaurant/{restaurantId}"
             arguments = listOf(
                 navArgument(AppRoutes.ARG_RESTAURANT_ID) {
-                    type = NavType.StringType
+                    type     = NavType.StringType
                     nullable = false
                 }
             ),
-        ) {
-            // ViewModel reads restaurantId via SavedStateHandle automatically
-            RestaurantScreen(navController)
+        ) { backStackEntry ->
+            RestaurantScreen(navController = navController)
         }
 
         // Product screen receives menuItemId
@@ -95,14 +95,21 @@ fun AppNavGraph(
         composable(
             route = AppRoutes.PRODUCT,        // "product/{menuItemId}"
             arguments = listOf(
+                navArgument(AppRoutes.ARG_RESTAURANT_ID) {
+                    type = NavType.StringType
+                },
                 navArgument(AppRoutes.ARG_MENU_ITEM_ID) {
                     type = NavType.StringType
-                    nullable = false
-                }
+                },
             ),
         ) {
             ProductDetailScreen(navController)
         }
+
+        composable(AppRoutes.PROFILE) {
+            ProfileScreen(navController = navController)
+        }
+
 
     }
 }

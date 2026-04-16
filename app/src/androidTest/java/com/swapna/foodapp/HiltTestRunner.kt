@@ -3,6 +3,7 @@ package com.swapna.foodapp
 import android.app.Application
 import android.content.Context
 import androidx.test.runner.AndroidJUnitRunner
+import dagger.hilt.android.testing.HiltTestApplication
 
 class HiltTestRunner : AndroidJUnitRunner() {
     override fun newApplication(
@@ -12,8 +13,9 @@ class HiltTestRunner : AndroidJUnitRunner() {
     ): Application {
         return super.newApplication(
             cl,
-            dagger.hilt.android.testing.HiltTestApplication::class.java.name,
+            HiltTestApplication::class.java.name,
             context
         )
     }
 }
+

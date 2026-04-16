@@ -23,7 +23,7 @@ class MenuMapper @Inject constructor() {
                     mapDish(dishWrapper.dish, restaurantId, category)
                 }
                 category to items
-            }
+            } .filter { (_, items) -> items.isNotEmpty() }
     }
 
     private fun mapDish(
@@ -45,6 +45,8 @@ class MenuMapper @Inject constructor() {
         // Int 1/0 → Boolean
         isVeg = dto.isVeg == 1,
         isRecommended = dto.isRecommended == 1,
+        isBestseller  = false,
+        isAvailable   = true,
 
         customisations = dto.customisations?.map { c ->
             Customisation(
@@ -61,3 +63,6 @@ class MenuMapper @Inject constructor() {
         } ?: emptyList(),
     )
 }
+private fun String.parsePriceString(): Double =
+    this.replace("[^0-9.]".toRegex(), "")
+        .toDoubleOrNull() ?: 0.0

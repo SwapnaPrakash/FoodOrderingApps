@@ -26,4 +26,13 @@ object AppBusinessRules {
     const val OTP_LENGTH             = 6
     const val OTP_TIMEOUT_SEC        = 60
     const val PHONE_LENGTH           = 10
+
+    const val MAX_RECOMMENDED_SHOWN   = 5
+    const val MIN_VOTES_FOR_RATING    = 10   // show rating only if votes > this
+    const val COST_FOR_TWO_CHEAP      = 300  // ₹ = "₹" price range
+    const val COST_FOR_TWO_MODERATE   = 600  // ₹₹
+    const val COST_FOR_TWO_EXPENSIVE  = 1000 // ₹₹₹
+
+    const val MENU_ITEM_DESC_MAX_LINES = 2
+    const val MENU_CATEGORY_MIN_ITEMS  = 1
 }

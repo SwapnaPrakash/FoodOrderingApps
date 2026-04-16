@@ -41,5 +41,10 @@ class RestaurantMapper @Inject constructor() {
 
         offers = dto.offers ?: emptyList(),
         avgCostForTwo = dto.avgCostForTwo,
+        distanceKm      = 0.0,
+        phoneNumber     = "",
+        openingHours    = "11 AM - 11 PM",
+        highlights      = emptyList(),
+        knownFor        = "",
     )
 }

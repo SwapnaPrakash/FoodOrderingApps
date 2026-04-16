@@ -37,46 +37,42 @@ class RestaurantRepositoryImpl @Inject constructor(
 ) : RestaurantRepository {
 
     // GET NEARBY RESTAURANTS — Offline-first
-    override fun getNearbyRestaurants(): Flow<Result<List<Restaurant>>> = flow {
+    override fun getNearbyRestaurants():
+            Flow<Result<List<Restaurant>>> = flow {
 
         // Step 1: Serve cache immediately
-        val cachedEntities = restaurantDao.getAllRestaurants().first()
+        val cachedEntities = restaurantDao
+            .getAllRestaurants()
+            .first()
 
         if (cachedEntities.isNotEmpty()) {
-            // User sees this instantly — no waiting for network
             val cachedDomain = cachedEntities.map {
                 entityMapper.restaurantToDomain(it)
             }
             emit(Result.success(cachedDomain))
         }
 
-        // Step 2: Always try network in background
+        // Step 2: Fetch fresh from geocode.json
         try {
-            val response = api.getNearbyRestaurants()
+            val response    = api.getNearbyRestaurants()
             val freshDomain = response.nearbyRestaurants.map {
                 restaurantMapper.toDomain(it.restaurant)
             }
 
-            // Save fresh data to Room
-            // Room Flow auto-notifies observers — but we emit manually here
-            // for predictable behavior
+            // Save ALL restaurants to Room with their ids
+            // This is what getRestaurantDetail reads later
             val freshEntities = freshDomain.map {
                 entityMapper.restaurantToEntity(it)
             }
             restaurantDao.insertAll(freshEntities)
 
-            // Emit fresh data
             emit(Result.success(freshDomain))
 
         } catch (e: IOException) {
-            // Network failed
             if (cachedEntities.isEmpty()) {
-                // Nothing in cache either — show error
                 emit(Result.failure(IOException(NO_INTERNET)))
             }
-            // If cache exists: silently ignore — user already sees cached data
         } catch (e: Exception) {
-            // Unexpected error — always report
             if (cachedEntities.isEmpty()) {
                 emit(Result.failure(e))
             }
@@ -124,27 +120,79 @@ class RestaurantRepositoryImpl @Inject constructor(
     }.flowOn(ioDispatcher)
 
     // GET RESTAURANT DETAIL
-    override fun getRestaurantDetail(id: String): Flow<Result<Restaurant>> = flow {
+    override fun getRestaurantDetail(
+        id: String,
+    ): Flow<Result<Restaurant>> = flow {
 
-        // Try Room cache first
+        android.util.Log.d(
+            "REPO",
+            "getRestaurantDetail called id=$id"
+        )
+
+        // ✅ FIX: Read from Room by id
+        // Room was populated by getNearbyRestaurants()
+        // getById(id) returns only the restaurant matching this id
         val cached = restaurantDao.getById(id)
+
         if (cached != null) {
-            emit(Result.success(entityMapper.restaurantToDomain(cached)))
-        }
+            // ✅ This returns DIFFERENT restaurant per id
+            // id=101 → Meghana Foods
+            // id=102 → Pizza Hut
+            // id=103 → Burger King
+            android.util.Log.d(
+                "REPO",
+                "Found in Room: ${cached.name}"
+            )
+            emit(
+                Result.success(
+                    entityMapper.restaurantToDomain(cached)
+                )
+            )
+        } else {
+            // Room cache empty (first launch, no internet before)
+            // Try fetching all restaurants fresh and find this one
+            android.util.Log.d(
+                "REPO",
+                "Not in Room, fetching from API id=$id"
+            )
+            try {
+                val response = api.getNearbyRestaurants()
+                val allRestaurants = response.nearbyRestaurants.map {
+                    restaurantMapper.toDomain(it.restaurant)
+                }
 
-        // Fetch fresh from API
-        try {
-            val dto = api.getRestaurantDetail()
-            val domain = restaurantMapper.toDomain(dto)
+                // Save all to Room
+                val entities = allRestaurants.map {
+                    entityMapper.restaurantToEntity(it)
+                }
+                restaurantDao.insertAll(entities)
 
-            // Update cache
-            restaurantDao.insert(entityMapper.restaurantToEntity(domain))
+                // Find the one we need by id
+                val found = allRestaurants.find { it.id == id }
 
-            // Emit fresh data
-            emit(Result.success(domain))
+                if (found != null) {
+                    android.util.Log.d(
+                        "REPO",
+                        "Not in Room, fetching from API id=$id"
+                    )
+                    emit(Result.success(found))
+                } else {
+                    android.util.Log.d(
+                        "REPO",
+                        "Found in API response: ${found?.name}"
+                    )
+                    emit(
+                        Result.failure(
+                            Exception(NO_INTERNET_LOAD_RESTAURANT)
+                        )
+                    )
+                }
 
-        } catch (e: Exception) {
-            if (cached == null) {
+            } catch (e: Exception) {
+                android.util.Log.e(
+                    "REPO",
+                    "Failed to load restaurant id=$id: ${e.message}"
+                )
                 emit(
                     Result.failure(
                         Exception(NO_INTERNET_LOAD_RESTAURANT)
@@ -152,8 +200,8 @@ class RestaurantRepositoryImpl @Inject constructor(
                 )
             }
         }
-    }.flowOn(ioDispatcher)
 
+    }.flowOn(ioDispatcher)
     // GET MENU ITEMS — with Room caching per restaurant
     override fun getMenuItems(
         restaurantId: String,

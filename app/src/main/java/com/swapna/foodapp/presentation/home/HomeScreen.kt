@@ -1,5 +1,6 @@
 package com.swapna.foodapp.presentation.home
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeliveryDining
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,6 +42,7 @@ import com.swapna.foodapp.utils.AppConstants.CATEGORIES_TITLE
 import com.swapna.foodapp.utils.AppConstants.DELIVERY
 import com.swapna.foodapp.utils.AppConstants.DINING
 import com.swapna.foodapp.utils.AppConstants.OFFERS_TITLE
+import com.swapna.foodapp.utils.AppConstants.PROFILE
 import com.swapna.foodapp.utils.AppConstants.STORE_NEAR
 import com.swapna.foodapp.utils.SectionTitle
 
@@ -52,12 +55,22 @@ fun HomeScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+
+
     // Navigation events
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is HomeViewModel.HomeEvent.NavigateToRestaurant ->
-                    navController.navigate(AppRoutes.restaurant(event.id))
+                is HomeViewModel.HomeEvent.NavigateToRestaurant -> {
+                    Log.d("CLICK", "Navigating to: ${event.id}")
+                    Log.d(
+                        "RESTAURANT_CLICK",
+                        "Navigating to id=${event.id}"
+                    )
+                    navController.navigate(
+                        AppRoutes.restaurant(event.id) // "restaurant/101"
+                    )
+                }
 
                 is HomeViewModel.HomeEvent.NavigateToSearch -> {
                     if (event.query.isNotEmpty()) {
@@ -71,6 +84,9 @@ fun HomeScreen(
 
                 HomeViewModel.HomeEvent.NavigateToCart ->
                     navController.navigate(AppRoutes.CART)
+
+                HomeViewModel.HomeEvent.NavigateToProfile ->
+                    navController.navigate(AppRoutes.PROFILE)
             }
         }
     }
@@ -85,6 +101,7 @@ fun HomeScreen(
         )
     }
 
+
     Scaffold(
         topBar = {
             HomeTopBar(
@@ -93,7 +110,8 @@ fun HomeScreen(
                 onLocationClick = viewModel::onLocationClicked,
                 onCartClick = viewModel::onCartClicked,
                 onSearchClick = { viewModel.onSearchClicked() },
-            )
+                onProfileClick  = { viewModel.onProfileClicked() },
+                )
         },
         bottomBar = {
             HomeBottomBar(
@@ -121,7 +139,9 @@ fun HomeScreen(
                 else -> HomeContent(
                     state = state,
                     paddingValues = paddingValues,
-                    onRestaurantClick = viewModel::onRestaurantClicked,
+                    onRestaurantClick = { restaurantId ->
+                        viewModel.onRestaurantClicked(restaurantId)
+                    },
                     onCategoryClick = { categoryName ->
                         viewModel.onCategoryClicked(categoryName)
                     },
@@ -186,9 +206,15 @@ private fun HomeContent(
         }
 
         items(state.restaurants, key = { it.id }) { restaurant ->
+            val restaurantId = restaurant.id
             RestaurantCard(
                 restaurant = restaurant,
-                onClick = { onRestaurantClick(restaurant.id) },
+
+                onClick = {
+                    Log.d("CLICK", "Tapped: ${restaurant.id} - ${restaurant.name}")
+                    onRestaurantClick(restaurantId) },
+
+
             )
         }
     }
@@ -219,6 +245,18 @@ fun HomeBottomBar(
             label = { Text(DINING) },
             colors = NavigationBarItemDefaults.colors(
                 indicatorColor = ZomatoRed.copy(alpha = 0.1f),
+                selectedIconColor = ZomatoRed,
+                selectedTextColor = ZomatoRed,
+            ),
+        )
+        NavigationBarItem(
+            selected = selectedTab ==
+                    HomeViewModel.DeliveryTab.PROFILE,
+            onClick  = { onTabSelect(HomeViewModel.DeliveryTab.PROFILE) },
+            icon = { Icon(Icons.Default.Person, contentDescription = PROFILE,) },
+            label  = { Text(PROFILE) },
+            colors = NavigationBarItemDefaults.colors(
+                indicatorColor    = ZomatoRed.copy(alpha = 0.1f),
                 selectedIconColor = ZomatoRed,
                 selectedTextColor = ZomatoRed,
             ),

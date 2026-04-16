@@ -63,6 +63,23 @@ data class RestaurantEntity(
     @ColumnInfo(name = AppConstants.COL_AVG_COST_FOR_TWO)
     val avgCostForTwo: Int = 0,
 
+    @ColumnInfo(name = AppConstants.COL_DISTANCE_KM)
+    val distanceKm: Double = 0.0,
+
+    @ColumnInfo(name = AppConstants.COL_PHONE_NUMBER)
+    val phoneNumber: String = "",
+
+    @ColumnInfo(name = AppConstants.COL_OPENING_HOURS)
+    val openingHours: String = "11 AM - 11 PM",
+
+    // highlights stored as JSON array string
+    // ["Good for families", "Outdoor seating"]
+    @ColumnInfo(name = AppConstants.COL_HIGHLIGHTS_JSON)
+    val highlightsJson: String = "[]",
+
+    @ColumnInfo(name = AppConstants.COL_KNOWN_FOR)
+    val knownFor: String = "",
+
     @ColumnInfo(name = AppConstants.COL_CACHED_AT)
     val cachedAt: Long = System.currentTimeMillis(),
 )

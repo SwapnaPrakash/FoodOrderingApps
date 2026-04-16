@@ -11,6 +11,8 @@ data class MenuItem(
     val isVeg: Boolean,
     val isRecommended: Boolean = false,
     val customisations: List<Customisation> = emptyList(),
+    val isBestseller:   Boolean               = false,
+    val isAvailable:    Boolean               = true,
 )
 
 data class Customisation(
@@ -24,3 +26,11 @@ data class CustomisationOption(
     val label: String,
     val extraPrice: Double,
 )
+
+data class MenuCategory(
+    val id:    String,
+    val name:  String,
+    val items: List<MenuItem>,   // ← uses YOUR existing MenuItem
+) {
+    val itemCount: Int get() = items.size
+}

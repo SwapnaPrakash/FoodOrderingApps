@@ -8,7 +8,9 @@ object AppConstants {
     const val BASE_URL_PLACEHOLDER =
         "https://raw.githubusercontent.com/SwapnaPrakash/zomato-mock-api/main/"
     const val DB_NAME = "food_app.db"
-    const val DB_VERSION = 1
+    const val DATABASE_NAME = "foodapp.db"
+
+    const val DB_VERSION = 2
     const val APP_NAME = "FoodApp"
     const val TAG_NAME = "Order food you love"
     const val MIN_CART_QUANTITY = 1
@@ -277,14 +279,37 @@ object AppConstants {
     const val WRONG_OTP = "Wrong OTP. Please check and try again."
     const val VERIFY_FAILED = "Verification failed"
     const val OFFLINE = "You're offline — showing cached data"
+    const val DEFAULT_DELIVERY_TIME  = 30      // minutes fallback
+    const val MAX_REVIEWS_SHOWN      = 5
+    const val MENU_STICKY_OFFSET     = 56      // top bar height in dp
+    const val RESTAURANT_HERO_ALPHA  = 0.6f    // gradient overlay opacity
+    const val QUICK_ADD_ANIMATION_MS = 200L
     const val SEARCH_MAX_RESULTS = 20
     const val CATEGORY_CHIPS_MAX = 5
     const val MAX_OFFER_CARDS = 5
     const val MAX_RECOMMENDED_ITEMS = 5
-    const val DEFAULT_DELIVERY_TIME = 30
-    const val MAX_REVIEWS_SHOWN = 5
     const val RATING_EXCELLENT = 4.5
     const val RATING_VERY_GOOD = 4.0
     const val RATING_GOOD = 3.5
     const val RATING_AVERAGE = 3.0
+    const val RECOMMENDED_CARD_MAX    = 5      // max cards shown
+    const val RECOMMENDED_SECTION_KEY = "recommended_section"
+    const val MENU_TAB_KEY            = "menu_tab_row"
+    const val CATEGORY_FOOTER_KEY     = "category_footer"
+    const val CD_SEARCH_LOCATION    = "Search for a delivery location"
+    const val CD_CURRENT_LOCATION   = "Use device current location"
+    const val CD_LOCATION_PIN       = "Location pin"
+    const val CD_CLOSE_SHEET        = "Close location picker"
+    const val COL_IS_BESTSELLER  = "is_bestseller"
+    const val COL_IS_AVAILABLE   = "is_available"
+    const val COL_DISTANCE_KM    = "distance_km"
+    const val COL_PHONE_NUMBER   = "phone_number"
+    const val COL_OPENING_HOURS  = "opening_hours"
+    const val COL_HIGHLIGHTS_JSON = "highlights_json"
+    const val COL_KNOWN_FOR      = "known_for"
+
+
+    // Reviews
+    const val REVIEWS_MAX_SHOWN       = 10
+    const val REVIEW_TEXT_MAX_LINES   = 3
 }

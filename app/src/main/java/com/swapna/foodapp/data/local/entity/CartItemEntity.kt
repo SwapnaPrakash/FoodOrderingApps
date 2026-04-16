@@ -3,6 +3,8 @@ package com.swapna.foodapp.data.local.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.swapna.foodapp.domain.model.CustomisationOption
+import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.utils.AppConstants
 
 @Entity(tableName = AppConstants.TABLE_CART_ITEMS)

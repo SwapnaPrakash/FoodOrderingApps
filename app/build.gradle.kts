@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hiltAndroid)
     alias(libs.plugins.ksp)
-    id("kotlin-kapt")
     id("com.google.gms.google-services")
     id("org.jetbrains.kotlinx.kover") version "0.7.5"
 }
@@ -84,7 +83,7 @@ koverReport {
     }
     verify {
         rule {
-            bound { minValue = 10 }
+            minBound(70)
         }
     }
 }
@@ -160,8 +159,6 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     testImplementation(kotlin("test"))
     testImplementation("androidx.test:core:1.5.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("app.cash.turbine:turbine:1.0.0")
 
     // Kotest
     testImplementation(libs.io.kotest.kotest.runner.junit52)
@@ -181,6 +178,8 @@ dependencies {
     androidTestImplementation("androidx.test:rules:1.5.0")
     androidTestImplementation("androidx.activity:activity-compose:1.9.0")
     androidTestImplementation("androidx.navigation:navigation-compose:2.7.7")
+    // Add SafetyNet (helps Firebase verify your app)
+    implementation("com.google.android.gms:play-services-safetynet:18.0.1")
 
     //  Debug
     debugImplementation(libs.ui.tooling)
@@ -190,7 +189,6 @@ dependencies {
     implementation(libs.hilt.android)
     androidTestImplementation(libs.hilt.android.testing)
     kspAndroidTest(libs.hilt.android.compiler)
-    ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
 
 
