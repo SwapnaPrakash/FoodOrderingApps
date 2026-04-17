@@ -54,7 +54,6 @@ fun HomeTopBar(
     onLocationClick: () -> Unit,
     onCartClick: () -> Unit,
     onSearchClick: () -> Unit,
-    onProfileClick:  () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -133,13 +132,6 @@ fun HomeTopBar(
         }
 
         Spacer(Modifier.height(Dimens.SpaceM))
-
-        IconButton(onClick = onProfileClick) {
-            Icon(
-                imageVector        = Icons.Default.Person,
-                contentDescription = "Profile",
-            )
-        }
 
         Box(
             modifier = Modifier

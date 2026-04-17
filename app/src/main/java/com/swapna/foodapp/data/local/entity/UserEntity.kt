@@ -26,4 +26,10 @@ data class UserEntity(
 
     @ColumnInfo(name = AppConstants.COL_ADDRESSES_JSON)
     val addressesJson: String = "[]",
+
+    @ColumnInfo(name = AppConstants.COL_SELECTED_LOCATION)
+    val selectedLocation: String = "",
+
+    @ColumnInfo(name = AppConstants.COL_CACHED_AT)
+    val cachedAt: Long = System.currentTimeMillis(),
 )

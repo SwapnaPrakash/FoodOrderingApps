@@ -8,9 +8,7 @@ object AppConstants {
     const val BASE_URL_PLACEHOLDER =
         "https://raw.githubusercontent.com/SwapnaPrakash/zomato-mock-api/main/"
     const val DB_NAME = "food_app.db"
-    const val DATABASE_NAME = "foodapp.db"
-
-    const val DB_VERSION = 2
+    const val DB_VERSION = 3
     const val APP_NAME = "FoodApp"
     const val TAG_NAME = "Order food you love"
     const val MIN_CART_QUANTITY = 1
@@ -263,6 +261,7 @@ object AppConstants {
     const val COL_RESTAURANT_ID = "restaurant_id"
     const val COL_CATEGORY = "category"
     const val COL_CACHED_AT = "cached_at"
+    const val COL_SELECTED_LOCATION = "selected_location"
     const val SOMETHING_WRONG = "Something went wrong"
     const val STORE_NEAR = "Stores Near You"
     const val RETRY = "Retry button"

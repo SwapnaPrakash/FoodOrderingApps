@@ -2,6 +2,9 @@ package com.swapna.foodapp.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.swapna.foodapp.domain.model.Address
+import com.swapna.foodapp.domain.model.Order
 import com.swapna.foodapp.domain.model.User
 import com.swapna.foodapp.domain.repository.UserRepository
 import com.swapna.foodapp.utils.EVENT_BUFFER_DEFAULT
@@ -17,274 +20,250 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// WHY separate ProfileViewModel?
-// Single Responsibility:
-//   ProfileViewModel → user data display + edit + logout
-//   Not mixed with auth or navigation logic
-// Clean separation = easy to test + maintain
-
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
+    private val firebaseAuth:   FirebaseAuth,
 ) : ViewModel() {
 
-    // ══════════════════════════════════════════════════════════
-    // UI STATE
-    // Everything the screen needs in one place
-    // ══════════════════════════════════════════════════════════
+    // ── UI State ──────────────────────────────────────────────
     data class ProfileUiState(
-        val user:          User?    = null,
+        val isLoading:  Boolean      = true,
+        val user:       User?        = null,
+        val orders:     List<Order>  = emptyList(),
+        val isEditMode: Boolean      = false,
+        val editName:   String       = "",
+        val editEmail:  String       = "",
+        val error:      String?      = null,
+    ) {
+        // ── Computed properties ───────────────────────────────
+        // WHY computed not stored?
+        // Always derived from user object
+        // Single source of truth — no sync needed
 
-        // Edit mode fields
-        // WHY separate edit fields from user?
-        // User taps edit → fills fields
-        // Taps cancel → original user unchanged
-        // Taps save → user updated from fields
-        val editName:      String   = "",
-        val editEmail:     String   = "",
+        // Phone from Firebase Auth — always real OTP number
+        // WHY Firebase not Room?
+        // User cannot change phone number in app
+        // Firebase Auth = authoritative source for phone
+        val phoneNumber: String
+            get() = user?.phone
+                ?.ifEmpty {
+                    // Fallback to Firebase if Room phone empty
+                    FirebaseAuth.getInstance()
+                        .currentUser
+                        ?.phoneNumber
+                        ?: ""
+                }
+                ?: ""
 
-        // Validation errors shown below fields
-        val nameError:     String?  = null,
-        val emailError:    String?  = null,
+        val displayName: String
+            get() = user?.name
+                ?.ifEmpty { "Add your name" }
+                ?: "Add your name"
 
-        // Controls ModalBottomSheet visibility
-        val showEditSheet: Boolean  = false,
+        val displayEmail: String
+            get() = user?.email
+                ?.ifEmpty { "Add email address" }
+                ?: "Add email address"
 
-        val isLoading:     Boolean  = true,
-        val isSaving:      Boolean  = false,
-        val error:         String?  = null,
-    )
+        val addresses: List<Address>
+            get() = user?.addresses ?: emptyList()
 
-    // ══════════════════════════════════════════════════════════
-    // EVENTS — one-time navigation/feedback
-    // ══════════════════════════════════════════════════════════
-    sealed class ProfileEvent {
-        object NavigateToLogin      : ProfileEvent()
-        object NavigateToOrders     : ProfileEvent()
-        object NavigateToAddresses  : ProfileEvent()
-        object NavigateToPayments   : ProfileEvent()
-        object NavigateToSettings   : ProfileEvent()
-        data class ShowSnackbar(
-            val message: String,
-        )                           : ProfileEvent()
-        data class ShowError(
-            val message: String,
-        )                           : ProfileEvent()
+        val hasAddresses: Boolean
+            get() = addresses.isNotEmpty()
+
+        val isLoggedIn: Boolean
+            get() = user != null
     }
 
-    private val _uiState =
-        MutableStateFlow(ProfileUiState())
-    val uiState: StateFlow<ProfileUiState> =
-        _uiState.asStateFlow()
+    // ── Events ────────────────────────────────────────────────
+    sealed class ProfileEvent {
+        object NavigateToLogin                        : ProfileEvent()
+        object NavigateBack                           : ProfileEvent()
+        data class ShowSnackbar(val message: String)  : ProfileEvent()
+        data class ShowError(val message: String)     : ProfileEvent()
+    }
 
-    private val _events =
-        MutableSharedFlow<ProfileEvent>(
-            replay              = 0,
-            extraBufferCapacity = EVENT_BUFFER_DEFAULT,
-            onBufferOverflow    = BufferOverflow.DROP_OLDEST,
-        )
-    val events: SharedFlow<ProfileEvent> =
-        _events.asSharedFlow()
+    // ── State + Events flows ──────────────────────────────────
+    private val _uiState = MutableStateFlow(ProfileUiState())
+    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<ProfileEvent>(
+        extraBufferCapacity = 5,
+        onBufferOverflow    = BufferOverflow.SUSPEND,
+    )
+    val events: SharedFlow<ProfileEvent> = _events.asSharedFlow()
 
     init {
-        loadUser()
+        loadUserProfile()
+        loadOrders()
     }
 
-    // ══════════════════════════════════════════════════════════
-    // LOAD USER
-    // Fetches user from DataStore/Repository on screen open
-    // ══════════════════════════════════════════════════════════
-    private fun loadUser() = viewModelScope.launch {
-        // getUser() returns Result<User>
-        // fold = handle success + failure in one call
-        userRepository.getUser().fold(
-            onSuccess = { user ->
-                _uiState.update {
-                    it.copy(
-                        user      = user,
-                        isLoading = false,
-                        // Pre-fill edit fields with current values
-                        // WHY? When user opens edit sheet
-                        // they see current values already filled
-                        editName  = user.name,
-                        editEmail = user.email,
-                    )
-                }
-            },
-            onFailure = { error ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error     = error.message
-                            ?: "Failed to load profile",
-                    )
-                }
-            }
-        )
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // EDIT PROFILE SHEET
-    // ══════════════════════════════════════════════════════════
-
-    // User taps "Edit Profile" button
-    // Opens ModalBottomSheet
-    fun onEditProfileTapped() {
-        val user = _uiState.value.user ?: return
-        _uiState.update {
-            it.copy(
-                // Pre-fill with current user data
-                editName      = user.name,
-                editEmail     = user.email,
-                // Clear old errors
-                nameError     = null,
-                emailError    = null,
-                // Show sheet
-                showEditSheet = true,
-            )
-        }
-    }
-
-    // Called on every keystroke in Name field
-    // WHY update state on every keystroke?
-    // Enables real-time validation + button enable/disable
-    fun onNameChanged(name: String) {
-        _uiState.update {
-            it.copy(
-                editName  = name,
-                // Clear error as user types
-                // Better UX than showing error while typing
-                nameError = null,
-            )
-        }
-    }
-
-    // Called on every keystroke in Email field
-    fun onEmailChanged(email: String) {
-        _uiState.update {
-            it.copy(
-                editEmail  = email,
-                emailError = null,
-            )
-        }
-    }
-
-    // User taps Save in edit sheet
-    fun onSaveProfile() = viewModelScope.launch {
-        val state = _uiState.value
-
-        // ── Validate BEFORE calling repository ────────────────
-        // WHY validate in ViewModel not repository?
-        // Immediate feedback — no network call needed
-        // Repository should not know about UI validation
-        val nameError  = validateName(state.editName)
-        val emailError = validateEmail(state.editEmail)
-
-        // If either invalid → show errors, don't save
-        if (nameError != null || emailError != null) {
+    // ── Load user profile ─────────────────────────────────────
+    // WHY observe Flow not one-shot?
+    // User edits name → Flow emits → UI updates automatically
+    // No manual refresh needed after save
+    // UserRepository.getCurrentUser() handles Firebase fallback
+    // already — no need to duplicate logic here
+    private fun loadUserProfile() = viewModelScope.launch {
+        userRepository.getCurrentUser().collect { user ->
             _uiState.update {
                 it.copy(
-                    nameError  = nameError,
-                    emailError = emailError,
+                    isLoading = false,
+                    user      = user,
+                    // Pre-fill edit fields with current values
+                    // So when user taps Edit → fields already filled
+                    editName  = user?.name  ?: "",
+                    editEmail = user?.email ?: "",
+                    error     = if (user == null) {
+                        "Could not load profile"
+                    } else null,
                 )
             }
+        }
+    }
+
+    // ── Load recent orders ────────────────────────────────────
+    // ✅ FIX: getRecentOrders() not getOrders()
+    // UserRepository interface defines getRecentOrders()
+    // Orders fetched from API — not Room for MVP
+    private fun loadOrders() = viewModelScope.launch {
+        userRepository.getRecentOrders().collect { orders ->
+            _uiState.update { it.copy(orders = orders) }
+        }
+    }
+
+    // ── Edit mode ─────────────────────────────────────────────
+    fun onEditClicked() {
+        val current = _uiState.value.user
+        _uiState.update {
+            it.copy(
+                isEditMode = true,
+                // Pre-fill with current values
+                // empty string if user has not set them yet
+                editName   = current?.name  ?: "",
+                editEmail  = current?.email ?: "",
+            )
+        }
+    }
+
+    fun onNameChanged(name: String) {
+        _uiState.update { it.copy(editName = name) }
+    }
+
+    fun onEmailChanged(email: String) {
+        _uiState.update { it.copy(editEmail = email) }
+    }
+
+    fun onCancelEdit() {
+        // Reset edit fields back to current user values
+        val current = _uiState.value.user
+        _uiState.update {
+            it.copy(
+                isEditMode = false,
+                editName   = current?.name  ?: "",
+                editEmail  = current?.email ?: "",
+            )
+        }
+    }
+
+    // ── Save profile ──────────────────────────────────────────
+    // ✅ FIX: updateUser(user) not updateProfile(name, email)
+    // UserRepository.updateUser() takes full User object
+    // We copy current user and replace name + email
+    fun onSaveProfile() = viewModelScope.launch {
+        val state   = _uiState.value
+        val current = state.user
+
+        // Validation
+        if (state.editName.isBlank()) {
+            _events.emit(
+                ProfileEvent.ShowError("Name cannot be empty")
+            )
             return@launch
         }
 
-        // ── Save to repository ────────────────────────────────
-        _uiState.update { it.copy(isSaving = true) }
+        if (current == null) {
+            _events.emit(
+                ProfileEvent.ShowError("No user found. Please login again.")
+            )
+            return@launch
+        }
 
-        val updatedUser = state.user!!.copy(
-            name  = state.editName.trim(),
-            email = state.editEmail.trim(),
-        )
+        try {
+            // ✅ FIX: Build updated User object
+            // updateUser() takes User not (name, email) params
+            val updatedUser = current.copy(
+                name  = state.editName.trim(),
+                email = state.editEmail.trim(),
+            )
 
-        userRepository.updateUser(updatedUser).fold(
-            onSuccess = {
-                _uiState.update {
-                    it.copy(
-                        user          = updatedUser,
-                        isSaving      = false,
-                        showEditSheet = false, // close sheet
+            // ✅ FIX: updateUser() returns Result<Unit>
+            val result = userRepository.updateUser(updatedUser)
+
+            result.fold(
+                onSuccess = {
+                    _uiState.update { it.copy(isEditMode = false) }
+                    _events.emit(
+                        ProfileEvent.ShowSnackbar(
+                            "Profile updated ✅"
+                        )
                     )
-                }
-                _events.emit(
-                    ProfileEvent.ShowSnackbar(
-                        "Profile updated successfully"
+                },
+                onFailure = { error ->
+                    _events.emit(
+                        ProfileEvent.ShowError(
+                            error.message ?: "Failed to update profile"
+                        )
                     )
+                },
+            )
+        } catch (e: Exception) {
+            _events.emit(
+                ProfileEvent.ShowError(
+                    e.message ?: "Failed to update profile"
                 )
-            },
-            onFailure = { error ->
-                _uiState.update {
-                    it.copy(isSaving = false)
-                }
-                _events.emit(
-                    ProfileEvent.ShowError(
-                        error.message ?: "Failed to update profile"
-                    )
-                )
-            }
-        )
-    }
-
-    // User taps X or swipes down edit sheet
-    fun onDismissEditSheet() {
-        _uiState.update {
-            it.copy(
-                showEditSheet = false,
-                nameError     = null,
-                emailError    = null,
             )
         }
     }
 
-    // ── Validation helpers ────────────────────────────────────
-    // WHY private? Only ViewModel uses these
-    // Returns error String or null if valid
-
-    private fun validateName(name: String): String? {
-        if (name.isBlank()) return "Name cannot be empty"
-        if (name.trim().length < 2)
-            return "Name must be at least 2 characters"
-        return null // valid
-    }
-
-    private fun validateEmail(email: String): String? {
-        if (email.isBlank()) return "Email cannot be empty"
-        // Simple email check — contains @ and .
-        if (!android.util.Patterns.EMAIL_ADDRESS
-                .matcher(email).matches()) {
-            return "Enter a valid email address"
+    // ── Delete address ────────────────────────────────────────
+    // Removes address from user's saved addresses list in Room
+    fun onDeleteAddress(addressId: String) = viewModelScope.launch {
+        try {
+            userRepository.deleteAddress(addressId)
+            _events.emit(
+                ProfileEvent.ShowSnackbar("Address removed")
+            )
+        } catch (e: Exception) {
+            _events.emit(
+                ProfileEvent.ShowError(
+                    e.message ?: "Failed to remove address"
+                )
+            )
         }
-        return null // valid
     }
 
-    // ══════════════════════════════════════════════════════════
-    // LOGOUT
-    // ══════════════════════════════════════════════════════════
+    // ── Logout ────────────────────────────────────────────────
+    // Signs out from Firebase + clears Room user data
+    // Navigate to LoginScreen after logout
     fun onLogout() = viewModelScope.launch {
-        // Clear user session from DataStore
-        userRepository.logout()
-        // Navigate to login — remove all back stack
-        _events.emit(ProfileEvent.NavigateToLogin)
+        try {
+            userRepository.logout()
+            // Navigate to login — popUpTo clears backstack
+            // so user cannot press back to get to ProfileScreen
+            _events.emit(ProfileEvent.NavigateToLogin)
+        } catch (e: Exception) {
+            _events.emit(
+                ProfileEvent.ShowError(
+                    e.message ?: "Logout failed. Please try again."
+                )
+            )
+        }
     }
 
-    // ══════════════════════════════════════════════════════════
-    // MENU NAVIGATION
-    // ══════════════════════════════════════════════════════════
-    fun onOrdersTapped() = viewModelScope.launch {
-        _events.emit(ProfileEvent.NavigateToOrders)
-    }
-
-    fun onAddressesTapped() = viewModelScope.launch {
-        _events.emit(ProfileEvent.NavigateToAddresses)
-    }
-
-    fun onPaymentsTapped() = viewModelScope.launch {
-        _events.emit(ProfileEvent.NavigateToPayments)
-    }
-
-    fun onSettingsTapped() = viewModelScope.launch {
-        _events.emit(ProfileEvent.NavigateToSettings)
+    // ── Navigation ────────────────────────────────────────────
+    fun onBackPressed() = viewModelScope.launch {
+        _events.emit(ProfileEvent.NavigateBack)
     }
 }

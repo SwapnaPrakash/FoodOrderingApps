@@ -149,6 +149,7 @@ class EntityMapper @Inject constructor() {
         phone = domain.phone,
         profileImage = domain.profileImage,
         addressesJson = gson.toJson(domain.addresses),
+        selectedLocation = domain.selectedLocation,
     )
 
     fun userToDomain(entity: UserEntity): User {
@@ -162,6 +163,7 @@ class EntityMapper @Inject constructor() {
             phone = entity.phone,
             profileImage = entity.profileImage,
             addresses = addresses,
+            selectedLocation = entity.selectedLocation,
         )
     }
 

@@ -1,9 +1,15 @@
 package com.swapna.foodapp.presentation.cart
 
-// ── Kotest imports ────────────────────────────────────────────
-// BehaviorSpec = Given/When/Then style
-// Perfect for ViewModel tests because ViewModels
-// respond to USER actions (Given situation, When action, Then result)
+import com.swapna.foodapp.utils.fakeMenuItem
+
+
+import app.cash.turbine.test
+import com.swapna.foodapp.domain.model.CartPriceBreakdown
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 import io.kotest.core.spec.style.BehaviorSpec
 
 // shouldBe = assertion: actual shouldBe expected
@@ -34,6 +40,687 @@ import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.fakes.FakeCartRepository
 import com.swapna.foodapp.utils.AppBusinessRules
+
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class CartViewModelSpec : BehaviorSpec({
+
+    // ── Fake repository ───────────────────────────────────────
+    // WHY FakeCartRepository not mockk<CartRepository>?
+    // FakeCartRepository has MutableStateFlow internally
+    // → reactive updates work exactly like real Room
+    // → seedCart() seeds data before VM creation
+    // mockk would need complex every{} for Flow returns
+    // Fake = simpler + more realistic behavior
+    lateinit var fakeCartRepo: FakeCartRepository
+
+    // ── Fake data ─────────────────────────────────────────────
+    // Defined at spec level — shared across all tests
+    // WHY at spec level?
+    // HomeViewModelSpec pattern: fake data defined once
+    // Each test uses what it needs
+
+    // Standard cart items for reuse
+    val chickenBiryani = fakeMenuItem(
+        id    = "m1",
+        name  = "Chicken Biryani",
+        price = 249.0,
+    )
+    val muttonBiryani = fakeMenuItem(
+        id    = "m2",
+        name  = "Mutton Biryani",
+        price = 349.0,
+    )
+    val plainNaan = fakeMenuItem(
+        id    = "m3",
+        name  = "Plain Naan",
+        price = 50.0,
+        isVeg = true,
+    )
+
+    // ── Helper — build CartItem quickly ───────────────────────
+    // WHY helper not raw CartItem constructor?
+    // Cleaner test code — less boilerplate per test
+    // Same pattern as fakeRestaurant() in HomeViewModelSpec
+    fun cartItemOf(
+        item:     MenuItem,
+        quantity: Int    = 1,
+        id:       String = item.id,
+    ) = CartItem(
+        id       = id,
+        menuItem = item,
+        quantity = quantity,
+    )
+
+    // ── ViewModel factory ─────────────────────────────────────
+    // WHY factory not lateinit?
+    // HomeViewModelSpec creates VM inside each then block
+    // Ensures fresh VM per test = no shared state issues
+    fun createViewModel() = CartViewModel(fakeCartRepo)
+
+    // ── Setup ─────────────────────────────────────────────────
+    beforeEach {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        // Fresh FakeCartRepository per test
+        // WHY not clearAllMocks like HomeViewModelSpec?
+        // No mockk here — fakes reset by creating new instance
+        fakeCartRepo = FakeCartRepository()
+    }
+
+    afterEach {
+        Dispatchers.resetMain()
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 1 — Initial State
+    // When CartScreen opens with empty cart
+    // ══════════════════════════════════════════════════════════
+
+    given("CartScreen opens with empty cart") {
+
+        `when`("ViewModel is created") {
+            then("isEmpty should be true") {
+                // No seedCart → fakeCartRepo is empty
+                val vm = createViewModel()
+
+                vm.uiState.value.isEmpty shouldBe true
+            }
+        }
+
+        `when`("ViewModel is created") {
+            then("isLoading should be false") {
+                // Flow emits immediately in FakeCartRepository
+                // UnconfinedTestDispatcher runs coroutines sync
+                // → isLoading = false before assertion
+                val vm = createViewModel()
+
+                vm.uiState.value.isLoading shouldBe false
+            }
+        }
+
+        `when`("ViewModel is created") {
+            then("items list should be empty") {
+                val vm = createViewModel()
+
+                vm.uiState.value.items shouldBe emptyList()
+            }
+        }
+
+        `when`("ViewModel is created") {
+            then("restaurantName should be empty string") {
+                val vm = createViewModel()
+
+                vm.uiState.value.restaurantName shouldBe ""
+            }
+        }
+
+        `when`("ViewModel is created") {
+            then("all breakdown values should be 0.0") {
+                val vm       = createViewModel()
+                val breakdown = vm.uiState.value.breakdown
+
+                breakdown.subtotal    shouldBe 0.0
+                breakdown.deliveryFee shouldBe 0.0
+                breakdown.taxes       shouldBe 0.0
+                breakdown.total       shouldBe 0.0
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 2 — Cart with Items
+    // When cart has items pre-seeded
+    // ══════════════════════════════════════════════════════════
+
+    given("cart has items pre-seeded") {
+
+        `when`("cart has 1 item") {
+            then("isEmpty should be false") {
+                // Seed BEFORE createViewModel()
+                // WHY? VM.init collects immediately
+                // If seed after → first emission already processed
+                fakeCartRepo.seedCart(cartItemOf(chickenBiryani))
+                val vm = createViewModel()
+
+                vm.uiState.value.isEmpty shouldBe false
+            }
+        }
+
+        `when`("cart has 2 different items") {
+            then("items list size should be 2") {
+                fakeCartRepo.seedCart(
+                    cartItemOf(chickenBiryani),
+                    cartItemOf(muttonBiryani, id = "m2"),
+                )
+                val vm = createViewModel()
+
+                vm.uiState.value.items.size shouldBe 2
+            }
+        }
+
+        `when`("cart has Chicken Biryani") {
+            then("restaurantName comes from first item restaurantId") {
+                // MenuItem.restaurantId = "r1" (fakeMenuItem default)
+                // CartScreen shows which restaurant order is from
+                fakeCartRepo.seedCart(cartItemOf(chickenBiryani))
+                val vm = createViewModel()
+
+                vm.uiState.value.restaurantName shouldBe "r1"
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 3 — Price Breakdown
+    // Tests CartPriceBreakdown fields via FakeCartRepository
+    // WHY test breakdown not cartTotal Double?
+    // getCartTotal() returns Flow<CartPriceBreakdown>
+    // FakeCartRepository computes same AppBusinessRules as real
+    // ══════════════════════════════════════════════════════════
+
+    given("cart has items for price calculation") {
+
+        `when`("1 item at price 50 below delivery threshold") {
+            then("breakdown.subtotal equals item price") {
+                fakeCartRepo.seedCart(cartItemOf(plainNaan))
+                val vm = createViewModel()
+
+                vm.uiState.value.breakdown.subtotal shouldBe 50.0
+            }
+        }
+
+        `when`("1 item at price 50 — delivery threshold check") {
+            then("breakdown.deliveryFee equals DEFAULT_DELIVERY_FEE") {
+                // 50.0 < FREE_DELIVERY_ABOVE → delivery charged
+                fakeCartRepo.seedCart(cartItemOf(plainNaan))
+                val vm = createViewModel()
+
+                vm.uiState.value.breakdown
+                    .deliveryFee shouldBe
+                        AppBusinessRules.DEFAULT_DELIVERY_FEE
+            }
+        }
+
+        `when`("1 item at price 50 — taxes check") {
+            then("breakdown.taxes equals GST rate times subtotal") {
+                fakeCartRepo.seedCart(cartItemOf(plainNaan))
+                val vm = createViewModel()
+
+                vm.uiState.value.breakdown.taxes shouldBe
+                        50.0 * AppBusinessRules.GST_RATE
+            }
+        }
+
+        `when`("1 item price 50 — total calculation") {
+            then("breakdown.total equals subtotal plus delivery plus taxes") {
+                fakeCartRepo.seedCart(cartItemOf(plainNaan))
+                val vm = createViewModel()
+
+                val expected = 50.0 +
+                        AppBusinessRules.DEFAULT_DELIVERY_FEE +
+                        50.0 * AppBusinessRules.GST_RATE
+
+                vm.uiState.value.breakdown.total shouldBe expected
+            }
+        }
+
+        `when`("subtotal is above FREE delivery threshold") {
+            then("breakdown.deliveryFee should be 0 free delivery") {
+                // price > FREE_DELIVERY_ABOVE → free delivery
+                val expensiveItem = fakeMenuItem(
+                    id    = "m_exp",
+                    price = AppBusinessRules.FREE_DELIVERY_ABOVE + 100.0,
+                )
+                fakeCartRepo.seedCart(cartItemOf(expensiveItem))
+                val vm = createViewModel()
+
+                vm.uiState.value.breakdown.deliveryFee shouldBe 0.0
+            }
+        }
+
+        `when`("subtotal exactly at FREE delivery threshold") {
+            then("breakdown.deliveryFee is 0 boundary case") {
+                // Exactly at threshold = free
+                val exactItem = fakeMenuItem(
+                    id    = "m_exact",
+                    price = AppBusinessRules.FREE_DELIVERY_ABOVE,
+                )
+                fakeCartRepo.seedCart(cartItemOf(exactItem))
+                val vm = createViewModel()
+
+                vm.uiState.value.breakdown.deliveryFee shouldBe 0.0
+            }
+        }
+
+        `when`("2 items seeded in cart") {
+            then("subtotal is sum of both item totals") {
+                // 249 × 1 + 349 × 1 = 598
+                fakeCartRepo.seedCart(
+                    cartItemOf(chickenBiryani),
+                    cartItemOf(muttonBiryani, id = "m2"),
+                )
+                val vm = createViewModel()
+
+                vm.uiState.value.breakdown.subtotal shouldBe 598.0
+            }
+        }
+
+        `when`("item with qty 2 seeded") {
+            then("subtotal doubles the item price") {
+                // 249 × 2 = 498
+                fakeCartRepo.seedCart(
+                    cartItemOf(chickenBiryani, quantity = 2)
+                )
+                val vm = createViewModel()
+
+                vm.uiState.value.breakdown.subtotal shouldBe 498.0
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 4 — Increment Item
+    // User taps + button on cart item row
+    // ══════════════════════════════════════════════════════════
+
+    given("user taps + button on cart item") {
+
+        `when`("item has qty 1 in cart") {
+            then("updateQuantity called with qty 2") {
+                val cartItem = cartItemOf(chickenBiryani, quantity = 1)
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                vm.onIncrementItem(cartItem)
+
+                fakeCartRepo.updateQtyCalled   shouldBe true
+                fakeCartRepo.lastUpdatedItemId shouldBe "m1"
+                fakeCartRepo.lastUpdatedQty    shouldBe 2
+            }
+        }
+
+        `when`("item has qty 3 in cart") {
+            then("updateQuantity called with qty 4") {
+                val cartItem = cartItemOf(chickenBiryani, quantity = 3)
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                vm.onIncrementItem(cartItem)
+
+                fakeCartRepo.lastUpdatedQty shouldBe 4
+            }
+        }
+
+        `when`("item is at MAX_ITEM_QUANTITY") {
+            then("quantity capped — does not exceed MAX") {
+                val cartItem = cartItemOf(
+                    item     = chickenBiryani,
+                    quantity = AppBusinessRules.MAX_ITEM_QUANTITY,
+                )
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                vm.onIncrementItem(cartItem)
+
+                // ✅ Must not exceed MAX even when tapped
+                fakeCartRepo.lastUpdatedQty shouldBe
+                        AppBusinessRules.MAX_ITEM_QUANTITY
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 5 — Decrement Item
+    // User taps - button on cart item row
+    // ══════════════════════════════════════════════════════════
+
+    given("user taps - button on cart item") {
+
+        `when`("item has qty 2 in cart") {
+            then("updateQuantity called with qty 1") {
+                val cartItem = cartItemOf(chickenBiryani, quantity = 2)
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                vm.onDecrementItem(cartItem)
+
+                fakeCartRepo.updateQtyCalled   shouldBe true
+                fakeCartRepo.lastUpdatedItemId shouldBe "m1"
+                fakeCartRepo.lastUpdatedQty    shouldBe 1
+            }
+        }
+
+        `when`("item has qty 1 in cart") {
+            then("removeItem called — item fully removed from cart") {
+                // qty 1 - 1 = 0 → remove not updateQuantity
+                val cartItem = cartItemOf(chickenBiryani, quantity = 1)
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                vm.onDecrementItem(cartItem)
+
+                fakeCartRepo.removeItemCalled shouldBe true
+                fakeCartRepo.updateQtyCalled  shouldBe false
+            }
+        }
+
+        `when`("item qty 1 is decremented to 0") {
+            then("ShowSnackbar emitted with item name removed") {
+                val cartItem = cartItemOf(chickenBiryani, quantity = 1)
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                // ✅ Turbine pattern — same as HomeViewModelSpec
+                vm.events.test {
+                    vm.onDecrementItem(cartItem)
+
+                    val event = awaitItem()
+
+                    event shouldBe
+                            CartViewModel.CartEvent
+                                .ShowSnackbar("Chicken Biryani removed")
+
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 6 — Remove Item (swipe delete)
+    // User explicitly swipes to delete regardless of qty
+    // ══════════════════════════════════════════════════════════
+
+    given("user swipes to delete cart item") {
+
+        `when`("user removes Chicken Biryani") {
+            then("removeItem called in repository") {
+                val cartItem = cartItemOf(chickenBiryani, quantity = 2)
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                vm.onRemoveItem(cartItem)
+
+                fakeCartRepo.removeItemCalled shouldBe true
+            }
+        }
+
+        `when`("user removes Mutton Biryani") {
+            then("ShowSnackbar emitted with correct name") {
+                val cartItem = cartItemOf(muttonBiryani)
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                vm.events.test {
+                    vm.onRemoveItem(cartItem)
+
+                    val event = awaitItem()
+
+                    event shouldBe
+                            CartViewModel.CartEvent
+                                .ShowSnackbar("Mutton Biryani removed from cart")
+
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 7 — Place Order
+    // Tests all order placement scenarios
+    // ══════════════════════════════════════════════════════════
+
+    given("user taps Place Order") {
+
+        `when`("cart has items above minimum order value") {
+            then("OrderPlaced event emitted") {
+                // 249 > MIN_ORDER_VALUE (100) → allowed
+                fakeCartRepo.seedCart(cartItemOf(chickenBiryani))
+                val vm = createViewModel()
+
+                vm.events.test {
+                    vm.onPlaceOrder()
+
+                    val event = awaitItem()
+
+                    event shouldBe
+                            CartViewModel.CartEvent.OrderPlaced
+
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+
+        `when`("order placed successfully") {
+            then("cart cleared after order") {
+                // After order → clearCart() must be called
+                // Otherwise next session shows stale items
+                fakeCartRepo.seedCart(cartItemOf(chickenBiryani))
+                val vm = createViewModel()
+
+                vm.onPlaceOrder()
+
+                fakeCartRepo.clearCartCalled shouldBe true
+            }
+        }
+
+        `when`("cart is empty") {
+            then("ShowError emitted — cannot place empty order") {
+                val vm = createViewModel()
+
+                vm.events.test {
+                    vm.onPlaceOrder()
+
+                    val event = awaitItem()
+
+                    event shouldBe
+                            CartViewModel.CartEvent
+                                .ShowError("Cart is empty")
+
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+
+        `when`("total is below minimum order value") {
+            then("ShowError emitted with min order message") {
+                // 50 < MIN_ORDER_VALUE (100) → rejected
+                fakeCartRepo.seedCart(cartItemOf(plainNaan))
+                val vm = createViewModel()
+
+                vm.events.test {
+                    vm.onPlaceOrder()
+
+                    val event = awaitItem()
+
+                    event shouldBe
+                            CartViewModel.CartEvent.ShowError(
+                                "Minimum order is ₹${
+                                    AppBusinessRules
+                                        .MIN_ORDER_VALUE.toInt()
+                                }"
+                            )
+
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+
+        `when`("total exactly equals minimum order value") {
+            then("OrderPlaced emitted — boundary case passes") {
+                val exactItem = fakeMenuItem(
+                    id    = "m_min",
+                    price = AppBusinessRules.MIN_ORDER_VALUE,
+                )
+                fakeCartRepo.seedCart(cartItemOf(exactItem))
+                val vm = createViewModel()
+
+                vm.events.test {
+                    vm.onPlaceOrder()
+
+                    val event = awaitItem()
+
+                    event shouldBe
+                            CartViewModel.CartEvent.OrderPlaced
+
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+
+        `when`("order placed — cart had 2 items") {
+            then("cart is empty after order placed") {
+                fakeCartRepo.seedCart(
+                    cartItemOf(chickenBiryani),
+                    cartItemOf(muttonBiryani, id = "m2"),
+                )
+                val vm = createViewModel()
+
+                vm.onPlaceOrder()
+
+                fakeCartRepo.clearCartCalled shouldBe true
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 8 — Navigation Events
+    // ✅ All use Turbine .test {} — HomeViewModelSpec pattern
+    // ══════════════════════════════════════════════════════════
+
+    given("user is on CartScreen") {
+
+        `when`("user taps back arrow") {
+            then("NavigateBack event emitted") {
+                val vm = createViewModel()
+
+                vm.events.test {
+                    vm.onBackPressed()
+
+                    awaitItem() shouldBe
+                            CartViewModel.CartEvent.NavigateBack
+
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 9 — Reactive Breakdown Updates
+    // Tests that breakdown StateFlow updates dynamically
+    // as cart changes — same reactive pattern as HomeViewModel
+    // connectivity tests
+    // ══════════════════════════════════════════════════════════
+
+    given("cart changes dynamically after VM created") {
+
+        `when`("item incremented from qty 1 to qty 2") {
+            then("breakdown.subtotal doubles reactively") {
+                val cartItem = cartItemOf(chickenBiryani, quantity = 1)
+                fakeCartRepo.seedCart(cartItem)
+                val vm = createViewModel()
+
+                // Initial state
+                vm.uiState.value.breakdown.subtotal shouldBe 249.0
+
+                // Simulate + button tap
+                vm.onIncrementItem(cartItem)
+
+                // Breakdown updates reactively via Flow
+                vm.uiState.value.breakdown.subtotal shouldBe 498.0
+            }
+        }
+
+        `when`("adding item pushes total over free delivery threshold") {
+            then("deliveryFee switches from DEFAULT to FREE") {
+                // Start below threshold
+                fakeCartRepo.seedCart(cartItemOf(chickenBiryani))
+                val vm = createViewModel()
+
+                // Below threshold → delivery charged
+                vm.uiState.value.breakdown
+                    .deliveryFee shouldBe
+                        AppBusinessRules.DEFAULT_DELIVERY_FEE
+
+                // Add expensive item → crosses threshold
+                val aboveThresholdItem = fakeMenuItem(
+                    id    = "m_exp",
+                    price = AppBusinessRules.FREE_DELIVERY_ABOVE,
+                )
+                fakeCartRepo.seedCart(
+                    cartItemOf(chickenBiryani),
+                    cartItemOf(aboveThresholdItem, id = "m_exp"),
+                )
+                // Re-create VM with new cart state
+                val vm2 = createViewModel()
+
+                // Above threshold → FREE delivery
+                vm2.uiState.value.breakdown.deliveryFee shouldBe 0.0
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 10 — Edge Cases
+    // ══════════════════════════════════════════════════════════
+
+    given("edge cases in cart operations") {
+
+        `when`("same item added twice with different ids") {
+            then("items list has 2 entries") {
+                // 2 CartItems with same MenuItem but different cart ids
+                fakeCartRepo.seedCart(
+                    CartItem(
+                        id       = "cart_1",
+                        menuItem = chickenBiryani,
+                        quantity = 1,
+                    ),
+                    CartItem(
+                        id       = "cart_2",
+                        menuItem = chickenBiryani,
+                        quantity = 2,
+                    ),
+                )
+                val vm = createViewModel()
+
+                vm.uiState.value.items.size shouldBe 2
+            }
+        }
+
+        `when`("cart has 3 mixed items") {
+            then("isEmpty is false and size is 3") {
+                fakeCartRepo.seedCart(
+                    cartItemOf(chickenBiryani),
+                    cartItemOf(muttonBiryani, id = "m2"),
+                    cartItemOf(plainNaan,     id = "m3"),
+                )
+                val vm = createViewModel()
+
+                vm.uiState.value.isEmpty shouldBe false
+                vm.uiState.value.items.size shouldBe 3
+            }
+        }
+
+        `when`("remove tracking flags start as false") {
+            then("no repository methods called before any action") {
+                // Verify fresh FakeCartRepository has no calls
+                val vm = createViewModel()
+
+                fakeCartRepo.addItemCalled    shouldBe false
+                fakeCartRepo.updateQtyCalled  shouldBe false
+                fakeCartRepo.removeItemCalled shouldBe false
+                fakeCartRepo.clearCartCalled  shouldBe false
+            }
+        }
+    }
+})
+
+// ── Kotest imports ────────────────────────────────────────────
+// BehaviorSpec = Given/When/Then style
+// Perfect for ViewModel tests because ViewModels
+// respond to USER actions (Given situation, When action, Then result)
 
 /*@OptIn(ExperimentalCoroutinesApi::class)
 class CartViewModelSpec : BehaviorSpec({

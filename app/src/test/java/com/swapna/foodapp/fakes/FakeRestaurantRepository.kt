@@ -18,21 +18,26 @@ import com.swapna.foodapp.domain.model.CustomisationOption
 // Real API = needs internet + real server
 // Fake = deterministic, instant, offline
 // Control flags = one flag per failure scenario
+import com.swapna.foodapp.utils.TestConstants
 
 class FakeRestaurantRepository : RestaurantRepository {
 
-    // Control flags — set per test
+    // ── Control flags ─────────────────────────────────────────
     var shouldThrowRestaurant = false
     var shouldThrowMenu       = false
     var errorMessage          = "Something went wrong"
 
-    // Override menu per test
+    // Override per test
     var menuResult: Map<String, List<MenuItem>> =
         fakeMenuByCategory()
 
+    var restaurantResult: Restaurant = fakeRestaurant()
+
+    // ── Interface ─────────────────────────────────────────────
+
     override fun getNearbyRestaurants():
             Flow<Result<List<Restaurant>>> =
-        flowOf(Result.success(emptyList()))
+        flowOf(Result.success(listOf(restaurantResult)))
 
     override fun getCollections():
             Flow<Result<List<Collections>>> =
@@ -50,7 +55,7 @@ class FakeRestaurantRepository : RestaurantRepository {
                 Result.failure(Exception(errorMessage))
             )
         }
-        return flowOf(Result.success(fakeRestaurant()))
+        return flowOf(Result.success(restaurantResult))
     }
 
     override fun getMenuItems(
@@ -79,120 +84,167 @@ class FakeRestaurantRepository : RestaurantRepository {
             Flow<Result<List<Cuisine>>> =
         flowOf(Result.success(emptyList()))
 
+    // ══════════════════════════════════════════════════════════
     companion object {
+        // ══════════════════════════════════════════════════════════
 
-        fun fakeRestaurant() = Restaurant(
-            id              = "r1",
-            name            = "Meghana Foods",
-            imageUrl        = "",
-            rating          = 4.6,
-            cuisines        = listOf("Biryani"),
-            isOpen          = true,
-            thumbUrl        = "",
-            ratingText      = "Excellent",
-            ratingColor     = "#3F7E00",
-            totalVotes      = 12500,
-            avgDeliveryTime = 30,
-            deliveryFee     = 0.0,
+        // ── fakeRestaurant ────────────────────────────────────
+        // ✅ SYNCED with TestFunctions.fakeRestaurant()
+        // All new Restaurant fields included
+        fun fakeRestaurant(
+            id:           String       = TestConstants.RESTAURANT_ID,
+            name:         String       = TestConstants.RESTAURANT_NAME,
+            rating:       Double       = TestConstants.RESTAURANT_RATING,
+            deliveryTime: Int          = TestConstants.DELIVERY_TIME,
+            isOpen:       Boolean      = true,
+            cuisines:     List<String> = listOf(
+                "Biryani", "South Indian"
+            ),
+            locality:     String       = TestConstants.LOCALITY,
+        ) = Restaurant(
+            id              = id,
+            name            = name,
+            imageUrl        = TestConstants.IMAGE_URL,
+            thumbUrl        = TestConstants.THUMB_URL,
+            rating          = rating,
+            ratingText      = "Very Good",
+            ratingColor     = "5BA829",
+            totalVotes      = 1000,
+            avgDeliveryTime = deliveryTime,
+            deliveryFee     = 30.0,
             minOrder        = 100,
-            address         = "Koramangala",
-            locality        = "Koramangala",
-            distanceKm      = 2.5,
+            cuisines        = cuisines,
+            address         = TestConstants.RESTAURANT_ADDRESS,
+            locality        = locality,
+            isOpen          = isOpen,
             hasDelivery     = true,
-            offers          = emptyList(),
-            avgCostForTwo   = 400,
+            offers          = listOf("50% off upto ₹100"),
+            avgCostForTwo   = 600,
+            // ✅ New fields with defaults
+            phoneNumber     = "",
+            openingHours    = "11 AM - 11 PM",
+            highlights      = emptyList(),
+            knownFor        = "",
+            distanceKm      = 0.0,
         )
 
-        // ── Customisation options ─────────────────────────────
-        // These are the building blocks for customisation tests
+        // ── fakeMenuItem ──────────────────────────────────────
+        // ✅ FIX: isBestseller + isAvailable + customisations added
+        // Matches MenuItem domain model exactly
+        // ALL params have defaults → call as:
+        //   fakeMenuItem()                    → all defaults
+        //   fakeMenuItem("m1")                → id only
+        //   fakeMenuItem("m1", "Biryani", 249.0) → positional
+        //   fakeMenuItem(price = 50.0)        → named
+        //   fakeMenuItem(isBestseller = true) → named
+        fun fakeMenuItem(
+            id:             String              = TestConstants.MENU_ID,
+            name:           String              = TestConstants.MENU_NAME,
+            price:          Double              = TestConstants.MENU_PRICE,
+            category:       String              = TestConstants.CATEGORY,
+            isVeg:          Boolean             = false,
+            isRecommended:  Boolean             = false,
+            // ✅ FIX: was missing from original
+            isBestseller:   Boolean             = false,
+            // ✅ FIX: was missing from original
+            isAvailable:    Boolean             = true,
+            // ✅ FIX: was missing from original
+            customisations: List<Customisation> = emptyList(),
+            restaurantId:   String              = TestConstants.RESTAURANT_ID,
+        ) = MenuItem(
+            id             = id,
+            restaurantId   = restaurantId,
+            name           = name,
+            description    = "Delicious $name",
+            price          = price,
+            imageUrl       = TestConstants.FOOD_IMAGE,
+            category       = category,
+            isVeg          = isVeg,
+            isRecommended  = isRecommended,
+            isBestseller   = isBestseller,
+            isAvailable    = isAvailable,
+            customisations = customisations,
+        )
 
-        fun fakeSizeOptions() = listOf(
-            // extraPrice = 0.0 → "Included" — base price
-            CustomisationOption(
-                id         = "regular",
-                label      = "Regular",
-                extraPrice = 0.0,
+        // ── fakeMenuByCategory ────────────────────────────────
+        // Default menu: 2 categories, 4 items total
+        // m1 + m3 are recommended
+        // m1 is bestseller
+        fun fakeMenuByCategory() = mapOf(
+            "Biryani" to listOf(
+                fakeMenuItem(
+                    id            = "m1",
+                    name          = "Chicken Biryani",
+                    price         = 249.0,
+                    isRecommended = true,
+                    isBestseller  = true,
+                ),
+                fakeMenuItem(
+                    id    = "m2",
+                    name  = "Mutton Biryani",
+                    price = 349.0,
+                ),
             ),
-            // extraPrice = 50.0 → "+₹50" on top of base
-            CustomisationOption(
-                id         = "large",
-                label      = "Large",
-                extraPrice = 50.0,
-            ),
-            CustomisationOption(
-                id         = "extra_large",
-                label      = "Extra Large",
-                extraPrice = 100.0,
+            "Starters" to listOf(
+                fakeMenuItem(
+                    id            = "m3",
+                    name          = "Chicken 65",
+                    price         = 199.0,
+                    isRecommended = true,
+                    category      = "Starters",
+                ),
+                fakeMenuItem(
+                    id       = "m4",
+                    name     = "Paneer Tikka",
+                    price    = 179.0,
+                    isVeg    = true,
+                    category = "Starters",
+                ),
             ),
         )
 
-        fun fakeSpiceOptions() = listOf(
-            CustomisationOption(
-                id         = "mild",
-                label      = "Mild",
-                extraPrice = 0.0,
-            ),
-            CustomisationOption(
-                id         = "medium",
-                label      = "Medium",
-                extraPrice = 0.0,
-            ),
-            CustomisationOption(
-                id         = "hot",
-                label      = "Hot",
-                extraPrice = 0.0,
-            ),
-        )
-
-        // ── Customisation groups ──────────────────────────────
-        fun fakeCustomisations() = listOf(
-            Customisation(
-                id      = "size_group",
-                name    = "Size",
-                options = fakeSizeOptions(),
-            ),
-            Customisation(
-                id      = "spice_group",
-                name    = "Spice Level",
-                options = fakeSpiceOptions(),
-            ),
-        )
-
-        // ── MenuItem with customisations ──────────────────────
-        fun fakeMenuItemWithCustomisations() = MenuItem(
-            id             = "m1",
-            restaurantId   = "r1",
-            name           = "Chicken Biryani",
-            description    = "Aromatic basmati rice",
-            price          = 249.0,
-            imageUrl       = "",
-            category       = "Biryani",
-            isVeg          = false,
+        // ── fakeMenuItemWithCustomisations ────────────────────
+        // Used in ProductDetailViewModelSpec
+        fun fakeMenuItemWithCustomisations() = fakeMenuItem(
+            id             = TestConstants.MENU_ID,
+            name           = TestConstants.MENU_NAME,
+            price          = TestConstants.MENU_PRICE,
             isRecommended  = true,
             isBestseller   = true,
-            isAvailable    = true,
-            // Attach customisations to item
-            customisations = fakeCustomisations(),
+            customisations = listOf(
+                Customisation(
+                    id      = "size_group",
+                    name    = "Size",
+                    options = listOf(
+                        CustomisationOption("opt1", "Regular", 0.0),
+                        CustomisationOption("opt2", "Large",   50.0),
+                    ),
+                ),
+                Customisation(
+                    id      = "spice_group",
+                    name    = "Spice Level",
+                    options = listOf(
+                        CustomisationOption("opt3", "Mild",   0.0),
+                        CustomisationOption("opt4", "Medium", 0.0),
+                        CustomisationOption("opt5", "Hot",    0.0),
+                    ),
+                ),
+            ),
         )
 
-        // ── MenuItem WITHOUT customisations ───────────────────
-        // Some items have no customisation (plain items)
-        fun fakeSimpleMenuItem() = MenuItem(
-            id             = "m2",
-            restaurantId   = "r1",
-            name           = "Plain Naan",
-            description    = "Tandoor naan",
-            price          = 50.0,
-            imageUrl       = "",
-            category       = "Breads",
-            isVeg          = true,
-            isRecommended  = false,
-            isBestseller   = false,
-            isAvailable    = true,
-            customisations = emptyList(),  // ← no customisations
+        // ── fakeSimpleMenuItem ────────────────────────────────
+        // No customisations — for simple add to cart tests
+        fun fakeSimpleMenuItem() = fakeMenuItem(
+            id            = "m_simple",
+            name          = "Plain Naan",
+            price         = 50.0,
+            isVeg         = true,
+            category      = "Breads",
         )
 
-        fun fakeMenuByCategory() = mapOf(
+        // ── fakeMenuByCategoryWithCustomisations ──────────────
+        // Used in ProductDetailViewModelSpec
+        fun fakeMenuByCategoryWithCustomisations() = mapOf(
             "Biryani" to listOf(
                 fakeMenuItemWithCustomisations(),
             ),

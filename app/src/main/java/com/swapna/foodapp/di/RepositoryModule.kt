@@ -1,5 +1,6 @@
 package com.swapna.foodapp.di
 
+import com.google.firebase.auth.FirebaseAuth
 import com.swapna.foodapp.data.repository.CartRepositoryImpl
 import com.swapna.foodapp.data.repository.RestaurantRepositoryImpl
 import com.swapna.foodapp.data.repository.UserRepositoryImpl
@@ -8,6 +9,7 @@ import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
@@ -37,4 +39,5 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         impl: UserRepositoryImpl,
     ): UserRepository
+
 }

@@ -29,12 +29,16 @@ object DatabaseModule {
         @ApplicationContext context: Context,    // Hilt provides this automatically
     ): AppDatabase =
         Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            AppConstants.DB_NAME,                // "food_app.db" from AppConstants
-        )
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+                context,
+                AppDatabase::class.java,
+                AppConstants.DB_NAME,                // "food_app.db" from AppConstants
+            ).fallbackToDestructiveMigration(false)
             .build()
+            /*.addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3,
+                )
+            .build()*/
 
     // ── DAOs ───────────────────────────────────────────────────
     // Each DAO is provided separately so it can be injected directly

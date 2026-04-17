@@ -110,7 +110,6 @@ fun HomeScreen(
                 onLocationClick = viewModel::onLocationClicked,
                 onCartClick = viewModel::onCartClicked,
                 onSearchClick = { viewModel.onSearchClicked() },
-                onProfileClick  = { viewModel.onProfileClicked() },
                 )
         },
         bottomBar = {
