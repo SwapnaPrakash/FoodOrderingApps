@@ -2,9 +2,12 @@ package com.swapna.foodapp.presentation.home
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -14,6 +17,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -23,11 +27,16 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.presentation.common.ErrorScreen
+import com.swapna.foodapp.presentation.common.NotServiceableCard
+import com.swapna.foodapp.presentation.common.NotServiceableSection
 import com.swapna.foodapp.presentation.home.components.CategoryChip
 import com.swapna.foodapp.presentation.home.components.HomeShimmer
 import com.swapna.foodapp.presentation.home.components.HomeTopBar
@@ -36,6 +45,7 @@ import com.swapna.foodapp.presentation.home.components.OfferCard
 import com.swapna.foodapp.presentation.home.components.OfflineBanner
 import com.swapna.foodapp.presentation.home.components.RestaurantCard
 import com.swapna.foodapp.presentation.navigation.AppRoutes
+import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
 import com.swapna.foodapp.utils.AppConstants.CATEGORIES_TITLE
@@ -50,67 +60,54 @@ import com.swapna.foodapp.utils.SectionTitle
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel: HomeViewModel = hiltViewModel(),
+    viewModel:     HomeViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val state        by viewModel.uiState.collectAsStateWithLifecycle()
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+    )
 
-
-
-    // Navigation events
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is HomeViewModel.HomeEvent.NavigateToRestaurant -> {
-                    Log.d("CLICK", "Navigating to: ${event.id}")
-                    Log.d(
-                        "RESTAURANT_CLICK",
-                        "Navigating to id=${event.id}"
-                    )
+                is HomeViewModel.HomeEvent.NavigateToRestaurant ->
                     navController.navigate(
-                        AppRoutes.restaurant(event.id) // "restaurant/101"
+                        AppRoutes.restaurant(event.id)
                     )
-                }
-
                 is HomeViewModel.HomeEvent.NavigateToSearch -> {
                     if (event.query.isNotEmpty()) {
                         navController.navigate(
-                            AppRoutes.SEARCH + "?query=${event.query}"
+                            "${AppRoutes.SEARCH}?query=${event.query}"
                         )
                     } else {
                         navController.navigate(AppRoutes.SEARCH)
                     }
                 }
-
                 HomeViewModel.HomeEvent.NavigateToCart ->
                     navController.navigate(AppRoutes.CART)
-
                 HomeViewModel.HomeEvent.NavigateToProfile ->
                     navController.navigate(AppRoutes.PROFILE)
             }
         }
     }
 
-    // Location picker sheet
     if (state.showLocationPicker) {
         LocationPickerSheet(
-            sheetState = bottomSheetState,
-            savedAddresses = emptyList(), // populated from Profile on Day 26
-            onLocationSelected = viewModel::onLocationSelected,
-            onDismiss = viewModel::onLocationDismissed,
+            savedAddresses          = state.savedAddresses,
+            onLocationSelected      = viewModel::onLocationSelected,
+            onDismiss               = viewModel::onLocationDismissed,
         )
     }
-
 
     Scaffold(
         topBar = {
             HomeTopBar(
-                location = state.userLocation,
-                cartItemCount = state.cartItemCount,
+                location        = state.selectedLocation,
+                cartItemCount   = state.cartItemCount,
                 onLocationClick = viewModel::onLocationClicked,
-                onCartClick = viewModel::onCartClicked,
-                onSearchClick = { viewModel.onSearchClicked() },
-                )
+                onCartClick     = viewModel::onCartClicked,
+                onSearchClick   = { viewModel.onSearchClicked() },
+            )
         },
         bottomBar = {
             HomeBottomBar(
@@ -120,30 +117,32 @@ fun HomeScreen(
         },
     ) { paddingValues ->
 
-        // Offline banner + content stacked
         Column(modifier = Modifier.fillMaxSize()) {
 
-            // Offline banner slides in from top
             OfflineBanner(isVisible = state.isOffline)
 
-            // Main content area
             when {
-                state.isLoading -> HomeShimmer(paddingValues)
+                // ── Loading ───────────────────────────────────
+                state.isLoading ->
+                    HomeShimmer(paddingValues)
 
-                state.error != null -> ErrorScreen(
-                    message = state.error!!,
-                    onRetry = viewModel::retry,
-                )
+                // ── Network error ─────────────────────────────
+                state.error != null ->
+                    ErrorScreen(
+                        message = state.error!!,
+                        onRetry = viewModel::retry,
+                    )
 
+                // ✅ Not serviceable location (Jakkur etc.)
+                // Shows ABOVE content — not instead of everything
+                // Offers + Categories still visible
+                // Only restaurant section replaced with message
                 else -> HomeContent(
-                    state = state,
-                    paddingValues = paddingValues,
-                    onRestaurantClick = { restaurantId ->
-                        viewModel.onRestaurantClicked(restaurantId)
-                    },
-                    onCategoryClick = { categoryName ->
-                        viewModel.onCategoryClicked(categoryName)
-                    },
+                    state             = state,
+                    paddingValues     = paddingValues,
+                    onRestaurantClick = viewModel::onRestaurantClicked,
+                    onCategoryClick   = viewModel::onCategoryClicked,
+                    onChangeLocation  = viewModel::onLocationClicked,
                 )
             }
         }
@@ -152,70 +151,130 @@ fun HomeScreen(
 
 @Composable
 private fun HomeContent(
-    state: HomeViewModel.HomeUiState,
-    paddingValues: PaddingValues,
+    state:             HomeViewModel.HomeUiState,
+    paddingValues:     PaddingValues,
     onRestaurantClick: (String) -> Unit,
-    onCategoryClick: (String) -> Unit,
+    onCategoryClick:   (String) -> Unit,
+    onChangeLocation:  () -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier       = Modifier.fillMaxSize(),
         contentPadding = paddingValues,
     ) {
 
-        // Exciting Offers
+        // ── Offers — always shown ─────────────────────────────
         if (state.collections.isNotEmpty()) {
             item(key = "offers_title") {
-                SectionTitle(OFFERS_TITLE)
+                SectionTitle("Exciting Offers 🔥")
             }
             item(key = "offers_row") {
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = Dimens.SpaceL),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceM),
+                    contentPadding        = PaddingValues(
+                        horizontal = Dimens.SpaceL,
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        Dimens.SpaceM,
+                    ),
                 ) {
-                    items(state.collections, key = { it.id }) { collection ->
+                    items(
+                        items = state.collections,
+                        key   = { it.id },
+                    ) { collection ->
                         OfferCard(collection = collection)
                     }
                 }
             }
         }
 
-        // Categories
+        // ── Categories — always shown ─────────────────────────
         if (state.categories.isNotEmpty()) {
             item(key = "categories_title") {
-                SectionTitle(CATEGORIES_TITLE)
+                SectionTitle("What's on your mind?")
             }
             item(key = "categories_row") {
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = Dimens.SpaceL),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceS),
+                    contentPadding        = PaddingValues(
+                        horizontal = Dimens.SpaceL,
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        Dimens.SpaceS,
+                    ),
                 ) {
-                    items(state.categories, key = { it.id }) { category ->
+                    items(
+                        items = state.categories,
+                        key   = { it.id },
+                    ) { category ->
                         CategoryChip(
                             category = category,
-                            onClick = { onCategoryClick(category.name) }, //viewModel.onCategoryClicked(category.name)
+                            onClick  = {
+                                onCategoryClick(category.name)
+                            },
                         )
                     }
                 }
             }
         }
 
-        // Stores Near You
-        item(key = "stores_title") {
-            SectionTitle(STORE_NEAR)
+        // ── Restaurants section ───────────────────────────────
+
+        when (state.filterStatus) {
+
+            // ── Not serviceable (Jakkur, Yelahanka etc.) ─────
+            FilterStatus.NOT_SERVICEABLE -> {
+                item(key = "not_serviceable") {
+                    NotServiceableSection(
+                        requestedArea    = state.requestedArea,
+                        availableAreas   = state.availableAreas,
+                        onChangeLocation = onChangeLocation,
+                    )
+                }
+            }
+
+            // ── Found or No filter → show restaurants ────────
+            else -> {
+                item(key = "stores_title") {
+                    SectionTitle("Restaurants Near You")
+                }
+
+                if (state.restaurants.isEmpty()) {
+                    item(key = "no_restaurants") {
+                        EmptyRestaurantsCard()
+                    }
+                } else {
+                    items(
+                        items = state.restaurants,
+                        key   = { it.id },
+                    ) { restaurant ->
+                        val restaurantId = restaurant.id
+                        RestaurantCard(
+                            restaurant = restaurant,
+                            onClick    = {
+                                onRestaurantClick(restaurantId)
+                            },
+                        )
+                    }
+                }
+            }
         }
+    }
+}
 
-        items(state.restaurants, key = { it.id }) { restaurant ->
-            val restaurantId = restaurant.id
-            RestaurantCard(
-                restaurant = restaurant,
-
-                onClick = {
-                    Log.d("CLICK", "Tapped: ${restaurant.id} - ${restaurant.name}")
-                    onRestaurantClick(restaurantId) },
-
-
-            )
-        }
+// ── Empty restaurants card ────────────────────────────────────
+// Shows when filter returns empty but not NOT_SERVICEABLE
+@Composable
+private fun EmptyRestaurantsCard() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(Dimens.SpaceXXL),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "No restaurants found\nfor this area",
+            style = MaterialTheme.typography.bodyLarge,
+            color = AppGray,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

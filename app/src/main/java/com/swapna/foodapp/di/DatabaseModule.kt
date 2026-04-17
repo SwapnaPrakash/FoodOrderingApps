@@ -32,13 +32,13 @@ object DatabaseModule {
                 context,
                 AppDatabase::class.java,
                 AppConstants.DB_NAME,                // "food_app.db" from AppConstants
-            ).fallbackToDestructiveMigration(false)
-            .build()
-            /*.addMigrations(
+            )
+            .fallbackToDestructiveMigration(true)
+            .addMigrations(
                 AppDatabase.MIGRATION_1_2,
                 AppDatabase.MIGRATION_2_3,
                 )
-            .build()*/
+            .build()
 
     // ── DAOs ───────────────────────────────────────────────────
     // Each DAO is provided separately so it can be injected directly

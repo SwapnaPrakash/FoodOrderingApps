@@ -124,37 +124,20 @@ class RestaurantRepositoryImpl @Inject constructor(
         id: String,
     ): Flow<Result<Restaurant>> = flow {
 
-        android.util.Log.d(
-            "REPO",
-            "getRestaurantDetail called id=$id"
-        )
-
         // ✅ FIX: Read from Room by id
         // Room was populated by getNearbyRestaurants()
         // getById(id) returns only the restaurant matching this id
         val cached = restaurantDao.getById(id)
 
         if (cached != null) {
-            // ✅ This returns DIFFERENT restaurant per id
-            // id=101 → Meghana Foods
-            // id=102 → Pizza Hut
-            // id=103 → Burger King
-            android.util.Log.d(
-                "REPO",
-                "Found in Room: ${cached.name}"
-            )
+
             emit(
                 Result.success(
                     entityMapper.restaurantToDomain(cached)
                 )
             )
         } else {
-            // Room cache empty (first launch, no internet before)
-            // Try fetching all restaurants fresh and find this one
-            android.util.Log.d(
-                "REPO",
-                "Not in Room, fetching from API id=$id"
-            )
+
             try {
                 val response = api.getNearbyRestaurants()
                 val allRestaurants = response.nearbyRestaurants.map {

@@ -3,10 +3,13 @@ package com.swapna.foodapp.presentation.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swapna.foodapp.domain.model.Address
 import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.Restaurant
 import com.swapna.foodapp.domain.repository.CartRepository
+import com.swapna.foodapp.domain.repository.UserRepository
+import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.domain.usecase.home.GetHomeDataUseCase
 import com.swapna.foodapp.utils.AppConstants.DEFAULT_LOCATION
 import com.swapna.foodapp.utils.AppConstants.WRONG
@@ -29,6 +32,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getHomeDataUseCase: GetHomeDataUseCase,
     private val cartRepository: CartRepository,
+    private val userRepository:       UserRepository,
     private val connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
 
@@ -46,13 +50,59 @@ class HomeViewModel @Inject constructor(
         loadHomeData()
         observeCartCount()
         observeConnectivity()
+        observeUserProfile()
+        loadSavedLocation()
+    }
+
+    private fun loadSavedLocation() = viewModelScope.launch {
+        userRepository.getCurrentUser()
+            .collect { user ->
+                val saved = user?.selectedLocation.orEmpty()
+                if (saved.isNotEmpty()) {
+                    _uiState.update { it.copy(selectedLocation = saved) }
+                }
+            }
+    }
+// Add these methods to HomeViewModel:
+
+    // ✅ Called after GPS returns coordinates
+// LocationPickerSheet triggers this via callback
+    fun onCurrentLocationDetected(
+        locality: String,
+        address:  String,
+    ) {
+        // Show detected locality in TopBar
+        // "Koramangala" not full address
+        _uiState.update {
+            it.copy(
+                userLocation      = locality,
+                showLocationPicker = false,
+            )
+        }
+
+        // Save to Room
+        viewModelScope.launch {
+            userRepository.saveSelectedLocation(locality)
+        }
+
+        // Reload restaurants for detected locality
+        loadHomeData()
+    }
+
+    // ✅ Called when user denies location permission
+    fun onLocationPermissionDenied() {
+        _uiState.update {
+            it.copy(showLocationPicker = false)
+        }
     }
 
     // Load Home Data
     fun loadHomeData() = viewModelScope.launch {
         _uiState.update { it.copy(isLoading = true, error = null) }
-
-        getHomeDataUseCase().collect { result ->
+        val currentLocation = _uiState.value.userLocation
+        getHomeDataUseCase(
+            selectedLocation = currentLocation,
+        ).collect { result ->
             result.fold(
                 onSuccess = { data ->
                     _uiState.update {
@@ -62,6 +112,9 @@ class HomeViewModel @Inject constructor(
                             categories = data.categories,
                             restaurants = data.restaurants,
                             error = null,
+                            filterStatus   = data.filterStatus,
+                            requestedArea  = data.requestedArea,
+                            availableAreas = data.availableAreas,
                         )
                     }
                 },
@@ -112,14 +165,34 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onLocationSelected(location: String) {
-        _uiState.update {
-            it.copy(
-                userLocation = location,
-                showLocationPicker = false,
-            )
+        viewModelScope.launch {
+            // 1. Update TopBar immediately (optimistic UI)
+            _uiState.update { it.copy(selectedLocation = location) }
+
+            // 2. Save to UserRepository (persists across sessions)
+            userRepository.saveSelectedLocation(location)
         }
-        // Reload with new location
-        loadHomeData()
+    }
+
+    private fun observeUserProfile() = viewModelScope.launch {
+        userRepository.getCurrentUser().collect { user ->
+            if (user != null) {
+                val savedLocation = user.selectedLocation
+
+                _uiState.update { state ->
+                    state.copy(
+                        savedAddresses = user.addresses,
+                        userLocation   = savedLocation
+                            .ifEmpty { state.userLocation },
+                    )
+                }
+
+                // Reload restaurants with restored location
+                if (savedLocation.isNotEmpty()) {
+                    loadHomeData()
+                }
+            }
+        }
     }
 
     // Navigation Actions
@@ -167,6 +240,16 @@ class HomeViewModel @Inject constructor(
 
     fun retry() = loadHomeData()
 
+    private fun observeUserAddresses() = viewModelScope.launch {
+        userRepository.getCurrentUser().collect { user ->
+            _uiState.update {
+                it.copy(savedAddresses = user?.addresses ?: emptyList())
+            }
+        }
+    }
+
+
+
     // UI State
     data class HomeUiState(
         val isLoading: Boolean = true,
@@ -179,6 +262,11 @@ class HomeViewModel @Inject constructor(
         val isOffline: Boolean = false,
         val showLocationPicker: Boolean = false,
         val error: String? = null,
+        val savedAddresses:    List<Address>     = emptyList(),
+        val filterStatus:       FilterStatus       = FilterStatus.NO_FILTER,
+        val requestedArea:      String             = "",
+        val availableAreas:     List<String>       = emptyList(),
+        val selectedLocation: String = "",
     )
 
     enum class DeliveryTab { DELIVERY, DINING,PROFILE }

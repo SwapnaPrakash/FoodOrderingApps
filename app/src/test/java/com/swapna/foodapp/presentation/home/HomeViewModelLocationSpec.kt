@@ -1,6 +1,7 @@
 package com.swapna.foodapp.presentation.home
 
 import com.swapna.foodapp.domain.repository.CartRepository
+import com.swapna.foodapp.domain.repository.UserRepository
 import com.swapna.foodapp.domain.usecase.home.GetHomeDataUseCase
 import com.swapna.foodapp.utils.ConnectivityObserver
 import com.swapna.foodapp.utils.HomeData
@@ -24,12 +25,14 @@ class HomeViewModelLocationSpec : BehaviorSpec({
     val getHomeDataUseCase = mockk<GetHomeDataUseCase>()
     val cartRepository = mockk<CartRepository>()
     val connectivityObserver = mockk<ConnectivityObserver>()
+    val userRepository = mockk<UserRepository>()
     val networkStatusFlow = MutableStateFlow<NetworkStatus>(NetworkStatus.Available)
 
     fun createViewModel() = HomeViewModel(
         getHomeDataUseCase = getHomeDataUseCase,
         cartRepository = cartRepository,
         connectivityObserver = connectivityObserver,
+        userRepository = userRepository,
     )
 
     beforeEach {

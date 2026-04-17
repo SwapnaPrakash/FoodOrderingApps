@@ -101,6 +101,11 @@ abstract class AppDatabase : RoomDatabase() {
                             "ADD COLUMN ${AppConstants.COL_SELECTED_LOCATION} " +
                             "TEXT NOT NULL DEFAULT ''"
                 )
+                db.execSQL(
+                    "ALTER TABLE ${AppConstants.TABLE_USER} " +
+                            "ADD COLUMN ${AppConstants.COL_CACHED_AT} " +
+                            "INTEGER NOT NULL DEFAULT 0"
+                )
             }
         }
     }

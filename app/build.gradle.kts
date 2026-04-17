@@ -180,6 +180,7 @@ dependencies {
     androidTestImplementation("androidx.navigation:navigation-compose:2.7.7")
     // Add SafetyNet (helps Firebase verify your app)
     implementation("com.google.android.gms:play-services-safetynet:18.0.1")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 
     //  Debug
     debugImplementation(libs.ui.tooling)
