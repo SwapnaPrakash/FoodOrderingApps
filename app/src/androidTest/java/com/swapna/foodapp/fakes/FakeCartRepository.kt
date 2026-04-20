@@ -3,6 +3,7 @@ package com.swapna.foodapp.fakes
 import com.swapna.foodapp.domain.model.AppBusinessRules
 import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.CartPriceBreakdown
+import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.domain.repository.CartRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,12 +26,10 @@ class FakeCartRepository : CartRepository {
 
     // ── Interface implementations ─────────────────────────────
 
-    override fun getCartItems(): Flow<List<CartItem>> = items
+    override fun getCartItems(): Flow<List<CartItem>> = _items
 
     override fun getCartItemCount(): Flow<Int> =
-        items.map { list ->
-            list.sumOf { it.quantity }
-        }
+        _items.map { it.sumOf { item -> item.quantity } }
 
     override fun getCartTotal(): Flow<CartPriceBreakdown> =
         items.map { map ->
@@ -46,16 +45,6 @@ class FakeCartRepository : CartRepository {
             )
         }
 
-
-    // Simple subtotal only — no delivery/GST
-    // ViewModel computes CartPriceBreakdown from getCartItems()
-   /* override fun getCartTotal(): Flow<Double> =
-        items.map { list ->
-            list.sumOf { it.totalPrice }
-            // ✅ Uses CartItem.totalPrice which already
-            // accounts for customisation extras:
-            // (menuItem.price + extras) × quantity
-        }*/
 
     override suspend fun addItem(item: CartItem) {
         addItemCalled = true
@@ -127,4 +116,31 @@ class FakeCartRepository : CartRepository {
         lastUpdatedItemId = ""
         lastUpdatedQty    = 0
     }
+
+    private val _items = MutableStateFlow<List<CartItem>>(emptyList())
+
+    fun setItemCount(count: Int) {
+        _items.value = (1..count).map { i ->
+            CartItem(
+                id       = "fake_$i",
+                menuItem = fakeMenuItem("m$i", "Item $i"),
+                quantity = 1,
+            )
+        }
+    }
+
+    private fun fakeMenuItem(id: String, name: String) = MenuItem(
+        id             = id,
+        restaurantId   = "r1",
+        name           = name,
+        description    = "",
+        price          = 100.0,
+        imageUrl       = "",
+        category       = "Test",
+        isVeg          = false,
+        isRecommended  = false,
+        isBestseller   = false,
+        isAvailable    = true,
+        customisations = emptyList(),
+    )
 }

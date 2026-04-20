@@ -24,8 +24,8 @@ android {
             "BASE_URL",
             "\"https://raw.githubusercontent.com/SwapnaPrakash/zomato-mock-api/main/\""
         )
-
-        testInstrumentationRunner = "com.swapna.foodapp.HiltTestRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["disableAnalytics"] = "true"
     }
 
     buildTypes {
@@ -55,6 +55,21 @@ android {
     testOptions {
         unitTests.all {
             it.useJUnitPlatform()
+        }
+        animationsDisabled = true
+    }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/NOTICE.md",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/DEPENDENCIES",
+                "META-INF/*.kotlin_module",
+            )
         }
     }
 }
@@ -178,6 +193,7 @@ dependencies {
     androidTestImplementation("androidx.test:rules:1.5.0")
     androidTestImplementation("androidx.activity:activity-compose:1.9.0")
     androidTestImplementation("androidx.navigation:navigation-compose:2.7.7")
+    androidTestImplementation("io.mockk:mockk-android:1.13.10")
     // Add SafetyNet (helps Firebase verify your app)
     implementation("com.google.android.gms:play-services-safetynet:18.0.1")
     implementation("com.google.android.gms:play-services-location:21.0.1")

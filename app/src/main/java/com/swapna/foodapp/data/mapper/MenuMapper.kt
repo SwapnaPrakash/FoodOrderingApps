@@ -63,6 +63,3 @@ class MenuMapper @Inject constructor() {
         } ?: emptyList(),
     )
 }
-private fun String.parsePriceString(): Double =
-    this.replace("[^0-9.]".toRegex(), "")
-        .toDoubleOrNull() ?: 0.0

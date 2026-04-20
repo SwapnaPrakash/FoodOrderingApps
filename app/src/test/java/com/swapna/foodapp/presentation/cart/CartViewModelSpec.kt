@@ -1,45 +1,36 @@
 package com.swapna.foodapp.presentation.cart
 
-import com.swapna.foodapp.utils.fakeMenuItem
-
-
-import app.cash.turbine.test
-import com.swapna.foodapp.domain.model.CartPriceBreakdown
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import io.kotest.core.spec.style.BehaviorSpec
 
 // shouldBe = assertion: actual shouldBe expected
 // If they don't match → test fails with clear message
-import io.kotest.matchers.shouldBe
 
 // ── Coroutine test imports ────────────────────────────────────
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 // UnconfinedTestDispatcher = runs coroutines immediately
 // without needing runBlocking or advance calls
 // Perfect for ViewModel tests where we want instant results
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 
 // resetMain/setMain = replace real Main dispatcher with test one
 // Required because ViewModel uses Dispatchers.Main internally
 // Without this → "Module with Main dispatcher not found" error
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
 
 // first() = collect first emission from Flow then cancel
 // We use this to get the first event from SharedFlow
-import kotlinx.coroutines.flow.first
 
 // ── App imports ───────────────────────────────────────────────
+import app.cash.turbine.test
 import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.MenuItem
-import com.swapna.foodapp.fakes.FakeCartRepository
+import com.swapna.foodapp.presentation.common.fakes.FakeCartRepository
 import com.swapna.foodapp.utils.AppBusinessRules
+import com.swapna.foodapp.utils.fakeMenuItem
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -62,18 +53,18 @@ class CartViewModelSpec : BehaviorSpec({
 
     // Standard cart items for reuse
     val chickenBiryani = fakeMenuItem(
-        id    = "m1",
-        name  = "Chicken Biryani",
+        id = "m1",
+        name = "Chicken Biryani",
         price = 249.0,
     )
     val muttonBiryani = fakeMenuItem(
-        id    = "m2",
-        name  = "Mutton Biryani",
+        id = "m2",
+        name = "Mutton Biryani",
         price = 349.0,
     )
     val plainNaan = fakeMenuItem(
-        id    = "m3",
-        name  = "Plain Naan",
+        id = "m3",
+        name = "Plain Naan",
         price = 50.0,
         isVeg = true,
     )
@@ -83,11 +74,11 @@ class CartViewModelSpec : BehaviorSpec({
     // Cleaner test code — less boilerplate per test
     // Same pattern as fakeRestaurant() in HomeViewModelSpec
     fun cartItemOf(
-        item:     MenuItem,
-        quantity: Int    = 1,
-        id:       String = item.id,
+        item: MenuItem,
+        quantity: Int = 1,
+        id: String = item.id,
     ) = CartItem(
-        id       = id,
+        id = id,
         menuItem = item,
         quantity = quantity,
     )
@@ -156,13 +147,13 @@ class CartViewModelSpec : BehaviorSpec({
 
         `when`("ViewModel is created") {
             then("all breakdown values should be 0.0") {
-                val vm       = createViewModel()
+                val vm = createViewModel()
                 val breakdown = vm.uiState.value.breakdown
 
-                breakdown.subtotal    shouldBe 0.0
+                breakdown.subtotal shouldBe 0.0
                 breakdown.deliveryFee shouldBe 0.0
-                breakdown.taxes       shouldBe 0.0
-                breakdown.total       shouldBe 0.0
+                breakdown.taxes shouldBe 0.0
+                breakdown.total shouldBe 0.0
             }
         }
     }
@@ -268,7 +259,7 @@ class CartViewModelSpec : BehaviorSpec({
             then("breakdown.deliveryFee should be 0 free delivery") {
                 // price > FREE_DELIVERY_ABOVE → free delivery
                 val expensiveItem = fakeMenuItem(
-                    id    = "m_exp",
+                    id = "m_exp",
                     price = AppBusinessRules.FREE_DELIVERY_ABOVE + 100.0,
                 )
                 fakeCartRepo.seedCart(cartItemOf(expensiveItem))
@@ -282,7 +273,7 @@ class CartViewModelSpec : BehaviorSpec({
             then("breakdown.deliveryFee is 0 boundary case") {
                 // Exactly at threshold = free
                 val exactItem = fakeMenuItem(
-                    id    = "m_exact",
+                    id = "m_exact",
                     price = AppBusinessRules.FREE_DELIVERY_ABOVE,
                 )
                 fakeCartRepo.seedCart(cartItemOf(exactItem))
@@ -333,9 +324,9 @@ class CartViewModelSpec : BehaviorSpec({
 
                 vm.onIncrementItem(cartItem)
 
-                fakeCartRepo.updateQtyCalled   shouldBe true
+                fakeCartRepo.updateQtyCalled shouldBe true
                 fakeCartRepo.lastUpdatedItemId shouldBe "m1"
-                fakeCartRepo.lastUpdatedQty    shouldBe 2
+                fakeCartRepo.lastUpdatedQty shouldBe 2
             }
         }
 
@@ -354,7 +345,7 @@ class CartViewModelSpec : BehaviorSpec({
         `when`("item is at MAX_ITEM_QUANTITY") {
             then("quantity capped — does not exceed MAX") {
                 val cartItem = cartItemOf(
-                    item     = chickenBiryani,
+                    item = chickenBiryani,
                     quantity = AppBusinessRules.MAX_ITEM_QUANTITY,
                 )
                 fakeCartRepo.seedCart(cartItem)
@@ -384,9 +375,9 @@ class CartViewModelSpec : BehaviorSpec({
 
                 vm.onDecrementItem(cartItem)
 
-                fakeCartRepo.updateQtyCalled   shouldBe true
+                fakeCartRepo.updateQtyCalled shouldBe true
                 fakeCartRepo.lastUpdatedItemId shouldBe "m1"
-                fakeCartRepo.lastUpdatedQty    shouldBe 1
+                fakeCartRepo.lastUpdatedQty shouldBe 1
             }
         }
 
@@ -400,7 +391,7 @@ class CartViewModelSpec : BehaviorSpec({
                 vm.onDecrementItem(cartItem)
 
                 fakeCartRepo.removeItemCalled shouldBe true
-                fakeCartRepo.updateQtyCalled  shouldBe false
+                fakeCartRepo.updateQtyCalled shouldBe false
             }
         }
 
@@ -550,7 +541,7 @@ class CartViewModelSpec : BehaviorSpec({
         `when`("total exactly equals minimum order value") {
             then("OrderPlaced emitted — boundary case passes") {
                 val exactItem = fakeMenuItem(
-                    id    = "m_min",
+                    id = "m_min",
                     price = AppBusinessRules.MIN_ORDER_VALUE,
                 )
                 fakeCartRepo.seedCart(cartItemOf(exactItem))
@@ -646,7 +637,7 @@ class CartViewModelSpec : BehaviorSpec({
 
                 // Add expensive item → crosses threshold
                 val aboveThresholdItem = fakeMenuItem(
-                    id    = "m_exp",
+                    id = "m_exp",
                     price = AppBusinessRules.FREE_DELIVERY_ABOVE,
                 )
                 fakeCartRepo.seedCart(
@@ -673,12 +664,12 @@ class CartViewModelSpec : BehaviorSpec({
                 // 2 CartItems with same MenuItem but different cart ids
                 fakeCartRepo.seedCart(
                     CartItem(
-                        id       = "cart_1",
+                        id = "cart_1",
                         menuItem = chickenBiryani,
                         quantity = 1,
                     ),
                     CartItem(
-                        id       = "cart_2",
+                        id = "cart_2",
                         menuItem = chickenBiryani,
                         quantity = 2,
                     ),
@@ -694,7 +685,7 @@ class CartViewModelSpec : BehaviorSpec({
                 fakeCartRepo.seedCart(
                     cartItemOf(chickenBiryani),
                     cartItemOf(muttonBiryani, id = "m2"),
-                    cartItemOf(plainNaan,     id = "m3"),
+                    cartItemOf(plainNaan, id = "m3"),
                 )
                 val vm = createViewModel()
 
@@ -708,10 +699,10 @@ class CartViewModelSpec : BehaviorSpec({
                 // Verify fresh FakeCartRepository has no calls
                 val vm = createViewModel()
 
-                fakeCartRepo.addItemCalled    shouldBe false
-                fakeCartRepo.updateQtyCalled  shouldBe false
+                fakeCartRepo.addItemCalled shouldBe false
+                fakeCartRepo.updateQtyCalled shouldBe false
                 fakeCartRepo.removeItemCalled shouldBe false
-                fakeCartRepo.clearCartCalled  shouldBe false
+                fakeCartRepo.clearCartCalled shouldBe false
             }
         }
     }

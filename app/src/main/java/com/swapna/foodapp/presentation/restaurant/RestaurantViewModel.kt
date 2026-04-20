@@ -3,6 +3,7 @@ package com.swapna.foodapp.presentation.restaurant
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.CartPriceBreakdown
 import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.domain.model.Restaurant
@@ -104,6 +105,8 @@ class RestaurantViewModel @Inject constructor(
     val scrollToCategory: SharedFlow<String> =
         _scrollToCategory.asSharedFlow()
 
+    private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
+
     // ── Init ──────────────────────────────────────────────────
     init {
         loadRestaurantData()
@@ -179,10 +182,9 @@ class RestaurantViewModel @Inject constructor(
     // Different concerns → separate flows
     private fun observeQuantities() = viewModelScope.launch {
         cartRepository.getCartItems().collect { items ->
-            // Convert List<CartItem> → Map<itemId, quantity>
-            // MenuItemRow: quantities[item.id] ?: 0
+            _cartItems.value = items
             _quantities.value = items.associate {
-                it.id to it.quantity
+                it.menuItem.id to it.quantity
             }
         }
     }
@@ -256,18 +258,19 @@ class RestaurantViewModel @Inject constructor(
                 )
                 _events.emit(RestaurantEvent.ItemAdded(item.name))
             } else {
-                // Already in cart — just increment via Room
+                val cartItem = _cartItems.value
+                    .find { it.menuItem.id == item.id }
+                    ?: return@launch
+
                 cartRepository.updateQuantity(
-                    itemId   = item.id,
+                    itemId   = cartItem.id,
                     quantity = (currentQty + 1)
                         .coerceAtMost(AppBusinessRules.MAX_ITEM_QUANTITY),
                 )
             }
         } catch (e: Exception) {
             _events.emit(
-                RestaurantEvent.ShowError(
-                    e.message ?: "Failed to add item"
-                )
+                RestaurantEvent.ShowError(e.message ?: "Failed to add item")
             )
         }
     }
@@ -276,20 +279,21 @@ class RestaurantViewModel @Inject constructor(
     // Reduce qty by 1 — remove from Room if reaches 0
     fun onDecrementItem(itemId: String) = viewModelScope.launch {
         try {
-            val currentQty = _quantities.value[itemId] ?: 0
+            val cartItem = _cartItems.value
+                .find { it.menuItem.id == itemId }
+                ?: return@launch                        // not in cart — guard
+
+            val currentQty = cartItem.quantity
 
             when {
-                currentQty <= 0 ->
-                    return@launch
-
                 currentQty <= 1 -> {
-                    // Remove from Room completely
-                    cartRepository.removeItem(itemId)
+                    // Remove completely using CartItem UUID ✅
+                    cartRepository.removeItem(cartItem.id)
                 }
                 currentQty > 1  -> {
-                    // Reduce by 1 in Room
+                    // Decrement using CartItem UUID ✅
                     cartRepository.updateQuantity(
-                        itemId   = itemId,
+                        itemId   = cartItem.id,
                         quantity = currentQty - 1,
                     )
                 }

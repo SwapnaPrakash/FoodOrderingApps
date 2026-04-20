@@ -13,30 +13,52 @@ import kotlinx.coroutines.flow.flowOf
 
 class FakeRestaurantRepository : RestaurantRepository {
 
-    // ✅ Add control flags for testing
-    var shouldThrowRestaurant  = false
-    var shouldThrowMenu        = false
-    var errorMessage           = "Something went wrong"
+    // ── Per-test control properties ───────────────────────────
+    // WHY separate result per method?
+    // HomeScreen tests need to control restaurants/categories/collections
+    // independently — e.g. show categories but no restaurants
 
-    // ✅ Override menu result per test
+    var nearbyRestaurantsResult: Result<List<Restaurant>> =
+        Result.success(emptyList())
+
+    var collectionsResult: Result<List<Collections>> =
+        Result.success(emptyList())
+
+    var categoriesResult: Result<List<FoodCategory>> =
+        Result.success(emptyList())
+
+    // Keep existing flags for RestaurantScreen tests
+    var shouldThrowRestaurant = false
+    var shouldThrowMenu       = false
+    var errorMessage          = "Something went wrong"
     var menuResult: Map<String, List<MenuItem>> = fakeMenuByCategory()
 
-    override fun getNearbyRestaurants(): Flow<Result<List<Restaurant>>> =
-        flowOf(Result.success(emptyList()))
+    // Add this property
+    var throwError: Exception? = null
+
+    override fun getNearbyRestaurants(): Flow<Result<List<Restaurant>>> {
+        // WHY throw not emit failure?
+        // GetHomeDataUseCase uses combine() which calls getOrDefault(emptyList())
+        // Result.failure emitted → use case sees empty list → NO error state in UI
+        // Throwing from flow → combine() propagates exception → HomeViewModel
+        //   catches it → sets error state → ErrorScreen shown
+        throwError?.let { throw it }
+        return flowOf(nearbyRestaurantsResult)
+    }
+
+    // ── Home screen methods ───────────────────────────────────
 
     override fun getCollections(): Flow<Result<List<Collections>>> =
-        flowOf(Result.success(emptyList()))
+        flowOf(collectionsResult)
 
     override fun getCategories(): Flow<Result<List<FoodCategory>>> =
-        flowOf(Result.success(emptyList()))
+        flowOf(categoriesResult)
 
-    override fun getRestaurantDetail(
-        id: String,
-    ): Flow<Result<Restaurant>> {
+    // ── Restaurant screen methods ─────────────────────────────
+
+    override fun getRestaurantDetail(id: String): Flow<Result<Restaurant>> {
         if (shouldThrowRestaurant) {
-            return flowOf(
-                Result.failure(Exception(errorMessage))
-            )
+            return flowOf(Result.failure(Exception(errorMessage)))
         }
         return flowOf(Result.success(fakeRestaurant()))
     }
@@ -45,9 +67,7 @@ class FakeRestaurantRepository : RestaurantRepository {
         restaurantId: String,
     ): Flow<Result<Map<String, List<MenuItem>>>> {
         if (shouldThrowMenu) {
-            return flowOf(
-                Result.failure(Exception(errorMessage))
-            )
+            return flowOf(Result.failure(Exception(errorMessage)))
         }
         return flowOf(Result.success(menuResult))
     }
@@ -56,6 +76,8 @@ class FakeRestaurantRepository : RestaurantRepository {
         restaurantId: String,
     ): Flow<Result<List<Review>>> =
         flowOf(Result.success(emptyList()))
+
+    // ── Search screen methods ─────────────────────────────────
 
     override fun searchRestaurants(
         query:   String,
@@ -68,9 +90,12 @@ class FakeRestaurantRepository : RestaurantRepository {
 
     companion object {
 
-        fun fakeRestaurant() = Restaurant(
-            id              = "r1",
-            name            = "Meghana Foods",
+        fun fakeRestaurant(
+            id:   String = "r1",
+            name: String = "Meghana Foods",
+        ) = Restaurant(
+            id              = id,
+            name            = name,
             imageUrl        = "",
             rating          = 4.6,
             cuisines        = listOf("Biryani", "South Indian"),
@@ -88,6 +113,10 @@ class FakeRestaurantRepository : RestaurantRepository {
             hasDelivery     = true,
             offers          = listOf("20% off above ₹499"),
             avgCostForTwo   = 400,
+            phoneNumber     = "",
+            openingHours    = "11 AM - 11 PM",
+            highlights      = emptyList(),
+            knownFor        = "",
         )
 
         fun fakeMenuByCategory() = mapOf(
@@ -107,17 +136,18 @@ class FakeRestaurantRepository : RestaurantRepository {
             price:         Double,
             isRecommended: Boolean = false,
         ) = MenuItem(
-            id            = id,
-            restaurantId  = "r1",
-            name          = name,
-            description   = "Delicious $name",
-            price         = price,
-            imageUrl      = "",
-            category      = "Biryani",
-            isVeg         = false,
-            isRecommended = isRecommended,
-            isBestseller  = false,
-            isAvailable   = true,
+            id             = id,
+            restaurantId   = "r1",
+            name           = name,
+            description    = "Delicious $name",
+            price          = price,
+            imageUrl       = "",
+            category       = "Biryani",
+            isVeg          = false,
+            isRecommended  = isRecommended,
+            isBestseller   = false,
+            isAvailable    = true,
+            customisations = emptyList(),
         )
     }
 }

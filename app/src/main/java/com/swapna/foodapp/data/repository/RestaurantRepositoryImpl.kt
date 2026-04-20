@@ -154,16 +154,8 @@ class RestaurantRepositoryImpl @Inject constructor(
                 val found = allRestaurants.find { it.id == id }
 
                 if (found != null) {
-                    android.util.Log.d(
-                        "REPO",
-                        "Not in Room, fetching from API id=$id"
-                    )
                     emit(Result.success(found))
                 } else {
-                    android.util.Log.d(
-                        "REPO",
-                        "Found in API response: ${found?.name}"
-                    )
                     emit(
                         Result.failure(
                             Exception(NO_INTERNET_LOAD_RESTAURANT)
@@ -172,10 +164,6 @@ class RestaurantRepositoryImpl @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                android.util.Log.e(
-                    "REPO",
-                    "Failed to load restaurant id=$id: ${e.message}"
-                )
                 emit(
                     Result.failure(
                         Exception(NO_INTERNET_LOAD_RESTAURANT)

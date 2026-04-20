@@ -1,816 +1,584 @@
 package com.swapna.foodapp.presentation.profile
 
-/*
-// ── Kotest ────────────────────────────────────────────────────
+import app.cash.turbine.test
+import com.swapna.foodapp.domain.model.Address
+import com.swapna.foodapp.domain.model.Order
+import com.swapna.foodapp.domain.model.User
+import com.swapna.foodapp.domain.repository.UserRepository
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-
-// ── Coroutines ────────────────────────────────────────────────
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 
-// ── App ───────────────────────────────────────────────────────
-import com.swapna.foodapp.fakes.FakeUserRepository
-import com.swapna.foodapp.domain.model.User
-
 @OptIn(ExperimentalCoroutinesApi::class)
 class ProfileViewModelSpec : BehaviorSpec({
 
-    // ── Test dispatcher ───────────────────────────────────────
-    // UnconfinedTestDispatcher = coroutines run immediately
-    // No need to advance time manually
     val dispatcher = UnconfinedTestDispatcher()
 
-    // ── Test dependencies ─────────────────────────────────────
-    lateinit var fakeUserRepo: FakeUserRepository
-    lateinit var viewModel:    ProfileViewModel
+    // ── MockK dependency ──────────────────────────────────────
+    val userRepository = mockk<UserRepository>()
+
+    // ── Controllable user flow ────────────────────────────────
+    // WHY MutableStateFlow not flowOf()?
+    //   Some tests update the user mid-test (e.g. after saveProfile)
+    //   MutableStateFlow lets us emit new values from answers block
+    val userFlow = MutableStateFlow<User?>(null)
+
+    fun createViewModel() = ProfileViewModel(
+        userRepository = userRepository,
+    )
+
     beforeEach {
-        // Set test dispatcher as Main
-        // ProfileViewModel uses viewModelScope → Main
+        clearAllMocks()
         Dispatchers.setMain(dispatcher)
+        userFlow.value = testUser()   // default: valid logged-in user
 
-        // Fresh fake per test
-        fakeUserRepo = FakeUserRepository()
-
-        // Create ViewModel — init calls loadUser()
-        // With UnconfinedTestDispatcher loadUser() completes
-        // before first assertion runs
-        viewModel = ProfileViewModel(fakeUserRepo)
+        // Default stubs
+        every { userRepository.getCurrentUser() } returns userFlow
+        every { userRepository.getRecentOrders() } returns
+                flowOf(emptyList())
+        coEvery { userRepository.updateUser(any()) } returns
+                Result.success(Unit)
+        coEvery { userRepository.logout() } just runs
+        coEvery { userRepository.deleteAddress(any()) } just runs
     }
 
-    afterEach {
-        // Always reset Main dispatcher
-        // Prevents test isolation issues
-        Dispatchers.resetMain()
+    afterEach { Dispatchers.resetMain() }
+
+    // ══════════════════════════════════════════════════════════
+    // GROUP 1 — Initial Profile Load
+    // ══════════════════════════════════════════════════════════
+
+    given("ProfileScreen opens for the first time") {
+
+        `when`("user is logged in and profile loads") {
+            then("isLoading is false") {
+                createViewModel().uiState.value.isLoading shouldBe false
+            }
+        }
+
+        `when`("user profile loads") {
+            then("user name is Swapna") {
+                createViewModel().uiState.value.user?.name shouldBe "Swapna"
+            }
+        }
+
+        `when`("user profile loads") {
+            then("error is null") {
+                createViewModel().uiState.value.error shouldBe null
+            }
+        }
+
+        `when`("user profile loads") {
+            then("isLoggedIn computed property is true") {
+                createViewModel().uiState.value.isLoggedIn shouldBe true
+            }
+        }
+
+        `when`("user has name and email set") {
+            then("displayName shows user name") {
+                createViewModel().uiState.value.displayName shouldBe "Swapna"
+            }
+        }
+
+        `when`("user has name and email set") {
+            then("displayEmail shows user email") {
+                createViewModel().uiState.value.displayEmail shouldBe
+                        "swapna@example.com"
+            }
+        }
+
+        `when`("user has no name set") {
+            then("displayName falls back to Add your name") {
+                userFlow.value = testUser(name = "")
+                createViewModel().uiState.value.displayName shouldBe "Add your name"
+            }
+        }
+
+        `when`("user has no email set") {
+            then("displayEmail falls back to Add email address") {
+                userFlow.value = testUser(email = "")
+                createViewModel().uiState.value.displayEmail shouldBe "Add email address"
+            }
+        }
+
+        `when`("getCurrentUser emits null") {
+            then("error is set and isLoggedIn is false") {
+                userFlow.value = null
+
+                val vm = createViewModel()
+
+                vm.uiState.value.user      shouldBe null
+                vm.uiState.value.error     shouldBe "Could not load profile"
+                vm.uiState.value.isLoggedIn shouldBe false
+            }
+        }
+
+        `when`("editName and editEmail pre-filled on load") {
+            then("editName matches user name") {
+                createViewModel().uiState.value.editName shouldBe "Swapna"
+            }
+        }
+
+        `when`("editName and editEmail pre-filled on load") {
+            then("editEmail matches user email") {
+                createViewModel().uiState.value.editEmail shouldBe
+                        "swapna@example.com"
+            }
+        }
     }
 
     // ══════════════════════════════════════════════════════════
-    // GROUP 1 — Load User
-    // Tests what ProfileScreen shows when it opens
+    // GROUP 2 — Orders Load
     // ══════════════════════════════════════════════════════════
 
-    given("ProfileScreen is opened") {
+    given("ProfileScreen loads recent orders") {
 
-        `when`("repository returns user successfully") {
-            then("uiState.user should not be null") {
-                // WHY? User is null → header shows nothing
-                // Must be populated after load
+        `when`("API returns 2 orders") {
+            then("orders list has 2 items") {
+                every { userRepository.getRecentOrders() } returns
+                        flowOf(listOf(testOrder("o1"), testOrder("o2")))
 
-                viewModel.uiState.value.user shouldNotBe null
+                createViewModel().uiState.value.orders.size shouldBe 2
             }
         }
 
-        `when`("repository returns user successfully") {
-            then("user name should be Swapna Prakash") {
-                // Verify CORRECT user loaded
-                // Not just any non-null value
-
-                viewModel.uiState.value
-                    .user?.name shouldBe "Swapna Prakash"
+        `when`("API returns empty orders") {
+            then("orders list is empty") {
+                createViewModel().uiState.value.orders shouldBe emptyList()
             }
         }
+    }
 
-        `when`("repository returns user successfully") {
-            then("user email should be swapna@email.com") {
-                viewModel.uiState.value
-                    .user?.email shouldBe "swapna@email.com"
-            }
-        }
+    // ══════════════════════════════════════════════════════════
+    // GROUP 3 — Addresses
+    // ══════════════════════════════════════════════════════════
 
-        `when`("repository returns user successfully") {
-            then("user phone should be 9876543210") {
-                viewModel.uiState.value
-                    .user?.phone shouldBe "9876543210"
-            }
-        }
+    given("user has saved addresses") {
 
-        `when`("repository returns user successfully") {
-            then("isLoading should be false") {
-                // Spinner must stop after load completes
-                // If still true → user sees infinite spinner
-
-                viewModel.uiState.value
-                    .isLoading shouldBe false
-            }
-        }
-
-        `when`("repository returns user successfully") {
-            then("error should be null") {
-                // Clean success state — no error shown
-
-                viewModel.uiState.value
-                    .error shouldBe null
-            }
-        }
-
-        `when`("repository throws error") {
-            then("error message should be set") {
-                // Setup repo to fail BEFORE creating VM
-                // WHY before? VM.init calls loadUser() immediately
-                fakeUserRepo.getUserResult = Result.failure(
-                    Exception("Failed to load profile")
+        `when`("user has Home and Work addresses") {
+            then("addresses computed property returns both") {
+                userFlow.value = testUser(
+                    addresses = listOf(
+                        testAddress("a1", "Home"),
+                        testAddress("a2", "Work"),
+                    )
                 )
+                val vm = createViewModel()
 
-                // Create VM AFTER setting up failure
-                val failVM = ProfileViewModel(fakeUserRepo)
-
-                failVM.uiState.value.error shouldBe
-                        "Failed to load profile"
+                vm.uiState.value.addresses.size shouldBe 2
+                vm.uiState.value.hasAddresses   shouldBe true
             }
         }
 
-        `when`("repository throws error") {
-            then("isLoading should be false even on error") {
-                // Error state must stop loading
-                // Spinner + error at same time = bad UX
+        `when`("user has no addresses") {
+            then("addresses is empty and hasAddresses is false") {
+                userFlow.value = testUser(addresses = emptyList())
+                val vm = createViewModel()
 
-                fakeUserRepo.getUserResult = Result.failure(
-                    Exception("Network error")
-                )
-                val failVM = ProfileViewModel(fakeUserRepo)
-
-                failVM.uiState.value.isLoading shouldBe false
-            }
-        }
-
-        `when`("repository throws error") {
-            then("user should be null") {
-                // Failed to load → no user data
-                fakeUserRepo.getUserResult = Result.failure(
-                    Exception("Error")
-                )
-                val failVM = ProfileViewModel(fakeUserRepo)
-
-                failVM.uiState.value.user shouldBe null
+                vm.uiState.value.addresses    shouldBe emptyList()
+                vm.uiState.value.hasAddresses shouldBe false
             }
         }
     }
 
     // ══════════════════════════════════════════════════════════
-    // GROUP 2 — Edit Profile Sheet
-    // Tests open/close of ModalBottomSheet
+    // GROUP 4 — Edit Mode
     // ══════════════════════════════════════════════════════════
 
-    given("user is viewing their profile") {
+    given("user taps Edit button") {
 
-        `when`("user taps Edit Profile button") {
-            then("showEditSheet should be true") {
-                // WHY test showEditSheet?
-                // ProfileScreen shows EditProfileSheet
-                // when showEditSheet = true
-                // If wrong → edit button does nothing (bug)
+        `when`("onEditClicked called") {
+            then("isEditMode becomes true") {
+                val vm = createViewModel()
+                vm.onEditClicked()
 
-                viewModel.onEditProfileTapped()
-
-                viewModel.uiState.value
-                    .showEditSheet shouldBe true
+                vm.uiState.value.isEditMode shouldBe true
             }
         }
 
-        `when`("user taps Edit Profile button") {
-            then("editName should be pre-filled with current name") {
-                // WHY pre-fill?
-                // User sees current value in field
-                // Can edit part of name, not retype whole thing
-                // Better UX
+        `when`("onEditClicked called") {
+            then("editName pre-filled with current user name") {
+                val vm = createViewModel()
+                vm.onEditClicked()
 
-                viewModel.onEditProfileTapped()
-
-                viewModel.uiState.value
-                    .editName shouldBe "Swapna Prakash"
+                vm.uiState.value.editName shouldBe "Swapna"
             }
         }
 
-        `when`("user taps Edit Profile button") {
-            then("editEmail should be pre-filled with current email") {
-                viewModel.onEditProfileTapped()
+        `when`("onEditClicked called") {
+            then("editEmail pre-filled with current user email") {
+                val vm = createViewModel()
+                vm.onEditClicked()
 
-                viewModel.uiState.value
-                    .editEmail shouldBe "swapna@email.com"
+                vm.uiState.value.editEmail shouldBe "swapna@example.com"
             }
         }
-
-        `when`("user taps Edit Profile button") {
-            then("name and email errors should be cleared") {
-                // Previous errors from last edit session
-                // must not show in new session
-
-                viewModel.onEditProfileTapped()
-
-                viewModel.uiState.value.nameError  shouldBe null
-                viewModel.uiState.value.emailError shouldBe null
-            }
-        }
-
-        `when`("user dismisses edit sheet") {
-            then("showEditSheet should be false") {
-                // Open sheet first
-                viewModel.onEditProfileTapped()
-                viewModel.uiState.value
-                    .showEditSheet shouldBe true
-
-                // Dismiss = swipe down or tap outside
-                viewModel.onDismissEditSheet()
-
-                viewModel.uiState.value
-                    .showEditSheet shouldBe false
-            }
-        }
-
-        `when`("user dismisses edit sheet") {
-            then("validation errors should be cleared") {
-                // Errors from incomplete form
-                // should not persist after dismiss
-
-                viewModel.onEditProfileTapped()
-
-                // Simulate validation errors
-                // by triggering save with empty name
-                viewModel.onNameChanged("")
-                viewModel.onSaveProfile()
-
-                // nameError should be set
-                viewModel.uiState.value.nameError shouldNotBe null
-
-                // Dismiss sheet
-                viewModel.onDismissEditSheet()
-
-                // Errors cleared
-                viewModel.uiState.value.nameError shouldBe null
-            }
-        }
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // GROUP 3 — Edit Field Changes
-    // Tests typing in name/email fields
-    // ══════════════════════════════════════════════════════════
-
-    given("user is editing their profile") {
 
         `when`("user types new name") {
-            then("editName in uiState updates") {
-                // Real-time update = Compose recomposes with new value
-                // TextField shows what user typed
+            then("editName updates to new value") {
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.onNameChanged("Swapna Reddy")
 
-                viewModel.onNameChanged("Swapna S")
-
-                viewModel.uiState.value
-                    .editName shouldBe "Swapna S"
+                vm.uiState.value.editName shouldBe "Swapna Reddy"
             }
         }
 
         `when`("user types new email") {
-            then("editEmail in uiState updates") {
-                viewModel.onEmailChanged("new@email.com")
+            then("editEmail updates to new value") {
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.onEmailChanged("new@example.com")
 
-                viewModel.uiState.value
-                    .editEmail shouldBe "new@email.com"
+                vm.uiState.value.editEmail shouldBe "new@example.com"
             }
         }
 
-        `when`("user had name error and starts typing") {
-            then("nameError should be cleared") {
-                // WHY clear on type?
-                // Error shown → user starts fixing it
-                // Error should disappear as they type
-                // NOT wait until they submit again
+        `when`("user cancels edit") {
+            then("isEditMode becomes false") {
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.onNameChanged("Some Edit")
+                vm.onCancelEdit()
 
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("")
-                viewModel.onSaveProfile()
-
-                // Error set
-                viewModel.uiState.value
-                    .nameError shouldNotBe null
-
-                // User starts typing to fix
-                viewModel.onNameChanged("S")
-
-                // Error cleared immediately
-                viewModel.uiState.value
-                    .nameError shouldBe null
+                vm.uiState.value.isEditMode shouldBe false
             }
         }
 
-        `when`("user had email error and starts typing") {
-            then("emailError should be cleared") {
-                viewModel.onEditProfileTapped()
-                viewModel.onEmailChanged("invalid")
-                viewModel.onSaveProfile()
+        `when`("user cancels after typing new name") {
+            then("editName resets to original user name") {
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.onNameChanged("Changed Name")
+                vm.onCancelEdit()
 
-                viewModel.uiState.value
-                    .emailError shouldNotBe null
-
-                viewModel.onEmailChanged("new@")
-
-                viewModel.uiState.value
-                    .emailError shouldBe null
+                // Must revert to original — not keep the edit
+                vm.uiState.value.editName shouldBe "Swapna"
             }
         }
     }
 
     // ══════════════════════════════════════════════════════════
-    // GROUP 4 — Validation
-    // Tests all validation rules before save
+    // GROUP 5 — Save Profile
     // ══════════════════════════════════════════════════════════
 
-    given("user taps Save with invalid data") {
+    given("user taps Save after editing profile") {
 
-        `when`("name is empty") {
-            then("nameError should be set") {
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("")
+        `when`("name and email are valid") {
+            then("updateUser called with updated User object") {
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.onNameChanged("Swapna Reddy")
+                vm.onEmailChanged("updated@example.com")
+                vm.onSaveProfile()
 
-                viewModel.onSaveProfile()
-
-                viewModel.uiState.value
-                    .nameError shouldBe "Name cannot be empty"
+                coVerify {
+                    userRepository.updateUser(
+                        match {
+                            it.name  == "Swapna Reddy" &&
+                                    it.email == "updated@example.com"
+                        }
+                    )
+                }
             }
         }
 
-        `when`("name is blank spaces only") {
-            then("nameError should be set") {
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("   ")
+        `when`("save succeeds") {
+            then("isEditMode becomes false") {
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.onSaveProfile()
 
-                viewModel.onSaveProfile()
-
-                viewModel.uiState.value
-                    .nameError shouldBe "Name cannot be empty"
+                vm.uiState.value.isEditMode shouldBe false
             }
         }
 
-        `when`("name is only 1 character") {
-            then("nameError should be set") {
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("S")
+        `when`("save succeeds") {
+            then("ShowSnackbar event emitted with Profile updated") {
+                val vm = createViewModel()
+                vm.events.test {
+                    vm.onEditClicked()
+                    vm.onSaveProfile()
 
-                viewModel.onSaveProfile()
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent
+                                .ShowSnackbar("Profile updated ✅")
 
-                viewModel.uiState.value
-                    .nameError shouldBe
-                        "Name must be at least 2 characters"
+                    cancelAndIgnoreRemainingEvents()
+                }
             }
         }
 
-        `when`("email is empty") {
-            then("emailError should be set") {
-                viewModel.onEditProfileTapped()
-                viewModel.onEmailChanged("")
+        `when`("name is blank") {
+            then("ShowError emitted — Name cannot be empty") {
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.onNameChanged("")  // blank name
+                vm.events.test {
+                    vm.onSaveProfile()
 
-                viewModel.onSaveProfile()
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent
+                                .ShowError("Name cannot be empty")
 
-                viewModel.uiState.value
-                    .emailError shouldBe "Email cannot be empty"
+                    cancelAndIgnoreRemainingEvents()
+                }
             }
         }
 
-        `when`("email format is invalid") {
-            then("emailError should be set") {
-                viewModel.onEditProfileTapped()
-                // Missing @ → invalid email
-                viewModel.onEmailChanged("notanemail")
+        `when`("name is blank") {
+            then("updateUser is NOT called") {
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.onNameChanged("")
+                vm.onSaveProfile()
 
-                viewModel.onSaveProfile()
-
-                viewModel.uiState.value
-                    .emailError shouldBe
-                        "Enter a valid email address"
+                coVerify(exactly = 0) { userRepository.updateUser(any()) }
             }
         }
 
-        `when`("email missing domain") {
-            then("emailError should be set") {
-                viewModel.onEditProfileTapped()
-                viewModel.onEmailChanged("user@")
+        `when`("user is null during save") {
+            then("ShowError emitted — No user found") {
+                userFlow.value = null
 
-                viewModel.onSaveProfile()
+                val vm = createViewModel()
+                vm.events.test {
+                    vm.onSaveProfile()
 
-                viewModel.uiState.value
-                    .emailError shouldBe
-                        "Enter a valid email address"
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent
+                                .ShowError("No user found. Please login again.")
+
+                    cancelAndIgnoreRemainingEvents()
+                }
             }
         }
 
-        `when`("both name and email are invalid") {
-            then("both errors should be set simultaneously") {
-                // WHY test both at once?
-                // User might have both fields wrong
-                // Show ALL errors at once — not one at a time
-                // Better UX than fixing one by one
+        `when`("updateUser throws exception") {
+            then("ShowError emitted with exception message") {
+                coEvery { userRepository.updateUser(any()) } returns
+                        Result.failure(Exception("Network error"))
 
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("")
-                viewModel.onEmailChanged("invalid")
+                val vm = createViewModel()
+                vm.onEditClicked()
+                vm.events.test {
+                    vm.onSaveProfile()
 
-                viewModel.onSaveProfile()
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent
+                                .ShowError("Network error")
 
-                viewModel.uiState.value
-                    .nameError shouldBe "Name cannot be empty"
-                viewModel.uiState.value
-                    .emailError shouldBe
-                        "Enter a valid email address"
-            }
-        }
-
-        `when`("validation fails") {
-            then("updateUser should NOT be called") {
-                // WHY verify? API call must not happen
-                // when input is invalid
-                // Would waste bandwidth + show server errors
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("")
-
-                viewModel.onSaveProfile()
-
-                // Repository updateUser must NOT have been called
-                fakeUserRepo.updateUserCalled shouldBe false
+                    cancelAndIgnoreRemainingEvents()
+                }
             }
         }
     }
 
     // ══════════════════════════════════════════════════════════
-    // GROUP 5 — Save Profile (Happy Path)
-    // Tests successful save flow
+    // GROUP 6 — Delete Address
     // ══════════════════════════════════════════════════════════
 
-    given("user enters valid name and email") {
+    given("user taps delete on a saved address") {
 
-        `when`("user taps Save and repository succeeds") {
-            then("updateUser is called with updated user") {
-                // Verify repository receives correct data
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
+        `when`("deleteAddress succeeds") {
+            then("deleteAddress called with correct addressId") {
+                val vm = createViewModel()
+                vm.onDeleteAddress("a1")
 
-                viewModel.onSaveProfile()
-
-                // Repository must have been called
-                fakeUserRepo.updateUserCalled shouldBe true
-
-                // With correct updated user
-                fakeUserRepo.lastUpdatedUser?.name shouldBe
-                        "Swapna S"
-                fakeUserRepo.lastUpdatedUser?.email shouldBe
-                        "new@email.com"
+                coVerify { userRepository.deleteAddress("a1") }
             }
         }
 
-        `when`("save succeeds") {
-            then("user in uiState updates to new values") {
-                // WHY test uiState update?
-                // Profile header must show NEW values
-                // not stale old values after save
+        `when`("deleteAddress succeeds") {
+            then("ShowSnackbar emitted with Address removed") {
+                val vm = createViewModel()
+                vm.events.test {
+                    vm.onDeleteAddress("a1")
 
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent
+                                .ShowSnackbar("Address removed")
 
-                viewModel.onSaveProfile()
-
-                viewModel.uiState.value
-                    .user?.name shouldBe "Swapna S"
-                viewModel.uiState.value
-                    .user?.email shouldBe "new@email.com"
+                    cancelAndIgnoreRemainingEvents()
+                }
             }
         }
 
-        `when`("save succeeds") {
-            then("showEditSheet should be false — sheet closes") {
-                // Sheet must close after successful save
-                // User sees updated profile header
+        `when`("deleteAddress throws exception") {
+            then("ShowError emitted with error message") {
+                coEvery { userRepository.deleteAddress(any()) } throws
+                        Exception("Delete failed")
 
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
+                val vm = createViewModel()
+                vm.events.test {
+                    vm.onDeleteAddress("a1")
 
-                viewModel.onSaveProfile()
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent
+                                .ShowError("Delete failed")
 
-                viewModel.uiState.value
-                    .showEditSheet shouldBe false
-            }
-        }
-
-        `when`("save succeeds") {
-            then("ShowSnackbar event emitted with success message") {
-                // Feedback to user that save worked
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
-
-                viewModel.onSaveProfile()
-
-                val event = viewModel.events.first()
-
-                assert(
-                    event is ProfileViewModel
-                    .ProfileEvent.ShowSnackbar
-                ) { "Expected ShowSnackbar but got $event" }
-
-                (event as ProfileViewModel
-                .ProfileEvent.ShowSnackbar)
-                    .message shouldBe
-                        "Profile updated successfully"
-            }
-        }
-
-        `when`("save succeeds") {
-            then("isSaving should be false after completion") {
-                // Button spinner must stop after save
-                // If stays true → button disabled forever (bug)
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
-
-                viewModel.onSaveProfile()
-
-                viewModel.uiState.value
-                    .isSaving shouldBe false
-            }
-        }
-
-        `when`("user name has leading/trailing spaces") {
-            then("saved name is trimmed") {
-                // "  Swapna  " → "Swapna"
-                // WHY trim? Spaces in name cause
-                // display issues + comparison bugs
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("  Swapna S  ")
-                viewModel.onEmailChanged("swapna@email.com")
-
-                viewModel.onSaveProfile()
-
-                fakeUserRepo.lastUpdatedUser?.name shouldBe
-                        "Swapna S"
-            }
-        }
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // GROUP 6 — Save Profile (Error Path)
-    // Tests repository failure during save
-    // ══════════════════════════════════════════════════════════
-
-    given("user taps Save but repository fails") {
-
-        `when`("updateUser returns failure") {
-            then("ShowError event emitted") {
-                // Network error during save
-                // User must see error message
-
-                fakeUserRepo.updateUserResult = Result.failure(
-                    Exception("Failed to update profile")
-                )
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
-
-                viewModel.onSaveProfile()
-
-                val event = viewModel.events.first()
-
-                assert(
-                    event is ProfileViewModel
-                    .ProfileEvent.ShowError
-                ) { "Expected ShowError but got $event" }
-
-                (event as ProfileViewModel
-                .ProfileEvent.ShowError)
-                    .message shouldBe "Failed to update profile"
-            }
-        }
-
-        `when`("updateUser returns failure") {
-            then("sheet stays open — user can retry") {
-                // WHY keep sheet open on error?
-                // User filled the form
-                // Close on error = they lose their changes
-                // Keep open = they can just tap Save again
-
-                fakeUserRepo.updateUserResult = Result.failure(
-                    Exception("Network error")
-                )
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
-
-                viewModel.onSaveProfile()
-
-                // Sheet must stay open
-                viewModel.uiState.value
-                    .showEditSheet shouldBe true
-            }
-        }
-
-        `when`("updateUser returns failure") {
-            then("user in uiState NOT updated with failed data") {
-                // Save failed → user data must stay as original
-                // Not partially updated
-
-                val originalName = viewModel.uiState.value
-                    .user?.name
-
-                fakeUserRepo.updateUserResult = Result.failure(
-                    Exception("Error")
-                )
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("New Name")
-                viewModel.onEmailChanged("new@email.com")
-
-                viewModel.onSaveProfile()
-
-                // User name must be unchanged
-                viewModel.uiState.value
-                    .user?.name shouldBe originalName
-            }
-        }
-
-        `when`("updateUser returns failure") {
-            then("isSaving should be false after error") {
-                // Save button must re-enable after error
-                // User can try again
-
-                fakeUserRepo.updateUserResult = Result.failure(
-                    Exception("Error")
-                )
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
-
-                viewModel.onSaveProfile()
-
-                viewModel.uiState.value
-                    .isSaving shouldBe false
+                    cancelAndIgnoreRemainingEvents()
+                }
             }
         }
     }
 
     // ══════════════════════════════════════════════════════════
     // GROUP 7 — Logout
-    // Tests logout flow
     // ══════════════════════════════════════════════════════════
 
-    given("user taps Logout button") {
+    given("user taps Logout") {
 
-        `when`("logout is confirmed") {
-            then("userRepository.logout is called") {
-                // Repository must clear session
-                // Without this → user still logged in (security bug)
+        `when`("logout succeeds") {
+            then("logout called on UserRepository") {
+                val vm = createViewModel()
+                vm.onLogout()
 
-                viewModel.onLogout()
-
-                fakeUserRepo.logoutCalled shouldBe true
+                coVerify { userRepository.logout() }
             }
         }
 
-        `when`("logout is called") {
-            then("NavigateToLogin event is emitted") {
-                // After logout → send to Login screen
-                // Back stack must be cleared (checked in Screen)
+        `when`("logout succeeds") {
+            then("NavigateToLogin event emitted") {
+                val vm = createViewModel()
+                vm.events.test {
+                    vm.onLogout()
 
-                viewModel.onLogout()
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent.NavigateToLogin
 
-                val event = viewModel.events.first()
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
 
-                assert(
-                    event is ProfileViewModel
-                    .ProfileEvent.NavigateToLogin
-                ) { "Expected NavigateToLogin but got $event" }
+        `when`("logout throws exception") {
+            then("ShowError emitted with error message") {
+                coEvery { userRepository.logout() } throws
+                        Exception("Logout failed. Please try again.")
+
+                val vm = createViewModel()
+                vm.events.test {
+                    vm.onLogout()
+
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent
+                                .ShowError("Logout failed. Please try again.")
+
+                    cancelAndIgnoreRemainingEvents()
+                }
             }
         }
     }
 
     // ══════════════════════════════════════════════════════════
-    // GROUP 8 — Navigation Events
-    // Tests all menu item taps
+    // GROUP 8 — Navigation
     // ══════════════════════════════════════════════════════════
 
-    given("user taps menu items on Profile screen") {
+    given("user is on ProfileScreen") {
 
-        `when`("user taps My Orders") {
-            then("NavigateToOrders event emitted") {
-                viewModel.onOrdersTapped()
+        `when`("user taps back button") {
+            then("NavigateBack event emitted") {
+                val vm = createViewModel()
+                vm.events.test {
+                    vm.onBackPressed()
 
-                val event = viewModel.events.first()
+                    awaitItem() shouldBe
+                            ProfileViewModel.ProfileEvent.NavigateBack
 
-                assert(
-                    event is ProfileViewModel
-                    .ProfileEvent.NavigateToOrders
-                ) { "Expected NavigateToOrders but got $event" }
-            }
-        }
-
-        `when`("user taps Saved Addresses") {
-            then("NavigateToAddresses event emitted") {
-                viewModel.onAddressesTapped()
-
-                val event = viewModel.events.first()
-
-                assert(
-                    event is ProfileViewModel
-                    .ProfileEvent.NavigateToAddresses
-                ) { "Expected NavigateToAddresses but got $event" }
-            }
-        }
-
-        `when`("user taps Payment Methods") {
-            then("NavigateToPayments event emitted") {
-                viewModel.onPaymentsTapped()
-
-                val event = viewModel.events.first()
-
-                assert(
-                    event is ProfileViewModel
-                    .ProfileEvent.NavigateToPayments
-                ) { "Expected NavigateToPayments but got $event" }
-            }
-        }
-
-        `when`("user taps Settings") {
-            then("NavigateToSettings event emitted") {
-                viewModel.onSettingsTapped()
-
-                val event = viewModel.events.first()
-
-                assert(
-                    event is ProfileViewModel
-                    .ProfileEvent.NavigateToSettings
-                ) { "Expected NavigateToSettings but got $event" }
+                    cancelAndIgnoreRemainingEvents()
+                }
             }
         }
     }
 
     // ══════════════════════════════════════════════════════════
-    // GROUP 9 — Edge Cases
-    // Tests unusual but possible scenarios
+    // GROUP 9 — Reactive Profile Updates
+    // Tests that Flow emissions drive UI updates automatically
     // ══════════════════════════════════════════════════════════
 
-    given("edge cases") {
+    given("user profile changes after screen opens") {
 
-        `when`("user taps Edit Profile when user is null") {
-            then("showEditSheet stays false — no crash") {
-                // What if user loads failed but
-                // Edit Profile button somehow tapped?
-                // Must not crash
+        `when`("getCurrentUser emits updated user name") {
+            then("uiState reflects new name immediately") {
+                val vm = createViewModel()
+                vm.uiState.value.user?.name shouldBe "Swapna"
 
-                fakeUserRepo.getUserResult = Result.failure(
-                    Exception("Error")
-                )
-                val failVM = ProfileViewModel(fakeUserRepo)
+                // Emit updated user — simulates Room emitting after updateUser()
+                userFlow.value = testUser(name = "Swapna Reddy")
 
-                // user is null — edit should do nothing
-                failVM.onEditProfileTapped()
-
-                // Sheet should NOT open — no user to edit
-                failVM.uiState.value
-                    .showEditSheet shouldBe false
+                vm.uiState.value.user?.name shouldBe "Swapna Reddy"
             }
         }
 
-        `when`("user saves same values without changes") {
-            then("repository is still called and succeeds") {
-                // User opens edit, doesn't change anything, taps Save
-                // Should still work — not an error case
+        `when`("getCurrentUser emits null after logout") {
+            then("isLoggedIn becomes false and error set") {
+                val vm = createViewModel()
+                vm.uiState.value.isLoggedIn shouldBe true
 
-                viewModel.onEditProfileTapped()
-                // Don't change anything — save as-is
+                userFlow.value = null
 
-                viewModel.onSaveProfile()
-
-                fakeUserRepo.updateUserCalled shouldBe true
-            }
-        }
-
-        `when`("user taps Save multiple times quickly") {
-            then("updateUser called only once per tap") {
-                // Double-tap protection — isSaving = true
-                // prevents concurrent saves
-                // In our fake: each call goes through
-                // Real test: verify count
-
-                viewModel.onEditProfileTapped()
-                viewModel.onNameChanged("Swapna S")
-                viewModel.onEmailChanged("new@email.com")
-
-                viewModel.onSaveProfile()
-
-                // After first save — updateUserCalled = true
-                fakeUserRepo.updateUserCalled shouldBe true
+                vm.uiState.value.isLoggedIn shouldBe false
+                vm.uiState.value.error      shouldNotBe null
             }
         }
     }
-})*/
+})
+
+// ── Local test data helpers ───────────────────────────────────────────────
+
+private fun testUser(
+    id:        String        = "u1",
+    name:      String        = "Swapna",
+    email:     String        = "swapna@example.com",
+    phone:     String        = "+919876543210",
+    addresses: List<Address> = emptyList(),
+) = User(
+    id               = id,
+    name             = name,
+    email            = email,
+    phone            = phone,
+    profileImage     = "",
+    addresses        = addresses,
+    selectedLocation = "Koramangala",
+)
+
+private fun testAddress(
+    id:    String = "a1",
+    label: String = "Home",
+) = Address(
+    id          = id,
+    label       = label,
+    fullAddress = "123 Test Street, Koramangala, Bengaluru",
+    landmark    = "",
+    latitude    = 0.0,
+    longitude   = 0.0,
+)
+
+private fun testOrder(
+    id: String = "o1",
+) = Order(
+    id             = id,
+    restaurantId   = "r1",
+    restaurantName = "Meghana Foods",
+    restaurantImage = "",
+    status         = "Delivered",
+    timeFriendly   = "Today, 12:00 PM",
+    totalAmount    = 249.0,
+    items          = emptyList(),
+    canReorder     = true,
+)

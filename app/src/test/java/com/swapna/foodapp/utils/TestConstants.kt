@@ -20,6 +20,7 @@ object TestConstants {
     const val RESTAURANT_RATING  = 4.6
     const val DELIVERY_TIME      = 30
     const val RESTAURANT_ADDRESS = "5th Block, Koramangala, Bengaluru"
+    const val SEARCH_ADDRESS = "5th Block, Koramangala, Bengaluru"
     const val LOCALITY           = "Koramangala"
     const val IMAGE_URL          = "https://example.com/image.jpg"
     const val THUMB_URL          = "https://example.com/thumb.jpg"

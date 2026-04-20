@@ -1,6 +1,9 @@
 package com.swapna.foodapp.presentation.home
 
+import android.Manifest
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,6 +70,21 @@ fun HomeScreen(
         skipPartiallyExpanded = true,
     )
 
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+        if (granted) {
+            // Permission just granted → fetch location immediately
+            viewModel.onUseCurrentLocationTapped()
+        } else {
+            // User denied → ViewModel shows error message in sheet
+            viewModel.onLocationPermissionDenied()
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -96,7 +114,21 @@ fun HomeScreen(
             savedAddresses          = state.savedAddresses,
             onLocationSelected      = viewModel::onLocationSelected,
             onDismiss               = viewModel::onLocationDismissed,
-        )
+            locationFetchState  = state.locationFetchState,
+            locationErrorMsg    = state.locationErrorMsg,
+            onUseCurrentLocation = {
+                // Request permission first, then fetch
+                // WHY request here not in ViewModel?
+                // Permission dialog needs Activity/Composable context
+                // ViewModel has no Activity context (correct by design)
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                    )
+                )
+            },
+                    )
     }
 
     Scaffold(
@@ -104,7 +136,7 @@ fun HomeScreen(
             HomeTopBar(
                 location        = state.selectedLocation,
                 cartItemCount   = state.cartItemCount,
-                onLocationClick = viewModel::onLocationClicked,
+                onLocationClick = viewModel::onLocationBarClicked,
                 onCartClick     = viewModel::onCartClicked,
                 onSearchClick   = { viewModel.onSearchClicked() },
             )
@@ -142,7 +174,7 @@ fun HomeScreen(
                     paddingValues     = paddingValues,
                     onRestaurantClick = viewModel::onRestaurantClicked,
                     onCategoryClick   = viewModel::onCategoryClicked,
-                    onChangeLocation  = viewModel::onLocationClicked,
+                    onChangeLocation  = viewModel::onLocationBarClicked,
                 )
             }
         }

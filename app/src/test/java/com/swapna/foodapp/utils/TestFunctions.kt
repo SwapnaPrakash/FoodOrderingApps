@@ -1,5 +1,16 @@
 package com.swapna.foodapp.utils
 
+import com.swapna.foodapp.data.local.entity.CartItemEntity
+import com.swapna.foodapp.data.local.entity.UserEntity
+import com.swapna.foodapp.data.remote.dto.CustomisationDto
+import com.swapna.foodapp.data.remote.dto.DailyMenuDto
+import com.swapna.foodapp.data.remote.dto.DailyMenuResponse
+import com.swapna.foodapp.data.remote.dto.DailyMenuWrapper
+import com.swapna.foodapp.data.remote.dto.DishDto
+import com.swapna.foodapp.data.remote.dto.DishWrapper
+import com.swapna.foodapp.data.remote.dto.OrderDto
+import com.swapna.foodapp.data.remote.dto.OrderWrapper
+import com.swapna.foodapp.data.remote.dto.OrdersResponse
 import com.swapna.foodapp.domain.model.Address
 import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.Customisation
@@ -59,6 +70,7 @@ fun fakeRestaurant(
     openingHours: String       = "11 AM - 11 PM",
     highlights:   List<String> = emptyList(),
     knownFor:     String       = "",
+    address: String = ""
 ) = Restaurant(
     id              = id,
     name            = name,
@@ -230,4 +242,99 @@ fun fakeOrder(
         )
     ),
     canReorder      = true,
+)
+
+fun fakeUserEntity(
+    id:            String = "u1",
+    name:          String = "Swapna",
+    addressesJson: String = "[]",
+) = UserEntity(
+    id               = id,
+    name             = name,
+    email            = "swapna@example.com",
+    phone            = "+919876543210",
+    profileImage     = "",
+    addressesJson    = addressesJson,
+    selectedLocation = "",
+    cachedAt         = System.currentTimeMillis(), // ← required field
+)
+
+fun fakeUser(
+    id:    String = "u1",
+    name:  String = "Swapna",
+    email: String = "swapna@example.com",
+) = User(
+    id               = id,
+    name             = name,
+    email            = email,
+    phone            = "+919876543210",
+    profileImage     = "",
+    addresses        = emptyList(),
+    selectedLocation = "",
+)
+
+fun fakeOrdersResponse() = OrdersResponse(
+    orders = listOf(
+        OrderWrapper(
+            order = OrderDto(
+                id              = "o1",
+                restaurantId    = "r1",
+                restaurantName  = "Meghana Foods",
+                restaurantImage = "",
+                status          = "Delivered",
+                timeFriendly    = "Today, 12:00 PM",
+                totalAmount     = 249.0,
+                items           = emptyList(),
+                canReorder      = true,
+            )
+        )
+    )
+)
+
+fun fakeCartItemEntity(
+    id:         String = "c1",
+    menuItemId: String = "m1",
+    qty:        Int    = 1,
+) = CartItemEntity(
+    id               = id,
+    menuItemId       = menuItemId,
+    menuItemJson     = """{"id":"$menuItemId","name":"Chicken Biryani","price":249.0}""",
+    quantity         = qty,
+    customisationsJson = "[]",
+    addedAt          = System.currentTimeMillis(),
+)
+
+// Helper to reduce repetition — add inside the describe block
+fun singleItemResponse(
+    category:     String  = "Biryani",
+    id:           String  = "m1",
+    name:         String  = "Chicken Biryani",
+    price:        String  = "249",
+    isVeg:        Int     = 0,
+    isRecommended: Int    = 1,
+    imageUrl:     String? = null,
+    customisations: List<CustomisationDto>? = null,
+) = DailyMenuResponse(
+    dailyMenus = listOf(
+        DailyMenuWrapper(
+            menu = DailyMenuDto(
+                id     = "menu_1",
+                name   = category,
+                dishes = listOf(
+                    DishWrapper(
+                        dish = DishDto(
+                            id             = id,
+                            name           = name,
+                            price          = price,
+                            description    = "",
+                            imageUrl       = imageUrl,
+                            isVeg          = isVeg,
+                            isRecommended  = isRecommended,
+                            customisations = customisations,
+                        )
+                    )
+                )
+            )
+        )
+    )
 )

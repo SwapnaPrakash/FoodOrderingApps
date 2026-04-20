@@ -23,7 +23,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val firebaseAuth:   FirebaseAuth,
 ) : ViewModel() {
 
     // ── UI State ──────────────────────────────────────────────
@@ -175,17 +174,17 @@ class ProfileViewModel @Inject constructor(
         val state   = _uiState.value
         val current = state.user
 
-        // Validation
-        if (state.editName.isBlank()) {
+        if (current == null) {
             _events.emit(
-                ProfileEvent.ShowError("Name cannot be empty")
+                ProfileEvent.ShowError("No user found. Please login again.")
             )
             return@launch
         }
 
-        if (current == null) {
+        // Validation
+        if (state.editName.isBlank()) {
             _events.emit(
-                ProfileEvent.ShowError("No user found. Please login again.")
+                ProfileEvent.ShowError("Name cannot be empty")
             )
             return@launch
         }

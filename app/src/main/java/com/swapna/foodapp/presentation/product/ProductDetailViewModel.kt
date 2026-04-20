@@ -170,8 +170,7 @@ class ProductDetailViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error     = error.message
-                                    ?: "Failed to load item",
+                                error     = error.message ?: "Failed to load item",
                             )
                         }
                     }
