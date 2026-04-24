@@ -9,7 +9,7 @@ data class HomeData(
     val collections: List<Collections> = emptyList(),
     val categories: List<FoodCategory> = emptyList(),
     val restaurants: List<Restaurant> = emptyList(),
-    val filterStatus:   FilterStatus       = FilterStatus.NO_FILTER,
-    val requestedArea:  String             = "",
-    val availableAreas: List<String>       = emptyList()
+    val filterStatus: FilterStatus = FilterStatus.NO_FILTER,
+    val requestedArea: String = "",
+    val availableAreas: List<String> = emptyList()
 )

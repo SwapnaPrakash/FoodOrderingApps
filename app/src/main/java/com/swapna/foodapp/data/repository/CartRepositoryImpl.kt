@@ -6,7 +6,7 @@ import com.swapna.foodapp.domain.model.AppBusinessRules
 import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.CartPriceBreakdown
 import com.swapna.foodapp.domain.repository.CartRepository
-import com.swapna.foodapp.utils.IoDispatcher
+import com.swapna.foodapp.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -26,9 +26,6 @@ class CartRepositoryImpl @Inject constructor(
 
     override fun getCartItemCount(): Flow<Int> = cartDao.getItemCount().flowOn(ioDispatcher)
 
-    // ── Get price breakdown ───────────────────────────────────
-    // ✅ Changed: was Flow<Double> → now Flow<CartPriceBreakdown>
-    // Adds delivery fee + GST calculation
     override fun getCartTotal(): Flow<CartPriceBreakdown> =
         cartDao.getAllItems()
             .map { entities ->
@@ -41,8 +38,10 @@ class CartRepositoryImpl @Inject constructor(
                 val delivery = when {
                     subtotal <= 0.0 ->
                         0.0
+
                     subtotal >= AppBusinessRules.FREE_DELIVERY_ABOVE ->
                         0.0
+
                     else ->
                         AppBusinessRules.DEFAULT_DELIVERY_FEE
                 }
@@ -50,10 +49,10 @@ class CartRepositoryImpl @Inject constructor(
                 val taxes = subtotal * AppBusinessRules.GST_RATE
 
                 CartPriceBreakdown(
-                    subtotal    = subtotal,
+                    subtotal = subtotal,
                     deliveryFee = delivery,
-                    taxes       = taxes,
-                    total       = subtotal + delivery + taxes,
+                    taxes = taxes,
+                    total = subtotal + delivery + taxes,
                 )
             }
             .flowOn(ioDispatcher)

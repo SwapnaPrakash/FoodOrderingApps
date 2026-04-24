@@ -26,10 +26,6 @@ class SearchRestaurantsUseCase @Inject constructor(
                 }
             }
 
-    // ── Private filter extensions ─────────────────────────────
-    // Each filter is a pure function on List<Restaurant>
-    // Easy to test individually — no side effects
-
     private fun List<Restaurant>.applyTextFilter(query: String): List<Restaurant> {
         if (query.isBlank()) return this
         return filter { restaurant ->
@@ -43,7 +39,7 @@ class SearchRestaurantsUseCase @Inject constructor(
     private fun List<Restaurant>.applyRatingFilter(
         minRating: Double?,
     ): List<Restaurant> {
-        minRating ?: return this  // null = no filter
+        minRating ?: return this
         return filter { it.rating >= minRating }
     }
 

@@ -9,13 +9,13 @@ val FoodAppShapes = Shapes(
     extraSmall = RoundedCornerShape(Dimens.RadiusXS),
 
     // 8dp — small: input fields, small cards
-    small      = RoundedCornerShape(Dimens.RadiusS),
+    small = RoundedCornerShape(Dimens.RadiusS),
 
     // 12dp — medium: most cards, bottom sheets
-    medium     = RoundedCornerShape(Dimens.RadiusM),
+    medium = RoundedCornerShape(Dimens.RadiusM),
 
     // 16dp — large: offer cards, restaurant cards
-    large      = RoundedCornerShape(Dimens.RadiusL),
+    large = RoundedCornerShape(Dimens.RadiusL),
 
     // 24dp — extra large: modals, full panels
     extraLarge = RoundedCornerShape(Dimens.RadiusXL),

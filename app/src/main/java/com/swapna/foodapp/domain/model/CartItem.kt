@@ -16,8 +16,8 @@ data class CartItem(
 }
 
 data class CartPriceBreakdown(
-    val subtotal:    Double,
+    val subtotal: Double,
     val deliveryFee: Double,
-    val taxes:       Double,
-    val total:       Double,
+    val taxes: Double,
+    val total: Double,
 )

@@ -11,9 +11,9 @@ import com.swapna.foodapp.presentation.common.fakes.FakeUserRepository
 import com.swapna.foodapp.presentation.common.CurrentLocationResult
 import com.swapna.foodapp.presentation.common.LocationManager
 import com.swapna.foodapp.utils.AppConstants.DEFAULT_LOCATION
-import com.swapna.foodapp.utils.ConnectivityObserver
+import com.swapna.foodapp.presentation.common.ConnectivityObserver
 import com.swapna.foodapp.utils.HomeData
-import com.swapna.foodapp.utils.NetworkStatus
+import com.swapna.foodapp.presentation.common.NetworkStatus
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

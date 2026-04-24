@@ -15,8 +15,8 @@ class AddToCartUseCaseImpl @Inject constructor(
 ) : AddToCartUseCase {
 
     override suspend operator fun invoke(
-        menuItem:       MenuItem,
-        quantity:       Int,
+        menuItem: MenuItem,
+        quantity: Int,
         customisations: List<CustomisationOption>,
     ) {
         require(quantity >= AppConstants.MIN_CART_QUANTITY) {
@@ -27,9 +27,9 @@ class AddToCartUseCaseImpl @Inject constructor(
         }
 
         val cartItem = CartItem(
-            id                     = UUID.randomUUID().toString(),
-            menuItem               = menuItem,
-            quantity               = quantity,
+            id = UUID.randomUUID().toString(),
+            menuItem = menuItem,
+            quantity = quantity,
             selectedCustomisations = customisations,
         )
         cartRepository.addItem(cartItem)

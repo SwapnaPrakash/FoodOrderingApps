@@ -11,7 +11,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object FirebaseModule {
 
-    // ✅ @Provides in object module — no abstract/concrete conflict
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth =

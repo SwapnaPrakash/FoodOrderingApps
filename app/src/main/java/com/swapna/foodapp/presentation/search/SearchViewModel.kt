@@ -46,7 +46,6 @@ class SearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    // Separate flows for debounce pipeline
     private val _query = MutableStateFlow("")
     private val _filters = MutableStateFlow(SearchFilters())
 
@@ -55,19 +54,13 @@ class SearchViewModel @Inject constructor(
         setupSearchPipeline()
     }
 
-    // SEARCH PIPELINE
-    // combine → debounce → distinctUntilChanged → flatMapLatest
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun setupSearchPipeline() {
         viewModelScope.launch {
-            combine(_query, _filters) { query, filters ->
-                query to filters
-            }
+            combine(_query, _filters) { query, filters -> query to filters }
                 .debounce(AppConstants.SEARCH_DEBOUNCE_MS)
                 .distinctUntilChanged()
                 .flatMapLatest { (query, filters) ->
-
-                    // Below minimum chars → clear and skip
                     if (query.length < AppConstants.SEARCH_MIN_CHARS) {
                         _uiState.update {
                             it.copy(
@@ -77,30 +70,22 @@ class SearchViewModel @Inject constructor(
                                 error = null,
                             )
                         }
-                        // return@flatMapLatest flowOf(null)
                         return@flatMapLatest emptyFlow()
                     }
-
-                    // Show loading
                     _uiState.update { it.copy(isLoading = true, error = null) }
-
-                    // Return search flow — flatMapLatest cancels previous
-                    searchUseCase(query, filters)
-                        .catch { e ->
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    hasSearched = true,
-                                    error = e.message ?: SEARCH_FAILED,
-                                    results = emptyList(),
-                                )
-                            }
-                            emit(Result.failure(e))
+                    searchUseCase(query, filters).catch { e ->
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                hasSearched = true,
+                                error = e.message ?: SEARCH_FAILED,
+                                results = emptyList(),
+                            )
                         }
+                        emit(Result.failure(e))
+                    }
                 }
                 .collect { result ->
-                    result ?: return@collect
-
                     result.fold(
                         onSuccess = { restaurants ->
                             _uiState.update {
@@ -127,7 +112,6 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    // Load Cuisines
     private fun loadCuisines() = viewModelScope.launch {
         restaurantRepository.getCuisines()
             .catch { /* non-critical — silently ignore */ }
@@ -138,16 +122,13 @@ class SearchViewModel @Inject constructor(
             }
     }
 
-    // User Actions
     fun onQueryChange(query: String) {
         _query.value = query
         _uiState.update { it.copy(query = query) }
     }
 
     fun onVegToggle() {
-        val updated = _filters.value.copy(
-            isVegOnly = !_filters.value.isVegOnly
-        )
+        val updated = _filters.value.copy(isVegOnly = !_filters.value.isVegOnly)
         _filters.value = updated
         _uiState.update { it.copy(filters = updated) }
     }

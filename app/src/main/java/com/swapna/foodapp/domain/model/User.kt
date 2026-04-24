@@ -7,7 +7,7 @@ data class User(
     val phone: String,
     val profileImage: String = "",
     val addresses: List<Address> = emptyList(),
-    val selectedLocation : String = "",
+    val selectedLocation: String = "",
 )
 
 data class Address(

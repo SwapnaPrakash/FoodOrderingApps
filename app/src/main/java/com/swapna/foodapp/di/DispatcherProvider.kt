@@ -1,4 +1,4 @@
-package com.swapna.foodapp.utils
+package com.swapna.foodapp.di
 
 import javax.inject.Qualifier
 

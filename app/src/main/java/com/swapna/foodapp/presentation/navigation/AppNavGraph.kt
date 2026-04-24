@@ -63,7 +63,7 @@ fun AppNavGraph(
                 ?.getString(AppRoutes.ARG_SEARCH_QUERY) ?: ""
             SearchScreen(
                 navController = navController,
-                initialQuery = query,   // ← pre-fill search with category name
+                initialQuery = query,
             )
         }
 
@@ -75,14 +75,11 @@ fun AppNavGraph(
             ProfileScreen(navController)
         }
 
-        // Restaurant screen receives restaurantId
-        // Called via: navController.navigate(AppRoutes.restaurant("101"))
-        // Verify this exists in AppNavGraph.kt
         composable(
-            route = AppRoutes.RESTAURANT,  // "restaurant/{restaurantId}"
+            route = AppRoutes.RESTAURANT,
             arguments = listOf(
                 navArgument(AppRoutes.ARG_RESTAURANT_ID) {
-                    type     = NavType.StringType
+                    type = NavType.StringType
                     nullable = false
                 }
             ),
@@ -90,10 +87,8 @@ fun AppNavGraph(
             RestaurantScreen(navController = navController)
         }
 
-        // Product screen receives menuItemId
-        // Called via: navController.navigate(AppRoutes.product("d001"))
         composable(
-            route = AppRoutes.PRODUCT,        // "product/{menuItemId}"
+            route = AppRoutes.PRODUCT,
             arguments = listOf(
                 navArgument(AppRoutes.ARG_RESTAURANT_ID) {
                     type = NavType.StringType
@@ -109,7 +104,6 @@ fun AppNavGraph(
         composable(AppRoutes.PROFILE) {
             ProfileScreen(navController = navController)
         }
-
 
     }
 }

@@ -144,7 +144,7 @@ class FirebaseAuthManager @Inject constructor() {
     private fun formatPhone(phone: String): String = when {
         phone.startsWith("+") -> phone
         phone.startsWith(PHONE_COUNTRY_CODE) && phone.length == 12 -> "+$phone"
-        phone.length == PHONE_LENGTH  -> "$PHONE_COUNTRY_CODE$phone"
+        phone.length == PHONE_LENGTH -> "$PHONE_COUNTRY_CODE$phone"
         else -> "$PHONE_COUNTRY_CODE$phone"
     }
 

@@ -1,4 +1,4 @@
-package com.swapna.foodapp.utils
+package com.swapna.foodapp.presentation.common
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// Sealed class for network status
 sealed class NetworkStatus {
     object Available : NetworkStatus()
     object Unavailable : NetworkStatus()

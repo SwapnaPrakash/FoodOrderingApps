@@ -39,11 +39,11 @@ class EntityMapper @Inject constructor() {
         hasDelivery = entity.hasDelivery,
         offers = fromJsonStringList(entity.offersJson),
         avgCostForTwo = entity.avgCostForTwo,
-        distanceKm      = entity.distanceKm,
-        phoneNumber     = entity.phoneNumber,
-        openingHours    = entity.openingHours,
-        highlights      = fromJsonStringList(entity.highlightsJson),
-        knownFor        = entity.knownFor,
+        distanceKm = entity.distanceKm,
+        phoneNumber = entity.phoneNumber,
+        openingHours = entity.openingHours,
+        highlights = fromJsonStringList(entity.highlightsJson),
+        knownFor = entity.knownFor,
     )
 
     fun restaurantToEntity(domain: Restaurant): RestaurantEntity = RestaurantEntity(
@@ -65,12 +65,12 @@ class EntityMapper @Inject constructor() {
         hasDelivery = domain.hasDelivery,
         offersJson = toJsonStringList(domain.offers),
         avgCostForTwo = domain.avgCostForTwo,
-        distanceKm      = domain.distanceKm,
-        phoneNumber     = domain.phoneNumber,
-        openingHours    = domain.openingHours,
-        highlightsJson  = toJsonStringList(domain.highlights),
-        knownFor        = domain.knownFor,
-        )
+        distanceKm = domain.distanceKm,
+        phoneNumber = domain.phoneNumber,
+        openingHours = domain.openingHours,
+        highlightsJson = toJsonStringList(domain.highlights),
+        knownFor = domain.knownFor,
+    )
 
     // Cart Item
     fun cartItemToEntity(domain: CartItem): CartItemEntity {
@@ -113,8 +113,8 @@ class EntityMapper @Inject constructor() {
             category = domain.category,
             isVeg = domain.isVeg,
             isRecommended = domain.isRecommended,
-            isBestseller       = domain.isBestseller,
-            isAvailable        = domain.isAvailable,
+            isBestseller = domain.isBestseller,
+            isAvailable = domain.isAvailable,
             customisationsJson = customisationsJson,
         )
     }
@@ -136,8 +136,8 @@ class EntityMapper @Inject constructor() {
             isVeg = entity.isVeg,
             isRecommended = entity.isRecommended,
             customisations = customisations,
-            isBestseller   = entity.isBestseller,
-            isAvailable    = entity.isAvailable,
+            isBestseller = entity.isBestseller,
+            isAvailable = entity.isAvailable,
         )
     }
 

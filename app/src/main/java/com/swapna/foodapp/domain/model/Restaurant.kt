@@ -1,5 +1,9 @@
 package com.swapna.foodapp.domain.model
 
+import com.swapna.foodapp.utils.AppConstants
+import com.swapna.foodapp.utils.AppConstants.FOR_TWO
+import com.swapna.foodapp.utils.AppConstants.MINUTES
+
 data class Restaurant(
     val id: String,
     val name: String,
@@ -20,25 +24,16 @@ data class Restaurant(
     val hasDelivery: Boolean,
     val offers: List<String> = emptyList(),
     val avgCostForTwo: Int = 0,
-    val phoneNumber: String     = "",
-    val openingHours: String    = "11 AM - 11 PM",
+    val phoneNumber: String = "",
+    val openingHours: String = AppConstants.TIME,
     val highlights: List<String> = emptyList(),
-    val knownFor: String        = "",
+    val knownFor: String = "",
 ) {
-
-    // Computed — used on restaurant screen info card
     val costForTwoFormatted: String
-        get() = "₹$avgCostForTwo for two"
-
-    val priceRange: String
-        get() = when {
-            avgCostForTwo <= AppBusinessRules.COST_FOR_TWO_CHEAP    -> "₹"
-            avgCostForTwo <= AppBusinessRules.COST_FOR_TWO_MODERATE -> "₹₹"
-            else                                                     -> "₹₹₹"
-        }
+        get() = "₹$avgCostForTwo $FOR_TWO"
 
     val deliveryTimeFormatted: String
-        get() = "$avgDeliveryTime min"
+        get() = "$avgDeliveryTime $MINUTES"
 
     val ratingFormatted: String
         get() = String.format("%.1f", rating)

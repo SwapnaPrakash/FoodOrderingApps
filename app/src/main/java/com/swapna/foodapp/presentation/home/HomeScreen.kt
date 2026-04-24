@@ -1,7 +1,6 @@
 package com.swapna.foodapp.presentation.home
 
 import android.Manifest
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +37,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.presentation.common.ErrorScreen
-import com.swapna.foodapp.presentation.common.NotServiceableCard
 import com.swapna.foodapp.presentation.common.NotServiceableSection
 import com.swapna.foodapp.presentation.home.components.CategoryChip
 import com.swapna.foodapp.presentation.home.components.HomeShimmer
@@ -51,13 +49,10 @@ import com.swapna.foodapp.presentation.navigation.AppRoutes
 import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
-import com.swapna.foodapp.utils.AppConstants.CATEGORIES_TITLE
 import com.swapna.foodapp.utils.AppConstants.DELIVERY
 import com.swapna.foodapp.utils.AppConstants.DINING
-import com.swapna.foodapp.utils.AppConstants.OFFERS_TITLE
 import com.swapna.foodapp.utils.AppConstants.PROFILE
-import com.swapna.foodapp.utils.AppConstants.STORE_NEAR
-import com.swapna.foodapp.utils.SectionTitle
+import com.swapna.foodapp.presentation.common.SectionTitle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

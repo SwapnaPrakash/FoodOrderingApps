@@ -9,12 +9,13 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 
 data class DetectedLocation(
-    val locality:   String,  // "Koramangala"
-    val address:    String,  // "5th Block, Koramangala, Bengaluru"
-    val latitude:   Double,
-    val longitude:  Double,
+    val locality:  String,
+    val address:   String,
+    val latitude:  Double,
+    val longitude: Double,
 )
 
 @Singleton
@@ -22,7 +23,6 @@ class LocationHelper @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
-    // Convert lat/lng → human readable address
     @SuppressLint("NewApi")
     suspend fun getAddressFromCoordinates(
         latitude:  Double,
@@ -34,43 +34,32 @@ class LocationHelper @Inject constructor(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 // Android 13+ async API
                 suspendCancellableCoroutine<DetectedLocation?> { continuation ->
-                    geocoder.getFromLocation(
-                        latitude,
-                        longitude,
-                        1,
-                    ) { addresses ->
-                        val addr = addresses.firstOrNull()
-                        val result = if (addr != null) {
+                    geocoder.getFromLocation(latitude, longitude, 1) { addresses ->
+                        val addr   = addresses.firstOrNull()
+                        val result = addr?.let {
                             DetectedLocation(
-                                // subLocality = neighborhood
-                                // "Koramangala", "Indiranagar"
-                                locality  = addr.subLocality
-                                    ?: addr.locality
-                                    ?: "Current Location",
-                                address   = buildAddressString(addr),
+                                locality  = it.subLocality ?: it.locality ?: "Current Location",
+                                address   = buildAddressString(it),
                                 latitude  = latitude,
                                 longitude = longitude,
                             )
-                        } else null
-
-                        continuation.resume(result) {}
+                        }
+                        // ✅ FIX: use resume(value) not resume(value) {}
+                        // WHY deprecated?
+                        // Old overload took onCancellation lambda — now replaced
+                        // by CancellableContinuation.resume(value) from kotlin.coroutines
+                        // New overload handles cancellation internally → safer
+                        continuation.resume(result)
                     }
                 }
             } else {
                 // Below Android 13 sync API
                 @Suppress("DEPRECATION")
-                val addresses = geocoder.getFromLocation(
-                    latitude,
-                    longitude,
-                    1,
-                )
-                val addr = addresses?.firstOrNull()
-                    ?: return null
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                val addr      = addresses?.firstOrNull() ?: return null
 
                 DetectedLocation(
-                    locality  = addr.subLocality
-                        ?: addr.locality
-                        ?: "Current Location",
+                    locality  = addr.subLocality ?: addr.locality ?: "Current Location",
                     address   = buildAddressString(addr),
                     latitude  = latitude,
                     longitude = longitude,
@@ -81,14 +70,11 @@ class LocationHelper @Inject constructor(
         }
     }
 
-    private fun buildAddressString(
-        addr: android.location.Address,
-    ): String {
-        return listOfNotNull(
+    private fun buildAddressString(addr: android.location.Address): String =
+        listOfNotNull(
             addr.subLocality,
             addr.locality,
             addr.adminArea,
         ).distinct()
             .joinToString(", ")
-    }
 }

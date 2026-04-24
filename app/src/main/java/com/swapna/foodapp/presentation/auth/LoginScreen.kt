@@ -14,18 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,7 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,22 +39,27 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swapna.foodapp.presentation.common.AnimatedErrorCard
+import com.swapna.foodapp.presentation.common.OtpSuccessCard
+import com.swapna.foodapp.presentation.common.PrimaryButton
 import com.swapna.foodapp.presentation.ui.theme.AppGray
-import com.swapna.foodapp.presentation.ui.theme.AppLightGray
 import com.swapna.foodapp.presentation.ui.theme.AppWhite
 import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.presentation.ui.theme.Dimens.LogoEmojiSize
 import com.swapna.foodapp.presentation.ui.theme.ErrorRed
-import com.swapna.foodapp.presentation.ui.theme.ErrorRedBg
+import com.swapna.foodapp.presentation.ui.theme.SnackbarContainerColor
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.ALPHA_BORDER_DISABLED
+import com.swapna.foodapp.utils.AppConstants.ALPHA_BORDER_UNFOCUSED
+import com.swapna.foodapp.utils.AppConstants.ALPHA_LABEL_DISABLED
+import com.swapna.foodapp.utils.AppConstants.ALPHA_PREFIX_DISABLED
+import com.swapna.foodapp.utils.AppConstants.EMOJI_BURGER
 import com.swapna.foodapp.utils.AppConstants.ENTER_MOB_NUM
-import com.swapna.foodapp.utils.AppConstants.ERROR
 import com.swapna.foodapp.utils.AppConstants.LOGIN
 import com.swapna.foodapp.utils.AppConstants.PHONE
 import com.swapna.foodapp.utils.AppConstants.PHONE_DIG
@@ -69,7 +67,6 @@ import com.swapna.foodapp.utils.AppConstants.PHONE_NUMBER
 import com.swapna.foodapp.utils.AppConstants.PHONE_OTP
 import com.swapna.foodapp.utils.AppConstants.RESEND_OTP
 import com.swapna.foodapp.utils.AppConstants.SEND_OTP
-import com.swapna.foodapp.utils.AppConstants.SENT_OTP
 import com.swapna.foodapp.utils.AppConstants.VERIFY_OTP
 import com.swapna.foodapp.utils.LoginTestTags
 
@@ -84,7 +81,6 @@ fun LoginScreen(
     var phone by rememberSaveable { mutableStateOf("") }
     var otp by rememberSaveable { mutableStateOf("") }
 
-    // Navigate via callback — not navController directly
     LaunchedEffect(state) {
         if (state is AuthViewModel.AuthState.Success) {
             onLoginSuccess()
@@ -97,7 +93,7 @@ fun LoginScreen(
             SnackbarHost(snackbarHost) { data ->
                 Snackbar(
                     snackbarData = data,
-                    containerColor = Color(0xFF323232),
+                    containerColor = SnackbarContainerColor,
                     contentColor = AppWhite,
                     actionColor = ZomatoRed,
                     shape = RoundedCornerShape(Dimens.RadiusM),
@@ -121,8 +117,8 @@ fun LoginScreen(
             Spacer(Modifier.height(Dimens.Space64))
 
             Text(
-                text = "🍔",
-                fontSize = 64.sp,
+                text = EMOJI_BURGER,
+                fontSize = LogoEmojiSize,
                 modifier = Modifier.testTag(LoginTestTags.LOGO),
             )
 
@@ -150,12 +146,23 @@ fun LoginScreen(
             val isPhoneError = state is AuthViewModel.AuthState.Error
                     && otp.isEmpty()
 
+            val isOtpVisible = state is AuthViewModel.AuthState.OtpSent
+                    || (state is AuthViewModel.AuthState.Error && otp.isNotEmpty())
+                    || (state is AuthViewModel.AuthState.Loading && otp.isNotEmpty())
+
+            val isOtpError = state is AuthViewModel.AuthState.Error
+                    && otp.isNotEmpty()
+
+            val phoneErrorMsg =
+                (state as? AuthViewModel.AuthState.Error)?.message ?: ""
+
+            val otpErrorMsg =
+                (state as? AuthViewModel.AuthState.Error)?.message ?: ""
+
             OutlinedTextField(
                 value = phone,
                 onValueChange = { input ->
-                    if (input.length <= 10 &&
-                        input.all { it.isDigit() }
-                    ) {
+                    if (input.length <= 10 && input.all { it.isDigit() }) {
                         phone = input
                         if (state is AuthViewModel.AuthState.Error) {
                             viewModel.resetState()
@@ -185,80 +192,37 @@ fun LoginScreen(
                         && state !is AuthViewModel.AuthState.Loading,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = ZomatoRed,
-                    unfocusedBorderColor = AppGray.copy(alpha = 0.5f),
+                    unfocusedBorderColor = AppGray.copy(alpha = ALPHA_BORDER_UNFOCUSED),
                     errorBorderColor = ErrorRed,
                     errorLabelColor = ErrorRed,
                     errorLeadingIconColor = ErrorRed,
-                    disabledBorderColor = AppGray.copy(alpha = 0.3f),
-                    disabledLabelColor = AppGray.copy(alpha = 0.5f),
-                    disabledPrefixColor = AppGray.copy(alpha = 0.5f),
+                    disabledBorderColor = AppGray.copy(alpha = ALPHA_BORDER_DISABLED),
+                    disabledLabelColor = AppGray.copy(alpha = ALPHA_LABEL_DISABLED),
+                    disabledPrefixColor = AppGray.copy(alpha = ALPHA_PREFIX_DISABLED),
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(LoginTestTags.PHONE_FIELD),
             )
 
-            AnimatedVisibility(
-                visible = state is AuthViewModel.AuthState.Error
-                        && otp.isEmpty(),
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-            ) {
-                val errorMsg = (state as? AuthViewModel.AuthState.Error)
-                    ?.message ?: ""
-                Spacer(Modifier.height(Dimens.SpaceS))
-                Surface(
-                    color = ErrorRedBg,
-                    shape = RoundedCornerShape(Dimens.RadiusS),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag(LoginTestTags.PHONE_ERROR_CARD),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(
-                            horizontal = Dimens.SpaceM,
-                            vertical = Dimens.SpaceS,
-                        ),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ErrorOutline,
-                            contentDescription = ERROR,
-                            tint = ErrorRed,
-                            modifier = Modifier.size(Dimens.IconS),
-                        )
-                        Spacer(Modifier.width(Dimens.SpaceS))
-                        Text(
-                            text = errorMsg,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = ErrorRed,
-                            fontWeight = FontWeight.Medium,
-                        )
-                    }
-                }
-            }
+            AnimatedErrorCard(
+                visible = isPhoneError,
+                message = phoneErrorMsg,
+                testTag = LoginTestTags.PHONE_ERROR_CARD,
+            )
 
             AnimatedVisibility(
-                visible = state is AuthViewModel.AuthState.OtpSent
-                        || (state is AuthViewModel.AuthState.Error
-                        && otp.isNotEmpty())
-                        || (state is AuthViewModel.AuthState.Loading
-                        && otp.isNotEmpty()),
+                visible = isOtpVisible,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {
                 Column {
                     Spacer(Modifier.height(Dimens.SpaceL))
 
-                    val isOtpError = state is AuthViewModel.AuthState.Error
-                            && otp.isNotEmpty()
-
                     OutlinedTextField(
                         value = otp,
                         onValueChange = { input ->
-                            if (input.length <= 6 &&
-                                input.all { it.isDigit() }
-                            ) {
+                            if (input.length <= 6 && input.all { it.isDigit() }) {
                                 otp = input
                                 if (state is AuthViewModel.AuthState.Error) {
                                     viewModel.resetState()
@@ -274,7 +238,7 @@ fun LoginScreen(
                         enabled = state !is AuthViewModel.AuthState.Loading,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = ZomatoRed,
-                            unfocusedBorderColor = AppGray.copy(alpha = 0.5f),
+                            unfocusedBorderColor = AppGray.copy(alpha = ALPHA_BORDER_UNFOCUSED),
                             errorBorderColor = ErrorRed,
                             errorLabelColor = ErrorRed,
                         ),
@@ -283,44 +247,11 @@ fun LoginScreen(
                             .testTag(LoginTestTags.OTP_FIELD),
                     )
 
-                    AnimatedVisibility(
+                    AnimatedErrorCard(
                         visible = isOtpError,
-                        enter = fadeIn() + expandVertically(),
-                        exit = fadeOut() + shrinkVertically(),
-                    ) {
-                        val otpError = (state as? AuthViewModel.AuthState.Error)
-                            ?.message ?: ""
-                        Spacer(Modifier.height(Dimens.SpaceS))
-                        Surface(
-                            color = ErrorRedBg,
-                            shape = RoundedCornerShape(Dimens.RadiusS),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag(LoginTestTags.OTP_ERROR_CARD),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(
-                                    horizontal = Dimens.SpaceM,
-                                    vertical = Dimens.SpaceS,
-                                ),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ErrorOutline,
-                                    contentDescription = ERROR,
-                                    tint = ErrorRed,
-                                    modifier = Modifier.size(Dimens.IconS),
-                                )
-                                Spacer(Modifier.width(Dimens.SpaceS))
-                                Text(
-                                    text = otpError,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = ErrorRed,
-                                    fontWeight = FontWeight.Medium,
-                                )
-                            }
-                        }
-                    }
+                        message = otpErrorMsg,
+                        testTag = LoginTestTags.OTP_ERROR_CARD,
+                    )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -342,76 +273,30 @@ fun LoginScreen(
                         }
                     }
 
-                    Surface(
-                        color = Color(0xFFE8FAF0),
-                        shape = RoundedCornerShape(Dimens.RadiusS),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag(LoginTestTags.SUCCESS_CARD),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(
-                                horizontal = Dimens.SpaceM,
-                                vertical = Dimens.SpaceS,
-                            ),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(text = "✅", fontSize = 14.sp)
-                            Spacer(Modifier.width(Dimens.SpaceS))
-                            Text(
-                                text = "$SENT_OTP $phone",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF1B8A3E),
-                                fontWeight = FontWeight.Medium,
-                            )
-                        }
-                    }
+                    OtpSuccessCard(
+                        phone = phone,
+                        modifier = Modifier.testTag(LoginTestTags.SUCCESS_CARD),
+                    )
                 }
             }
 
             Spacer(Modifier.height(Dimens.SpaceXXL))
 
-            Button(
+            PrimaryButton(
+                text = when (state) {
+                    is AuthViewModel.AuthState.OtpSent -> VERIFY_OTP
+                    else -> SEND_OTP
+                },
                 onClick = {
                     when (state) {
-                        is AuthViewModel.AuthState.OtpSent ->
-                            viewModel.verifyOtp(otp)
-
-                        else ->
-                            viewModel.sendOtp(phone)
+                        is AuthViewModel.AuthState.OtpSent -> viewModel.verifyOtp(otp)
+                        else -> viewModel.sendOtp(phone)
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(Dimens.ButtonHeight)
-                    .testTag(LoginTestTags.AUTH_BUTTON),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ZomatoRed,
-                    disabledContainerColor = AppLightGray,
-                ),
-                shape = RoundedCornerShape(Dimens.RadiusM),
+                isLoading = state is AuthViewModel.AuthState.Loading,
                 enabled = state !is AuthViewModel.AuthState.Loading,
-            ) {
-                if (state is AuthViewModel.AuthState.Loading) {
-                    CircularProgressIndicator(
-                        color = AppWhite,
-                        modifier = Modifier
-                            .size(Dimens.IconM)
-                            .testTag(LoginTestTags.LOADING_INDICATOR),
-                        strokeWidth = Dimens.SpaceXS,
-                    )
-                } else {
-                    Text(
-                        text = when (state) {
-                            is AuthViewModel.AuthState.OtpSent -> VERIFY_OTP
-                            else -> SEND_OTP
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = AppWhite,
-                    )
-                }
-            }
+                testTag = LoginTestTags.AUTH_BUTTON,
+            )
 
             Spacer(Modifier.height(Dimens.Space64))
         }

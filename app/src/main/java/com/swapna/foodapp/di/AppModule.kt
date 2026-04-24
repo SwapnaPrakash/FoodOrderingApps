@@ -3,7 +3,7 @@ package com.swapna.foodapp.di
 import android.content.Context
 import com.swapna.foodapp.data.auth.ActivityProvider
 import com.swapna.foodapp.data.auth.FirebaseAuthManager
-import com.swapna.foodapp.utils.ConnectivityObserver
+import com.swapna.foodapp.presentation.common.ConnectivityObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,4 +1,4 @@
-package com.swapna.foodapp.utils
+package com.swapna.foodapp.presentation.common
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme

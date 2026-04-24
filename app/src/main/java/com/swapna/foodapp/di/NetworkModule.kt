@@ -15,12 +15,9 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
-@InstallIn(SingletonComponent::class)   // Lives as long as the app process
+@InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // ── OkHttpClient ──────────────────────────────────────────
-    // Handles timeouts and logging
-    // Logging only in DEBUG builds — never log in release
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient =
@@ -31,16 +28,13 @@ object NetworkModule {
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = if (BuildConfig.DEBUG)
-                        HttpLoggingInterceptor.Level.BODY   // Full request+response logs
+                        HttpLoggingInterceptor.Level.BODY
                     else
-                        HttpLoggingInterceptor.Level.NONE   // Silent in production
+                        HttpLoggingInterceptor.Level.NONE
                 }
             )
             .build()
 
-    // ── Retrofit ──────────────────────────────────────────────
-    // BASE_URL comes from BuildConfig — set in build.gradle.kts (Day 1)
-    // For your GitHub Pages: "https://YOUR_USERNAME.github.io/zomato-mock-api/"
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit =
@@ -50,8 +44,6 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-    // ── FoodApi ────────────────────────────────────────────────
-    // Retrofit generates the implementation of FoodApi interface at runtime
     @Provides
     @Singleton
     fun provideFoodApi(retrofit: Retrofit): FoodApi =

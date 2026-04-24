@@ -27,19 +27,13 @@ class AuthViewModel @Inject constructor(
 
     fun sendOtp(phone: String) {
         if (!isValidPhone(phone)) {
-            _state.value = AuthState.Error(
-                ERROR_INVALID_PHONE
-            )
+            _state.value = AuthState.Error(ERROR_INVALID_PHONE)
             return
         }
-
         viewModelScope.launch {
             _state.value = AuthState.Loading
-
             userRepository.sendOtp(phone)
-                .onSuccess {
-                    _state.value = AuthState.OtpSent(phone)
-                }
+                .onSuccess { _state.value = AuthState.OtpSent(phone) }
                 .onFailure { throwable ->
                     _state.value = AuthState.Error(
                         throwable.message ?: ERROR_SEND_OTP_FAILED
@@ -49,21 +43,16 @@ class AuthViewModel @Inject constructor(
     }
 
     fun verifyOtp(otp: String) {
-        // Validate length before API call
         if (otp.length != AppConstants.OTP_LENGTH) {
             _state.value = AuthState.Error(
                 "$ERROR_INVALID_OTP ${AppConstants.OTP_LENGTH} $DIGIT_OTP"
             )
             return
         }
-
         viewModelScope.launch {
             _state.value = AuthState.Loading
-
             userRepository.verifyOtp(otp)
-                .onSuccess { user ->
-                    _state.value = AuthState.Success(user)
-                }
+                .onSuccess { user -> _state.value = AuthState.Success(user) }
                 .onFailure { throwable ->
                     _state.value = AuthState.Error(
                         throwable.message ?: ERROR_INCORRECT_OTP
@@ -72,7 +61,6 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    // Called when user dismisses error or wants to restart flow
     fun resetState() {
         _state.value = AuthState.Idle
     }

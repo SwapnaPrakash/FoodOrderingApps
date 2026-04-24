@@ -19,31 +19,22 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    // ── AppDatabase ────────────────────────────────────────────
-    // One database instance for the whole app
-    // fallbackToDestructiveMigration: if schema changes and no migration
-    // provided, Room wipes + rebuilds the DB (fine for this project)
     @Provides
     @Singleton
     fun provideAppDatabase(
-        @ApplicationContext context: Context,    // Hilt provides this automatically
+        @ApplicationContext context: Context,
     ): AppDatabase =
         Room.databaseBuilder(
-                context,
-                AppDatabase::class.java,
-                AppConstants.DB_NAME,                // "food_app.db" from AppConstants
-            )
+            context,
+            AppDatabase::class.java,
+            AppConstants.DB_NAME,
+        )
             .fallbackToDestructiveMigration(true)
             .addMigrations(
                 AppDatabase.MIGRATION_1_2,
                 AppDatabase.MIGRATION_2_3,
-                )
+            )
             .build()
-
-    // ── DAOs ───────────────────────────────────────────────────
-    // Each DAO is provided separately so it can be injected directly
-    // into repositories without injecting the full AppDatabase
-    // No @Singleton needed — DAOs are lightweight wrappers
 
     @Provides
     fun provideRestaurantDao(db: AppDatabase): RestaurantDao =

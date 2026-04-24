@@ -1,4 +1,4 @@
-package com.swapna.foodapp.utils
+package com.swapna.foodapp.presentation.common
 
 sealed class Resource<out T> {
     data class Success<T>(val data: T) : Resource<T>()

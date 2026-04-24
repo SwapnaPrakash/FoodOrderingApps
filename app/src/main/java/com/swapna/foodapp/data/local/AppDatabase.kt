@@ -36,14 +36,8 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
 
-        // ── Migration 1 → 2 ───────────────────────────────────
-        // Added: distance_km, phone_number, opening_hours,
-        //        highlights_json, known_for to restaurants
-        //        is_bestseller, is_available to menu_items
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-
-                // restaurants table
                 db.execSQL(
                     "ALTER TABLE ${AppConstants.TABLE_RESTAURANTS} " +
                             "ADD COLUMN ${AppConstants.COL_DISTANCE_KM} " +
@@ -84,18 +78,9 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // ── Migration 2 → 3 ───────────────────────────────────
-        // ✅ FIX: Added selected_location to users table
-        // This was missing → caused the crash on screen
-        // Room expected this column but DB didn't have it
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
 
-                // ✅ users table — add selected_location
-                // TEXT type, NOT NULL, empty string default
-                // WHY empty string not NULL?
-                // Kotlin String type = non-nullable
-                // Room maps to NOT NULL SQL column
                 db.execSQL(
                     "ALTER TABLE ${AppConstants.TABLE_USER} " +
                             "ADD COLUMN ${AppConstants.COL_SELECTED_LOCATION} " +

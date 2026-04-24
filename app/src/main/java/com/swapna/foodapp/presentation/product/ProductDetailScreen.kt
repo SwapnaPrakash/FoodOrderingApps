@@ -1,14 +1,5 @@
 package com.swapna.foodapp.presentation.product
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import com.swapna.foodapp.utils.AppConstants.PRODUCT
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,15 +32,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.swapna.foodapp.presentation.common.CustomisationGroup
 import com.swapna.foodapp.presentation.common.ErrorScreen
@@ -64,12 +58,12 @@ import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
 @Composable
 fun ProductDetailScreen(
     navController: NavController,
-    viewModel:     ProductDetailViewModel = hiltViewModel(),
+    viewModel: ProductDetailViewModel = hiltViewModel(),
 ) {
     // ── Collect state ─────────────────────────────────────────
     // collectAsStateWithLifecycle = auto-stops collecting
     // when screen is in background (saves resources)
-    val uiState      by viewModel.uiState
+    val uiState by viewModel.uiState
         .collectAsStateWithLifecycle()
     val snackbarHost = remember { SnackbarHostState() }
 
@@ -96,7 +90,7 @@ fun ProductDetailScreen(
     }
 
     Scaffold(
-        snackbarHost   = { SnackbarHost(snackbarHost) },
+        snackbarHost = { SnackbarHost(snackbarHost) },
         containerColor = Color.White,
 
         // ── TopBar ────────────────────────────────────────────
@@ -105,7 +99,7 @@ fun ProductDetailScreen(
                 title = {
                     // Show item name when loaded
                     Text(
-                        text  = uiState.item?.name ?: "",
+                        text = uiState.item?.name ?: "",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -115,7 +109,7 @@ fun ProductDetailScreen(
                         onClick = viewModel::onBackPressed
                     ) {
                         Icon(
-                            imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                         )
                     }
@@ -132,8 +126,8 @@ fun ProductDetailScreen(
         bottomBar = {
             if (uiState.item != null) {
                 Surface(
-                    modifier        = Modifier.fillMaxWidth(),
-                    color           = Color.White,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.White,
                     shadowElevation = 8.dp,
                 ) {
                     Column(
@@ -144,14 +138,14 @@ fun ProductDetailScreen(
                     ) {
                         // ── Quantity + Price row ──────────────
                         Row(
-                            modifier          = Modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = Dimens.SpaceS),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             // Quantity selector — reused from Day 19
                             QuantitySelector(
-                                quantity    = uiState.quantity,
+                                quantity = uiState.quantity,
                                 onIncrement = viewModel::onIncrementQuantity,
                                 onDecrement = viewModel::onDecrementQuantity,
                             )
@@ -160,10 +154,10 @@ fun ProductDetailScreen(
 
                             // Live total price
                             Text(
-                                text       = "Total: ₹${
+                                text = "Total: ₹${
                                     uiState.totalPrice.toInt()
                                 }",
-                                style      = MaterialTheme.typography
+                                style = MaterialTheme.typography
                                     .titleMedium,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -171,26 +165,26 @@ fun ProductDetailScreen(
 
                         // ── Add to Cart Button ────────────────
                         Button(
-                            onClick  = viewModel::onAddToCart,
+                            onClick = viewModel::onAddToCart,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(Dimens.ButtonHeight),
-                            colors   = ButtonDefaults.buttonColors(
+                            colors = ButtonDefaults.buttonColors(
                                 containerColor = ZomatoRed,
                             ),
-                            shape    = RoundedCornerShape(
+                            shape = RoundedCornerShape(
                                 Dimens.RadiusM
                             ),
                         ) {
                             Text(
                                 // Live price shown on button
                                 // Updates as user selects options + qty
-                                text       = "Add to Cart  •  ₹${
+                                text = "Add to Cart  •  ₹${
                                     uiState.totalPrice.toInt()
                                 }",
-                                color      = Color.White,
+                                color = Color.White,
                                 fontWeight = FontWeight.Bold,
-                                style      = MaterialTheme.typography
+                                style = MaterialTheme.typography
                                     .titleMedium,
                             )
                         }
@@ -204,7 +198,7 @@ fun ProductDetailScreen(
             // ── Loading ───────────────────────────────────────
             uiState.isLoading -> {
                 Box(
-                    modifier         = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(color = ZomatoRed)
@@ -241,10 +235,10 @@ fun ProductDetailScreen(
                                 .height(280.dp),
                         ) {
                             AsyncImage(
-                                model              = item.imageUrl,
+                                model = item.imageUrl,
                                 contentDescription = item.name,
-                                contentScale       = ContentScale.Crop,
-                                modifier           = Modifier
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
                                     .fillMaxSize(),
                             )
                         }
@@ -265,8 +259,8 @@ fun ProductDetailScreen(
                                 VegDot(isVeg = item.isVeg)
                                 Spacer(Modifier.width(Dimens.SpaceS))
                                 Text(
-                                    text       = item.name,
-                                    style      = MaterialTheme.typography
+                                    text = item.name,
+                                    style = MaterialTheme.typography
                                         .headlineSmall,
                                     fontWeight = FontWeight.Bold,
                                 )
@@ -276,11 +270,11 @@ fun ProductDetailScreen(
 
                             // Base price
                             Text(
-                                text       = "₹${item.price.toInt()}",
-                                style      = MaterialTheme.typography
+                                text = "₹${item.price.toInt()}",
+                                style = MaterialTheme.typography
                                     .titleLarge,
                                 fontWeight = FontWeight.Bold,
-                                color      = ZomatoRed,
+                                color = ZomatoRed,
                             )
 
                             Spacer(Modifier.height(Dimens.SpaceXS))
@@ -298,7 +292,7 @@ fun ProductDetailScreen(
                                     Row(
                                         modifier = Modifier.padding(
                                             horizontal = 6.dp,
-                                            vertical   = 2.dp,
+                                            vertical = 2.dp,
                                         ),
                                         verticalAlignment =
                                             Alignment.CenterVertically,
@@ -307,13 +301,13 @@ fun ProductDetailScreen(
                                             imageVector =
                                                 Icons.Default.Star,
                                             contentDescription = null,
-                                            tint     = Color.White,
+                                            tint = Color.White,
                                             modifier = Modifier
                                                 .size(12.dp),
                                         )
                                         Spacer(Modifier.width(2.dp))
                                         Text(
-                                            text  = "4.5",
+                                            text = "4.5",
                                             color = Color.White,
                                             style = MaterialTheme
                                                 .typography.labelSmall,
@@ -325,10 +319,10 @@ fun ProductDetailScreen(
                                 if (item.isBestseller) {
                                     Spacer(Modifier.width(Dimens.SpaceS))
                                     Text(
-                                        text     = "🏆 Bestseller",
-                                        style    = MaterialTheme.typography
+                                        text = "🏆 Bestseller",
+                                        style = MaterialTheme.typography
                                             .labelSmall,
-                                        color    = Color(0xFF8B4513),
+                                        color = Color(0xFF8B4513),
                                         modifier = Modifier
                                             .background(
                                                 Color(0xFFFFF3E0),
@@ -336,7 +330,7 @@ fun ProductDetailScreen(
                                             )
                                             .padding(
                                                 horizontal = 6.dp,
-                                                vertical   = 2.dp,
+                                                vertical = 2.dp,
                                             ),
                                     )
                                 }
@@ -346,7 +340,7 @@ fun ProductDetailScreen(
                             if (item.description.isNotEmpty()) {
                                 Spacer(Modifier.height(Dimens.SpaceS))
                                 Text(
-                                    text  = item.description,
+                                    text = item.description,
                                     style = MaterialTheme.typography
                                         .bodyMedium,
                                     color = AppGray,
@@ -362,13 +356,13 @@ fun ProductDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Text(
-                                    text       = "Customise",
-                                    style      = MaterialTheme.typography
+                                    text = "Customise",
+                                    style = MaterialTheme.typography
                                         .titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    modifier   = Modifier.padding(
+                                    modifier = Modifier.padding(
                                         horizontal = Dimens.SpaceL,
-                                        vertical   = Dimens.SpaceM,
+                                        vertical = Dimens.SpaceM,
                                     ),
                                 )
                             }
@@ -379,17 +373,17 @@ fun ProductDetailScreen(
                         // LazyColumn item with unique key
                         items(
                             items = item.customisations,
-                            key   = { it.id },
+                            key = { it.id },
                         ) { group ->
                             CustomisationGroup(
-                                customisation    = group,
+                                customisation = group,
                                 // Get selected option for THIS group
                                 selectedOptionId = uiState
                                     .selectedOptions[group.id] ?: "",
                                 onOptionSelected = { optionId ->
                                     // Notify ViewModel which group + option
                                     viewModel.onOptionSelected(
-                                        groupId  = group.id,
+                                        groupId = group.id,
                                         optionId = optionId,
                                     )
                                 },

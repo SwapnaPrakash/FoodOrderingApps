@@ -17,7 +17,7 @@ import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.utils.AppConstants.COULD_NOT_LOAD_MENU
 import com.swapna.foodapp.utils.AppConstants.NO_INTERNET
 import com.swapna.foodapp.utils.AppConstants.NO_INTERNET_LOAD_RESTAURANT
-import com.swapna.foodapp.utils.IoDispatcher
+import com.swapna.foodapp.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -54,13 +54,12 @@ class RestaurantRepositoryImpl @Inject constructor(
 
         // Step 2: Fetch fresh from geocode.json
         try {
-            val response    = api.getNearbyRestaurants()
+            val response = api.getNearbyRestaurants()
             val freshDomain = response.nearbyRestaurants.map {
                 restaurantMapper.toDomain(it.restaurant)
             }
 
             // Save ALL restaurants to Room with their ids
-            // This is what getRestaurantDetail reads later
             val freshEntities = freshDomain.map {
                 entityMapper.restaurantToEntity(it)
             }
@@ -96,13 +95,10 @@ class RestaurantRepositoryImpl @Inject constructor(
             }
             emit(Result.success(collections))
         } catch (e: Exception) {
-            // Collections are non-critical — emit empty list on failure
-            // Home screen still works without offers
             emit(Result.success(emptyList()))
         }
     }.flowOn(ioDispatcher)
 
-    // GET CATEGORIES
     override fun getCategories(): Flow<Result<List<FoodCategory>>> = flow {
         try {
             val response = api.getCategories()
@@ -119,14 +115,10 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    // GET RESTAURANT DETAIL
     override fun getRestaurantDetail(
         id: String,
     ): Flow<Result<Restaurant>> = flow {
 
-        // ✅ FIX: Read from Room by id
-        // Room was populated by getNearbyRestaurants()
-        // getById(id) returns only the restaurant matching this id
         val cached = restaurantDao.getById(id)
 
         if (cached != null) {
@@ -150,7 +142,6 @@ class RestaurantRepositoryImpl @Inject constructor(
                 }
                 restaurantDao.insertAll(entities)
 
-                // Find the one we need by id
                 val found = allRestaurants.find { it.id == id }
 
                 if (found != null) {
@@ -173,7 +164,7 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
 
     }.flowOn(ioDispatcher)
-    // GET MENU ITEMS — with Room caching per restaurant
+
     override fun getMenuItems(
         restaurantId: String,
     ): Flow<Result<Map<String, List<MenuItem>>>> = flow {
@@ -190,7 +181,6 @@ class RestaurantRepositoryImpl @Inject constructor(
             emit(Result.success(cachedMap))
         }
 
-        // Fetch fresh menu
         try {
             val response = api.getDailyMenu()
             val menuMap = menuMapper.toDomain(response, restaurantId)
@@ -212,7 +202,6 @@ class RestaurantRepositoryImpl @Inject constructor(
 
     }.flowOn(ioDispatcher)
 
-    // GET REVIEWS
     override fun getReviews(restaurantId: String): Flow<Result<List<Review>>> = flow {
         try {
             val response = api.getReviews()
@@ -232,7 +221,6 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    // SEARCH RESTAURANTS
     override fun searchRestaurants(
         query: String,
         filters: SearchFilters,
@@ -262,7 +250,6 @@ class RestaurantRepositoryImpl @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    // GET CUISINES
     override fun getCuisines(): Flow<Result<List<Cuisine>>> = flow {
         try {
             val response = api.getCuisines()

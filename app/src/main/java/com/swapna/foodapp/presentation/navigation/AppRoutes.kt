@@ -8,16 +8,12 @@ object  AppRoutes {
     const val CART        = "cart"
     const val PROFILE     = "profile"
     const val RESTAURANT  = "restaurant/{restaurantId}"
-  //  const val PRODUCT     = "product/{menuItemId}"
-
     const val SEARCH_WITH_QUERY = "search?query={query}"
-
     const val ARG_RESTAURANT_ID = "restaurantId"
     const val ARG_MENU_ITEM_ID  = "menuItemId"
     const val ARG_SEARCH_QUERY  = "query"
     const val PRODUCT     =
         "product/{restaurantId}/{menuItemId}"
-
     fun restaurant(id: String) = "restaurant/$id"
     fun product(id: String)    = "product/$id"
     fun searchWithQuery(query: String) = "search?query=$query"
@@ -25,11 +21,4 @@ object  AppRoutes {
         restaurantId: String,
         menuItemId:   String,
     ) = "product/$restaurantId/$menuItemId"
-
-    // ✅ New — product detail route
-    // Takes restaurantId + menuItemId as arguments
-    // WHY both IDs?
-    //   restaurantId → fetch menu context
-    //   menuItemId   → fetch specific item detail
-
 }

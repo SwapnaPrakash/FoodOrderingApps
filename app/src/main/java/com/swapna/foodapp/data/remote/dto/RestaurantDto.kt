@@ -11,7 +11,6 @@ data class GeocodeResponse(
     val nearbyRestaurants: List<RestaurantWrapper>,
 )
 
-// The API wraps each restaurant in { "restaurant": { ... } }
 data class RestaurantWrapper(
     @SerializedName(AppConstants.KEY_RESTAURANT)
     val restaurant: RestaurantDto,

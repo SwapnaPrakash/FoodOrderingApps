@@ -10,8 +10,6 @@ import javax.inject.Inject
 
 class MenuMapper @Inject constructor() {
 
-    // Converts full menu response → Map<CategoryName, List<MenuItem>>
-    // e.g. { "Biryani" → [ChickenBiryani, MuttonBiryani], "Starters" → [...] }
     fun toDomain(
         response: DailyMenuResponse,
         restaurantId: String,
@@ -23,7 +21,7 @@ class MenuMapper @Inject constructor() {
                     mapDish(dishWrapper.dish, restaurantId, category)
                 }
                 category to items
-            } .filter { (_, items) -> items.isNotEmpty() }
+            }.filter { (_, items) -> items.isNotEmpty() }
     }
 
     private fun mapDish(
@@ -35,18 +33,14 @@ class MenuMapper @Inject constructor() {
         restaurantId = restaurantId,
         name = dto.name,
         description = dto.description,
-
         // "249 Rs." → 249.0
         price = dto.price.parsePriceString(),
-
         imageUrl = dto.imageUrl ?: "",
         category = category,
-
-        // Int 1/0 → Boolean
         isVeg = dto.isVeg == 1,
         isRecommended = dto.isRecommended == 1,
-        isBestseller  = false,
-        isAvailable   = true,
+        isBestseller = false,
+        isAvailable = true,
 
         customisations = dto.customisations?.map { c ->
             Customisation(

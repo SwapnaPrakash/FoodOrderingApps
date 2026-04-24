@@ -10,24 +10,25 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MenuItemDao {
 
-    // Flow — RestaurantScreen observes menu by restaurant
-    @Query("""
+    @Query(
+        """
         SELECT * FROM menu_items 
         WHERE restaurant_id = :restaurantId 
         ORDER BY category ASC, name ASC
-    """)
+    """
+    )
     fun getMenuByRestaurant(restaurantId: String): Flow<List<MenuItemEntity>>
 
-    // Used by ProductDetailScreen to load a single item
     @Query("SELECT * FROM menu_items WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): MenuItemEntity?
 
-    // Get recommended items for a restaurant
-    @Query("""
+    @Query(
+        """
         SELECT * FROM menu_items 
         WHERE restaurant_id = :restaurantId AND is_recommended = 1 
         LIMIT 5
-    """)
+    """
+    )
     suspend fun getRecommended(restaurantId: String): List<MenuItemEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -12,47 +12,55 @@ import com.swapna.foodapp.data.remote.dto.RestaurantDto
 import com.swapna.foodapp.data.remote.dto.ReviewsResponse
 import com.swapna.foodapp.data.remote.dto.SearchResponse
 import com.swapna.foodapp.data.remote.dto.UserResponse
+import com.swapna.foodapp.utils.AppConstants.GET_CATEGORIES
+import com.swapna.foodapp.utils.AppConstants.GET_COLLECTIONS
+import com.swapna.foodapp.utils.AppConstants.GET_CUISINES
+import com.swapna.foodapp.utils.AppConstants.GET_DAILY_MENU
+import com.swapna.foodapp.utils.AppConstants.GET_ESTABLISHMENTS
+import com.swapna.foodapp.utils.AppConstants.GET_GEOCODE
+import com.swapna.foodapp.utils.AppConstants.GET_LOCATIONS
+import com.swapna.foodapp.utils.AppConstants.GET_ORDERS
+import com.swapna.foodapp.utils.AppConstants.GET_RESTAURANT
+import com.swapna.foodapp.utils.AppConstants.GET_REVIEWS
+import com.swapna.foodapp.utils.AppConstants.GET_USER
+import com.swapna.foodapp.utils.AppConstants.SEARCH
 import retrofit2.http.GET
 
 interface FoodApi {
 
-    // ── Home Screen
-    @GET("categories.json")
+    @GET(GET_CATEGORIES)
     suspend fun getCategories(): CategoriesResponse
 
-    @GET("collections.json")
+    @GET(GET_COLLECTIONS)
     suspend fun getCollections(): CollectionsResponse
 
-    @GET("geocode.json")
+    @GET(GET_GEOCODE)
     suspend fun getNearbyRestaurants(): GeocodeResponse
 
-    // ── Search Screen
-    @GET("search.json")
+    @GET(SEARCH)
     suspend fun searchRestaurants(): SearchResponse
 
-    @GET("cuisines.json")
+    @GET(GET_CUISINES)
     suspend fun getCuisines(): CuisinesResponse
 
-    @GET("establishments.json")
-    suspend fun getEstablishments(): EstablishmentsResponse
-
-    @GET("locations.json")
-    suspend fun getLocations(): LocationSuggestionsResponse
-
-    // ── Restaurant Screen
-    @GET("restaurant.json")
-    suspend fun getRestaurantDetail(): RestaurantDto
-
-    @GET("dailymenu.json")
+    @GET(GET_DAILY_MENU)
     suspend fun getDailyMenu(): DailyMenuResponse
 
-    @GET("reviews.json")
+    @GET(GET_REVIEWS)
     suspend fun getReviews(): ReviewsResponse
 
-    // ── Profile Screen
-    @GET("user.json")
+    @GET(GET_USER)
     suspend fun getUser(): UserResponse
 
-    @GET("orders.json")
+    @GET(GET_ORDERS)
     suspend fun getOrders(): OrdersResponse
+
+    @GET(GET_ESTABLISHMENTS)
+    suspend fun getEstablishments(): EstablishmentsResponse
+
+    @GET(GET_LOCATIONS)
+    suspend fun getLocations(): LocationSuggestionsResponse
+
+    @GET(GET_RESTAURANT)
+    suspend fun getRestaurantDetail(): RestaurantDto
 }
