@@ -2,6 +2,8 @@ package com.swapna.foodapp.fakes
 
 import com.swapna.foodapp.presentation.common.CurrentLocationResult
 import com.swapna.foodapp.presentation.common.LocationManager
+import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ADDRESS_LAT
+import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ADDRESS_LNG
 import io.mockk.coEvery
 import io.mockk.mockk
 
@@ -13,8 +15,8 @@ class FakeLocationManager {
         coEvery { mock.getCurrentLocation() } returns Result.success(
             CurrentLocationResult(
                 displayAddress = address,
-                latitude       = 12.93,
-                longitude      = 77.62,
+                latitude = HOME_ADDRESS_LAT,
+                longitude = HOME_ADDRESS_LNG,
             )
         )
     }

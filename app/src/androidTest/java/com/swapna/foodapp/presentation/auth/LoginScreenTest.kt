@@ -6,7 +6,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -15,15 +14,35 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.swapna.foodapp.domain.model.User
 import com.swapna.foodapp.fakes.FakeUserRepository
+import com.swapna.foodapp.utils.AndroidTestConstants.ASSERT_LOGIN_NOT_CALLED
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_BTN_SEND_OTP
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_BTN_VERIFY_OTP
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_BURGER_EMOJI
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_GENERIC_ERROR
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_NETWORK_UNAVAILABLE
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_OTP_EXTRA_DIGITS
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_OTP_SINGLE_CHAR
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_PHONE_ERROR_MSG
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_SHORT_OTP
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_SHORT_PHONE
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_SUBTITLE
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_TITLE
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_USER_EMAIL
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_USER_ID
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_USER_NAME
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_USER_PHONE
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_VALID_OTP
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_VALID_PHONE
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_VALID_PHONE_10
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_WRONG_OTP
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_WRONG_OTP_FULL_MSG
+import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_WRONG_OTP_MSG
 import com.swapna.foodapp.utils.LoginTestTags
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-// WHY @RunWith(AndroidJUnit4::class)?
-// Without this, JUnit doesn't know this is an instrumented test
-// createComposeRule() needs AndroidJUnit4 to find the test Activity
 @RunWith(AndroidJUnit4::class)
 class LoginScreenTest {
 
@@ -31,13 +50,10 @@ class LoginScreenTest {
     val screenOnRule = object : org.junit.rules.ExternalResource() {
         override fun before() {
             androidx.test.platform.app.InstrumentationRegistry
-                .getInstrumentation()
-                .uiAutomation
+                .getInstrumentation().uiAutomation
                 .executeShellCommand("input keyevent KEYCODE_WAKEUP")
-
             androidx.test.platform.app.InstrumentationRegistry
-                .getInstrumentation()
-                .uiAutomation
+                .getInstrumentation().uiAutomation
                 .executeShellCommand("wm dismiss-keyguard")
         }
     }
@@ -50,49 +66,43 @@ class LoginScreenTest {
 
     @Before
     fun setUp() {
-        fakeRepo  = FakeUserRepository()
+        fakeRepo = FakeUserRepository()
         viewModel = AuthViewModel(fakeRepo)
     }
 
-    // WHY MaterialTheme wrapper?
-    // LoginScreen uses Material3 components (Scaffold, OutlinedTextField)
-    // Without MaterialTheme → components crash silently
-    // → setContent fails → "No compose hierarchies found"
-    // WHY collectAsStateWithLifecycle works inside createComposeRule?
-    // createComposeRule() spins up ComponentActivity via ui-test-manifest
-    // ComponentActivity provides LifecycleOwner automatically
     private fun setContent(onLoginSuccess: () -> Unit = {}) {
         composeTestRule.setContent {
             MaterialTheme {
                 LoginScreen(
                     onLoginSuccess = onLoginSuccess,
-                    viewModel      = viewModel,
+                    viewModel = viewModel,
                 )
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Initial UI State
-    // ══════════════════════════════════════════════════════════
-
     @Test
     fun loginScreen_burger_emoji_isDisplayed() {
         setContent()
-        composeTestRule.onNodeWithText("🍔").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(LOGIN_BURGER_EMOJI)
+            .assertIsDisplayed()
     }
 
     @Test
     fun loginScreen_title_isDisplayed() {
         setContent()
-        composeTestRule.onNodeWithText("Login").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(LOGIN_TITLE)
+            .assertIsDisplayed()
     }
 
     @Test
     fun loginScreen_subtitle_isDisplayed() {
         setContent()
         composeTestRule
-            .onNodeWithText("Enter your mobile number to continue")
+            .onNodeWithText(LOGIN_SUBTITLE)
             .assertIsDisplayed()
     }
 
@@ -107,8 +117,6 @@ class LoginScreenTest {
     @Test
     fun loginScreen_countryCode_isDisplayed() {
         setContent()
-        // Phone field exists and is displayed — verifies the field
-        // with its prefix is rendered correctly
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
             .assertIsDisplayed()
@@ -117,7 +125,9 @@ class LoginScreenTest {
     @Test
     fun loginScreen_sendOtp_button_isDisplayed() {
         setContent()
-        composeTestRule.onNodeWithText("Send OTP").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(LOGIN_BTN_SEND_OTP)
+            .assertIsDisplayed()
     }
 
     @Test
@@ -160,10 +170,7 @@ class LoginScreenTest {
             .assertIsDisplayed()
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 2 — Phone Validation
-    // ══════════════════════════════════════════════════════════
-
     @Test
     fun loginScreen_emptyPhone_showsError_onSendOtp() {
         setContent()
@@ -173,7 +180,7 @@ class LoginScreenTest {
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithText("Enter a valid 10-digit phone number")
+            .onNodeWithText(LOGIN_PHONE_ERROR_MSG)
             .assertIsDisplayed()
     }
 
@@ -195,14 +202,14 @@ class LoginScreenTest {
         setContent()
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("12345")
+            .performTextInput(LOGIN_SHORT_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithText("Enter a valid 10-digit phone number")
+            .onNodeWithText(LOGIN_PHONE_ERROR_MSG)
             .assertIsDisplayed()
     }
 
@@ -210,21 +217,18 @@ class LoginScreenTest {
     fun loginScreen_phoneField_capped_at_10_digits() {
         setContent()
 
-        // Type 10 valid digits one by one
-        "1234567890".forEach { digit ->
+        LOGIN_VALID_PHONE_10.forEach { digit ->
             composeTestRule
                 .onNodeWithTag(LoginTestTags.PHONE_FIELD)
                 .performTextInput(digit.toString())
         }
-        // Try to type one more — should be rejected
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("1")
+            .performTextInput(LOGIN_OTP_SINGLE_CHAR)
         composeTestRule.waitForIdle()
 
-        // Field still shows exactly 10 digits
         composeTestRule
-            .onNodeWithText("1234567890")
+            .onNodeWithText(LOGIN_VALID_PHONE_10)
             .assertIsDisplayed()
     }
 
@@ -243,7 +247,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule.waitForIdle()
 
         composeTestRule
@@ -251,10 +255,7 @@ class LoginScreenTest {
             .assertDoesNotExist()
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 3 — Successful OTP Send
-    // ══════════════════════════════════════════════════════════
-
     @Test
     fun loginScreen_validPhone_sendOtp_showsOtpField() {
         fakeRepo.sendOtpResult = Result.success(Unit)
@@ -262,7 +263,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -280,14 +281,18 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("Verify OTP").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Send OTP").assertDoesNotExist()
+        composeTestRule
+            .onNodeWithText(LOGIN_BTN_VERIFY_OTP)
+            .assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(LOGIN_BTN_SEND_OTP)
+            .assertDoesNotExist()
     }
 
     @Test
@@ -297,7 +302,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -315,7 +320,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -333,16 +338,12 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
 
-        // WHY onNodeWithTag SUCCESS_CARD not text?
-        // "9876543210" exists in BOTH phone field AND success card
-        // → "Expected at most 1 node but found 2"
-        // SUCCESS_CARD tag is unique → no ambiguity
         composeTestRule
             .onNodeWithTag(LoginTestTags.SUCCESS_CARD)
             .assertIsDisplayed()
@@ -355,7 +356,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -366,10 +367,7 @@ class LoginScreenTest {
             .assertIsDisplayed()
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 4 — OTP Validation
-    // ══════════════════════════════════════════════════════════
-
     @Test
     fun loginScreen_shortOtp_showsOtpErrorCard() {
         fakeRepo.sendOtpResult = Result.success(Unit)
@@ -377,7 +375,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -385,7 +383,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
-            .performTextInput("1234")
+            .performTextInput(LOGIN_SHORT_OTP)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -403,39 +401,38 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
 
-        // Type 6 valid digits one by one
-        "123456".forEach { digit ->
+        LOGIN_VALID_OTP.forEach { digit ->
             composeTestRule
                 .onNodeWithTag(LoginTestTags.OTP_FIELD)
                 .performTextInput(digit.toString())
         }
-        // Try to type 2 more — should be rejected
-        "78".forEach { digit ->
+        LOGIN_OTP_EXTRA_DIGITS.forEach { digit ->
             composeTestRule
                 .onNodeWithTag(LoginTestTags.OTP_FIELD)
                 .performTextInput(digit.toString())
         }
         composeTestRule.waitForIdle()
 
-        // Field shows only 6 digits
-        composeTestRule.onNodeWithText("123456").assertIsDisplayed()
+        composeTestRule
+            .onNodeWithText(LOGIN_VALID_OTP)
+            .assertIsDisplayed()
     }
 
     @Test
     fun loginScreen_typingOtp_afterError_clearsOtpErrorCard() {
         fakeRepo.sendOtpResult = Result.success(Unit)
-        fakeRepo.verifyOtpResult = Result.failure(Exception("Wrong OTP"))
+        fakeRepo.verifyOtpResult = Result.failure(Exception(LOGIN_WRONG_OTP_MSG))
         setContent()
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -443,21 +440,19 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
-            .performTextInput("000000")
+            .performTextInput(LOGIN_WRONG_OTP)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
 
-        // Error card visible
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
             .assertIsDisplayed()
 
-        // REPLACE text (not append) → triggers resetState() → error clears
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
-            .performTextReplacement("1")
+            .performTextReplacement(LOGIN_OTP_SINGLE_CHAR)
         composeTestRule.waitForIdle()
 
         composeTestRule
@@ -465,15 +460,17 @@ class LoginScreenTest {
             .assertDoesNotExist()
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Successful Login
-    // ══════════════════════════════════════════════════════════
-
     @Test
     fun loginScreen_correctOtp_calls_onLoginSuccess() {
-        fakeRepo.sendOtpResult   = Result.success(Unit)
+        fakeRepo.sendOtpResult = Result.success(Unit)
         fakeRepo.verifyOtpResult = Result.success(
-            User(id = "u1", name = "Swapna", email = "", phone = "9876543210")
+            User(
+                id = LOGIN_USER_ID,
+                name = LOGIN_USER_NAME,
+                email = LOGIN_USER_EMAIL,
+                phone = LOGIN_USER_PHONE,
+            )
         )
 
         var loginSuccessCalled = false
@@ -481,7 +478,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -489,29 +486,26 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
-            .performTextInput("123456")
+            .performTextInput(LOGIN_VALID_OTP)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
 
         assert(loginSuccessCalled) {
-            "onLoginSuccess was not called after correct OTP"
+            ASSERT_LOGIN_NOT_CALLED
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 6 — Error States
-    // ══════════════════════════════════════════════════════════
-
     @Test
     fun loginScreen_sendOtp_networkError_showsErrorCard() {
-        fakeRepo.sendOtpResult = Result.failure(Exception("Network unavailable"))
+        fakeRepo.sendOtpResult = Result.failure(Exception(LOGIN_NETWORK_UNAVAILABLE))
         setContent()
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -521,18 +515,18 @@ class LoginScreenTest {
             .onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
             .assertIsDisplayed()
         composeTestRule
-            .onNodeWithText("Network unavailable")
+            .onNodeWithText(LOGIN_NETWORK_UNAVAILABLE)
             .assertIsDisplayed()
     }
 
     @Test
     fun loginScreen_sendOtp_error_button_remainsEnabled() {
-        fakeRepo.sendOtpResult = Result.failure(Exception("Error"))
+        fakeRepo.sendOtpResult = Result.failure(Exception(LOGIN_GENERIC_ERROR))
         setContent()
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -545,15 +539,15 @@ class LoginScreenTest {
 
     @Test
     fun loginScreen_wrongOtp_showsCorrectErrorMessage() {
-        fakeRepo.sendOtpResult   = Result.success(Unit)
+        fakeRepo.sendOtpResult = Result.success(Unit)
         fakeRepo.verifyOtpResult = Result.failure(
-            Exception("Wrong OTP. Please check and try again.")
+            Exception(LOGIN_WRONG_OTP_FULL_MSG)
         )
         setContent()
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -561,24 +555,21 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
-            .performTextInput("000000")
+            .performTextInput(LOGIN_WRONG_OTP)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithText("Wrong OTP. Please check and try again.")
+            .onNodeWithText(LOGIN_WRONG_OTP_FULL_MSG)
             .assertIsDisplayed()
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
             .assertIsDisplayed()
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 7 — Resend OTP
-    // ══════════════════════════════════════════════════════════
-
     @Test
     fun loginScreen_resendOtp_clearsOtpField() {
         fakeRepo.sendOtpResult = Result.success(Unit)
@@ -586,7 +577,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -594,13 +585,15 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
-            .performTextInput("1234")
+            .performTextInput(LOGIN_SHORT_OTP)
         composeTestRule
             .onNodeWithTag(LoginTestTags.RESEND_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("1234").assertDoesNotExist()
+        composeTestRule
+            .onNodeWithText(LOGIN_SHORT_OTP)
+            .assertDoesNotExist()
     }
 
     @Test
@@ -610,7 +603,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()
@@ -621,17 +614,14 @@ class LoginScreenTest {
             .performClick()
         composeTestRule.waitForIdle()
 
-        // Phone field still has the number
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
             .assertIsDisplayed()
 
-        // Success card still shown after resend
         composeTestRule
             .onNodeWithTag(LoginTestTags.SUCCESS_CARD)
             .assertIsDisplayed()
     }
-
 
     @Test
     fun loginScreen_resendOtp_successCard_stillDisplayed() {
@@ -640,7 +630,7 @@ class LoginScreenTest {
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput("9876543210")
+            .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performClick()

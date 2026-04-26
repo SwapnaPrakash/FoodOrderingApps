@@ -6,14 +6,67 @@ import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.Restaurant
 import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.domain.usecase.home.GetHomeDataUseCase
-import com.swapna.foodapp.presentation.common.fakes.FakeCartRepository
-import com.swapna.foodapp.presentation.common.fakes.FakeUserRepository
+import com.swapna.foodapp.presentation.common.ConnectivityObserver
 import com.swapna.foodapp.presentation.common.CurrentLocationResult
 import com.swapna.foodapp.presentation.common.LocationManager
-import com.swapna.foodapp.utils.AppConstants.DEFAULT_LOCATION
-import com.swapna.foodapp.presentation.common.ConnectivityObserver
-import com.swapna.foodapp.utils.HomeData
 import com.swapna.foodapp.presentation.common.NetworkStatus
+import com.swapna.foodapp.presentation.common.fakes.FakeCartRepository
+import com.swapna.foodapp.presentation.common.fakes.FakeUserRepository
+import com.swapna.foodapp.utils.AppConstants.DEFAULT_LOCATION
+import com.swapna.foodapp.utils.HomeData
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_LABEL_HOME
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_LABEL_WORK
+import com.swapna.foodapp.utils.TestConstants.DELIVERY_TIME
+import com.swapna.foodapp.utils.TestConstants.ERR_ERROR_STR
+import com.swapna.foodapp.utils.TestConstants.ERR_NO_INTERNET_HOME
+import com.swapna.foodapp.utils.TestConstants.GPS_LAT
+import com.swapna.foodapp.utils.TestConstants.GPS_LNG
+import com.swapna.foodapp.utils.TestConstants.HOME_ADDR_COUNT_2
+import com.swapna.foodapp.utils.TestConstants.HOME_AVAILABLE_AREAS_3
+import com.swapna.foodapp.utils.TestConstants.HOME_CART_COUNT_3
+import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_BIRYANI
+import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_ID_1
+import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_ID_2
+import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_PIZZA
+import com.swapna.foodapp.utils.TestConstants.HOME_CAT_COUNT_2
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_60_OFF
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_COUNT_10
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_COUNT_20
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_FREE_DEL
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_ID_1
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_ID_2
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_JUST_LAUNCHED
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_NEWLY_OPENED
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_POPULAR
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_SIZE_2
+import com.swapna.foodapp.utils.TestConstants.HOME_COLL_TRENDING
+import com.swapna.foodapp.utils.TestConstants.HOME_DELIVERY_FEE
+import com.swapna.foodapp.utils.TestConstants.HOME_LOC_HSR
+import com.swapna.foodapp.utils.TestConstants.HOME_LOC_INDIRANAGAR
+import com.swapna.foodapp.utils.TestConstants.HOME_LOC_KORAMANGALA
+import com.swapna.foodapp.utils.TestConstants.HOME_LOC_WHITEFIELD
+import com.swapna.foodapp.utils.TestConstants.HOME_OFFERS_50_OFF
+import com.swapna.foodapp.utils.TestConstants.HOME_RATING_COLOR
+import com.swapna.foodapp.utils.TestConstants.HOME_RATING_TEXT_EXCELLENT
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_BURGER_KING
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_COUNT_1
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_COUNT_2
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_COUNT_4
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_EMPIRE
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_MEGHANA
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_PIZZA_HUT
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_R1
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_R2
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_R3
+import com.swapna.foodapp.utils.TestConstants.HOME_REST_R4
+import com.swapna.foodapp.utils.TestConstants.HOME_SEARCH_QUERY_BURGER
+import com.swapna.foodapp.utils.TestConstants.HOME_SOUTH_INDIAN
+import com.swapna.foodapp.utils.TestConstants.HOME_TEST_REST_NAME
+import com.swapna.foodapp.utils.TestConstants.LOC_JAKKUR
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_COST_500
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_MIN_ORDER_100
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_RATING_45
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_VOTES_5000
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -34,76 +87,86 @@ class HomeViewModelSpec : BehaviorSpec({
 
     val dispatcher = UnconfinedTestDispatcher()
 
-    // ── MockK for Android-dependent classes ───────────────────────────
-    val getHomeDataUseCase   = mockk<GetHomeDataUseCase>()
+    val getHomeDataUseCase = mockk<GetHomeDataUseCase>()
     val connectivityObserver = mockk<ConnectivityObserver>()
-    val locationManager      = mockk<LocationManager>()
+    val locationManager = mockk<LocationManager>()
 
-    // ── Fakes for pure Kotlin classes ─────────────────────────────────
     lateinit var fakeCartRepo: FakeCartRepository
     lateinit var fakeUserRepo: FakeUserRepository
 
-    // ── Network flow — controlled per test ────────────────────────────
     val networkFlow = MutableStateFlow<NetworkStatus>(NetworkStatus.Available)
 
-    // ── Test data ─────────────────────────────────────────────────────
     val fakeCollections = listOf(
-        Collections(1, "Trending",     "Popular",       "", 20, "60% OFF"),
-        Collections(2, "Newly Opened", "Just launched", "", 10, "Free Delivery"),
+        Collections(
+            HOME_COLL_ID_1,
+            HOME_COLL_TRENDING,
+            HOME_COLL_POPULAR,
+            "",
+            HOME_COLL_COUNT_20,
+            HOME_COLL_60_OFF
+        ),
+        Collections(
+            HOME_COLL_ID_2,
+            HOME_COLL_NEWLY_OPENED,
+            HOME_COLL_JUST_LAUNCHED,
+            "",
+            HOME_COLL_COUNT_10,
+            HOME_COLL_FREE_DEL
+        ),
     )
 
     val fakeCategories = listOf(
-        FoodCategory(1, "Biryani", ""),
-        FoodCategory(2, "Pizza",   ""),
+        FoodCategory(HOME_CATEGORY_ID_1, HOME_CATEGORY_BIRYANI, ""),
+        FoodCategory(HOME_CATEGORY_ID_2, HOME_CATEGORY_PIZZA, ""),
     )
 
     val restaurantsKoramangala = listOf(
-        fakeRestaurant("r1", "Meghana Foods", locality = "Koramangala"),
-        fakeRestaurant("r4", "Empire",         locality = "Koramangala"),
+        fakeRestaurant(HOME_REST_R1, HOME_REST_MEGHANA, locality = HOME_LOC_KORAMANGALA),
+        fakeRestaurant(HOME_REST_R4, HOME_REST_EMPIRE, locality = HOME_LOC_KORAMANGALA),
     )
 
     val restaurantsIndiranagar = listOf(
-        fakeRestaurant("r2", "Pizza Hut", locality = "Indiranagar"),
+        fakeRestaurant(HOME_REST_R2, HOME_REST_PIZZA_HUT, locality = HOME_LOC_INDIRANAGAR),
     )
 
     val restaurantsAll = listOf(
-        fakeRestaurant("r1", "Meghana Foods", locality = "Koramangala"),
-        fakeRestaurant("r2", "Pizza Hut",     locality = "Indiranagar"),
-        fakeRestaurant("r3", "Burger King",   locality = "HSR Layout"),
-        fakeRestaurant("r4", "Empire",         locality = "Koramangala"),
+        fakeRestaurant(HOME_REST_R1, HOME_REST_MEGHANA, locality = HOME_LOC_KORAMANGALA),
+        fakeRestaurant(HOME_REST_R2, HOME_REST_PIZZA_HUT, locality = HOME_LOC_INDIRANAGAR),
+        fakeRestaurant(HOME_REST_R3, HOME_REST_BURGER_KING, locality = HOME_LOC_HSR),
+        fakeRestaurant(HOME_REST_R4, HOME_REST_EMPIRE, locality = HOME_LOC_KORAMANGALA),
     )
 
     fun emptyHomeData() = HomeData(
-        restaurants    = emptyList(),
-        collections    = emptyList(),
-        categories     = emptyList(),
-        filterStatus   = FilterStatus.NO_FILTER,
-        requestedArea  = "",
+        restaurants = emptyList(),
+        collections = emptyList(),
+        categories = emptyList(),
+        filterStatus = FilterStatus.NO_FILTER,
+        requestedArea = "",
         availableAreas = emptyList(),
     )
 
     fun homeData(
-        restaurants:    List<Restaurant>   = restaurantsAll,
-        collections:    List<Collections>  = fakeCollections,
-        categories:     List<FoodCategory> = fakeCategories,
-        filterStatus:   FilterStatus       = FilterStatus.NO_FILTER,
-        requestedArea:  String             = "",
-        availableAreas: List<String>       = emptyList(),
+        restaurants: List<Restaurant> = restaurantsAll,
+        collections: List<Collections> = fakeCollections,
+        categories: List<FoodCategory> = fakeCategories,
+        filterStatus: FilterStatus = FilterStatus.NO_FILTER,
+        requestedArea: String = "",
+        availableAreas: List<String> = emptyList(),
     ) = HomeData(
-        restaurants    = restaurants,
-        collections    = collections,
-        categories     = categories,
-        filterStatus   = filterStatus,
-        requestedArea  = requestedArea,
+        restaurants = restaurants,
+        collections = collections,
+        categories = categories,
+        filterStatus = filterStatus,
+        requestedArea = requestedArea,
         availableAreas = availableAreas,
     )
 
     fun createViewModel() = HomeViewModel(
-        getHomeDataUseCase   = getHomeDataUseCase,
-        cartRepository       = fakeCartRepo,
-        userRepository       = fakeUserRepo,
+        getHomeDataUseCase = getHomeDataUseCase,
+        cartRepository = fakeCartRepo,
+        userRepository = fakeUserRepo,
         connectivityObserver = connectivityObserver,
-        locationManager      = locationManager,
+        locationManager = locationManager,
     )
 
     beforeEach {
@@ -112,30 +175,26 @@ class HomeViewModelSpec : BehaviorSpec({
         fakeCartRepo = FakeCartRepository()
         fakeUserRepo = FakeUserRepository()
 
-        // Reset network to online
         networkFlow.value = NetworkStatus.Available
 
-        // Default stubs
         every { connectivityObserver.networkStatus } returns networkFlow
         every { getHomeDataUseCase(any()) } returns
                 flowOf(Result.success(homeData()))
         coEvery { locationManager.getCurrentLocation() } returns
                 Result.success(
                     CurrentLocationResult(
-                        displayAddress = "Koramangala, Bengaluru",
-                        latitude       = 12.9352,
-                        longitude      = 77.6245,
+                        displayAddress = HOME_LOC_KORAMANGALA,
+                        latitude = GPS_LAT,
+                        longitude = GPS_LNG,
                     )
                 )
     }
 
-    afterEach {
-        Dispatchers.resetMain()
-    }
+    afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Initial State
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("HomeScreen opens for the first time") {
 
@@ -143,61 +202,51 @@ class HomeViewModelSpec : BehaviorSpec({
             then("isLoading is false after data loads") {
                 createViewModel().uiState.value.isLoading shouldBe false
             }
-
             then("error is null") {
                 createViewModel().uiState.value.error shouldBe null
             }
-
             then("selectedLocation defaults to DEFAULT_LOCATION") {
-                createViewModel().uiState.value.selectedLocation shouldBe
-                        DEFAULT_LOCATION
+                createViewModel().uiState.value.selectedLocation shouldBe DEFAULT_LOCATION
             }
-
             then("selectedTab is DELIVERY") {
                 createViewModel().uiState.value.selectedTab shouldBe
                         HomeViewModel.DeliveryTab.DELIVERY
             }
-
             then("cartItemCount is 0") {
                 createViewModel().uiState.value.cartItemCount shouldBe 0
             }
-
             then("showLocationPicker is false") {
                 createViewModel().uiState.value.showLocationPicker shouldBe false
             }
-
             then("savedAddresses is empty") {
                 createViewModel().uiState.value.savedAddresses shouldBe emptyList()
             }
-
             then("restaurants list has 4 items") {
-                createViewModel().uiState.value.restaurants.size shouldBe 4
+                createViewModel().uiState.value.restaurants.size shouldBe HOME_REST_COUNT_4
             }
-
             then("collections has 2 items") {
-                createViewModel().uiState.value.collections.size shouldBe 2
+                createViewModel().uiState.value.collections.size shouldBe HOME_COLL_SIZE_2
             }
-
             then("categories has 2 items") {
-                createViewModel().uiState.value.categories.size shouldBe 2
+                createViewModel().uiState.value.categories.size shouldBe HOME_CAT_COUNT_2
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 2 — API Error + Retry
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("API throws error") {
 
         `when`("ViewModel is created") {
             then("error message is set in state") {
                 every { getHomeDataUseCase(any()) } returns
-                        flowOf(Result.failure(Exception("No internet")))
+                        flowOf(Result.failure(Exception(ERR_NO_INTERNET_HOME)))
 
                 val vm = createViewModel()
 
-                vm.uiState.value.error     shouldBe "No internet"
+                vm.uiState.value.error shouldBe ERR_NO_INTERNET_HOME
                 vm.uiState.value.isLoading shouldBe false
             }
         }
@@ -205,7 +254,7 @@ class HomeViewModelSpec : BehaviorSpec({
         `when`("user taps retry") {
             then("restaurants reload on success") {
                 every { getHomeDataUseCase(any()) } returnsMany listOf(
-                    flowOf(Result.failure(Exception("error"))),
+                    flowOf(Result.failure(Exception(ERR_ERROR_STR))),
                     flowOf(Result.success(homeData())),
                 )
 
@@ -214,15 +263,15 @@ class HomeViewModelSpec : BehaviorSpec({
 
                 vm.retry()
 
-                vm.uiState.value.restaurants.size shouldBe 4
-                vm.uiState.value.error            shouldBe null
+                vm.uiState.value.restaurants.size shouldBe HOME_REST_COUNT_4
+                vm.uiState.value.error shouldBe null
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 3 — Location Selection
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("user selects a delivery location") {
 
@@ -232,9 +281,9 @@ class HomeViewModelSpec : BehaviorSpec({
                         flowOf(Result.success(homeData(restaurants = restaurantsKoramangala)))
 
                 val vm = createViewModel()
-                vm.onLocationSelected("Koramangala")
+                vm.onLocationSelected(HOME_LOC_KORAMANGALA)
 
-                vm.uiState.value.selectedLocation shouldBe "Koramangala"
+                vm.uiState.value.selectedLocation shouldBe HOME_LOC_KORAMANGALA
             }
 
             then("restaurants filter to Koramangala only") {
@@ -242,11 +291,11 @@ class HomeViewModelSpec : BehaviorSpec({
                         flowOf(Result.success(homeData(restaurants = restaurantsKoramangala)))
 
                 val vm = createViewModel()
-                vm.onLocationSelected("Koramangala")
+                vm.onLocationSelected(HOME_LOC_KORAMANGALA)
 
-                vm.uiState.value.restaurants.size shouldBe 2
+                vm.uiState.value.restaurants.size shouldBe HOME_REST_COUNT_2
                 vm.uiState.value.restaurants
-                    .all { it.locality == "Koramangala" } shouldBe true
+                    .all { it.locality == HOME_LOC_KORAMANGALA } shouldBe true
             }
         }
 
@@ -256,26 +305,26 @@ class HomeViewModelSpec : BehaviorSpec({
                         flowOf(Result.success(homeData(restaurants = restaurantsIndiranagar)))
 
                 val vm = createViewModel()
-                vm.onLocationSelected("Indiranagar")
+                vm.onLocationSelected(HOME_LOC_INDIRANAGAR)
 
-                vm.uiState.value.restaurants.size         shouldBe 1
-                vm.uiState.value.restaurants.first().name shouldBe "Pizza Hut"
+                vm.uiState.value.restaurants.size shouldBe HOME_REST_COUNT_1
+                vm.uiState.value.restaurants.first().name shouldBe HOME_REST_PIZZA_HUT
             }
         }
 
         `when`("any location is selected") {
             then("saveSelectedLocation called in UserRepository") {
                 val vm = createViewModel()
-                vm.onLocationSelected("Whitefield")
+                vm.onLocationSelected(HOME_LOC_WHITEFIELD)
 
                 fakeUserRepo.saveSelectedLocationCalled shouldBe true
-                fakeUserRepo.lastSavedLocation          shouldBe "Whitefield"
+                fakeUserRepo.lastSavedLocation shouldBe HOME_LOC_WHITEFIELD
             }
 
             then("showLocationPicker closes") {
                 val vm = createViewModel()
                 vm.onLocationBarClicked()
-                vm.onLocationSelected("Koramangala")
+                vm.onLocationSelected(HOME_LOC_KORAMANGALA)
 
                 vm.uiState.value.showLocationPicker shouldBe false
             }
@@ -290,59 +339,51 @@ class HomeViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 val countBefore = callCount
 
-                vm.onLocationSelected("HSR Layout")
+                vm.onLocationSelected(HOME_LOC_HSR)
 
                 callCount shouldNotBe countBefore
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 4 — Saved Location Restored
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("user had previously saved Indiranagar") {
 
         `when`("app reopens and Room emits saved location") {
             then("selectedLocation restored to Indiranagar") {
-                fakeUserRepo.setUserWithLocation("Indiranagar")
-                val vm = createViewModel()
-
-                vm.uiState.value.selectedLocation shouldBe "Indiranagar"
+                fakeUserRepo.setUserWithLocation(HOME_LOC_INDIRANAGAR)
+                createViewModel().uiState.value.selectedLocation shouldBe HOME_LOC_INDIRANAGAR
             }
 
             then("fresh selection overrides Room value") {
-                fakeUserRepo.setUserWithLocation("Koramangala")
+                fakeUserRepo.setUserWithLocation(HOME_LOC_KORAMANGALA)
                 val vm = createViewModel()
-
-                vm.onLocationSelected("HSR Layout")
-
-                vm.uiState.value.selectedLocation shouldBe "HSR Layout"
+                vm.onLocationSelected(HOME_LOC_HSR)
+                vm.uiState.value.selectedLocation shouldBe HOME_LOC_HSR
             }
         }
 
         `when`("saved location is empty") {
             then("selectedLocation stays DEFAULT_LOCATION") {
                 fakeUserRepo.setUserWithLocation("")
-                val vm = createViewModel()
-
-                vm.uiState.value.selectedLocation shouldBe DEFAULT_LOCATION
+                createViewModel().uiState.value.selectedLocation shouldBe DEFAULT_LOCATION
             }
         }
 
         `when`("user is null") {
             then("selectedLocation stays DEFAULT_LOCATION") {
                 fakeUserRepo.setUser(null)
-                val vm = createViewModel()
-
-                vm.uiState.value.selectedLocation shouldBe DEFAULT_LOCATION
+                createViewModel().uiState.value.selectedLocation shouldBe DEFAULT_LOCATION
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Saved Addresses
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("user has saved addresses in profile") {
 
@@ -354,36 +395,30 @@ class HomeViewModelSpec : BehaviorSpec({
                 )
                 val vm = createViewModel()
 
-                vm.uiState.value.savedAddresses.size shouldBe 2
-                vm.uiState.value.savedAddresses
-                    .any { it.label == "Home" } shouldBe true
-                vm.uiState.value.savedAddresses
-                    .any { it.label == "Work" } shouldBe true
+                vm.uiState.value.savedAddresses.size shouldBe HOME_ADDR_COUNT_2
+                vm.uiState.value.savedAddresses.any { it.label == ADDRESS_LABEL_HOME } shouldBe true
+                vm.uiState.value.savedAddresses.any { it.label == ADDRESS_LABEL_WORK } shouldBe true
             }
         }
 
         `when`("user has no addresses") {
             then("savedAddresses is empty") {
                 fakeUserRepo.setUser(FakeUserRepository.fakeUser())
-                val vm = createViewModel()
-
-                vm.uiState.value.savedAddresses shouldBe emptyList()
+                createViewModel().uiState.value.savedAddresses shouldBe emptyList()
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 6 — Cart Count
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("cart has items") {
 
         `when`("cart has 3 items") {
             then("cartItemCount shows 3") {
-                fakeCartRepo.setItemCount(3)
-                val vm = createViewModel()
-
-                vm.uiState.value.cartItemCount shouldBe 3
+                fakeCartRepo.setItemCount(HOME_CART_COUNT_3)
+                createViewModel().uiState.value.cartItemCount shouldBe HOME_CART_COUNT_3
             }
         }
 
@@ -394,9 +429,9 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 7 — Connectivity
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("device loses internet") {
 
@@ -404,7 +439,6 @@ class HomeViewModelSpec : BehaviorSpec({
             then("isOffline becomes true") {
                 val vm = createViewModel()
                 networkFlow.value = NetworkStatus.Lost
-
                 vm.uiState.value.isOffline shouldBe true
             }
         }
@@ -412,9 +446,7 @@ class HomeViewModelSpec : BehaviorSpec({
         `when`("network becomes Unavailable") {
             then("isOffline is true") {
                 networkFlow.value = NetworkStatus.Unavailable
-                val vm = createViewModel()
-
-                vm.uiState.value.isOffline shouldBe true
+                createViewModel().uiState.value.isOffline shouldBe true
             }
         }
     }
@@ -426,7 +458,6 @@ class HomeViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 networkFlow.value = NetworkStatus.Lost
                 networkFlow.value = NetworkStatus.Available
-
                 vm.uiState.value.isOffline shouldBe false
             }
 
@@ -448,9 +479,9 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 8 — Filter Status
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("API returns filtered results") {
 
@@ -459,16 +490,16 @@ class HomeViewModelSpec : BehaviorSpec({
                 every { getHomeDataUseCase(any()) } returns flowOf(
                     Result.success(
                         homeData(
-                            restaurants   = restaurantsKoramangala,
-                            filterStatus  = FilterStatus.FOUND,
-                            requestedArea = "Koramangala",
+                            restaurants = restaurantsKoramangala,
+                            filterStatus = FilterStatus.FOUND,
+                            requestedArea = HOME_LOC_KORAMANGALA,
                         )
                     )
                 )
                 val vm = createViewModel()
 
-                vm.uiState.value.filterStatus  shouldBe FilterStatus.FOUND
-                vm.uiState.value.requestedArea shouldBe "Koramangala"
+                vm.uiState.value.filterStatus shouldBe FilterStatus.FOUND
+                vm.uiState.value.requestedArea shouldBe HOME_LOC_KORAMANGALA
             }
         }
 
@@ -477,28 +508,29 @@ class HomeViewModelSpec : BehaviorSpec({
                 every { getHomeDataUseCase(any()) } returns flowOf(
                     Result.success(
                         homeData(
-                            restaurants    = emptyList(),
-                            filterStatus   = FilterStatus.NOT_SERVICEABLE,
-                            requestedArea  = "Jakkur",
+                            restaurants = emptyList(),
+                            filterStatus = FilterStatus.NOT_SERVICEABLE,
+                            requestedArea = LOC_JAKKUR,
                             availableAreas = listOf(
-                                "Koramangala", "Indiranagar", "HSR Layout"
+                                HOME_LOC_KORAMANGALA,
+                                HOME_LOC_INDIRANAGAR,
+                                HOME_LOC_HSR,
                             ),
                         )
                     )
                 )
                 val vm = createViewModel()
 
-                vm.uiState.value.filterStatus          shouldBe
-                        FilterStatus.NOT_SERVICEABLE
+                vm.uiState.value.filterStatus shouldBe FilterStatus.NOT_SERVICEABLE
                 vm.uiState.value.restaurants.isEmpty() shouldBe true
-                vm.uiState.value.availableAreas.size   shouldBe 3
+                vm.uiState.value.availableAreas.size shouldBe HOME_AVAILABLE_AREAS_3
             }
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
     // GROUP 9 — Navigation Events
-    // ══════════════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════════
 
     given("user is on HomeScreen") {
 
@@ -506,9 +538,9 @@ class HomeViewModelSpec : BehaviorSpec({
             then("NavigateToRestaurant emitted with correct id") {
                 val vm = createViewModel()
                 vm.events.test {
-                    vm.onRestaurantClicked("r1")
+                    vm.onRestaurantClicked(HOME_REST_R1)
                     awaitItem() shouldBe
-                            HomeViewModel.HomeEvent.NavigateToRestaurant("r1")
+                            HomeViewModel.HomeEvent.NavigateToRestaurant(HOME_REST_R1)
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -519,8 +551,7 @@ class HomeViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onSearchClicked()
-                    awaitItem() shouldBe
-                            HomeViewModel.HomeEvent.NavigateToSearch("")
+                    awaitItem() shouldBe HomeViewModel.HomeEvent.NavigateToSearch("")
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -530,9 +561,9 @@ class HomeViewModelSpec : BehaviorSpec({
             then("NavigateToSearch emitted with category name") {
                 val vm = createViewModel()
                 vm.events.test {
-                    vm.onCategoryClicked("Biryani")
+                    vm.onCategoryClicked(HOME_CATEGORY_BIRYANI)
                     awaitItem() shouldBe
-                            HomeViewModel.HomeEvent.NavigateToSearch("Biryani")
+                            HomeViewModel.HomeEvent.NavigateToSearch(HOME_CATEGORY_BIRYANI)
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -564,9 +595,7 @@ class HomeViewModelSpec : BehaviorSpec({
             then("selectedTab updates — no event emitted") {
                 val vm = createViewModel()
                 vm.onTabSelected(HomeViewModel.DeliveryTab.DINING)
-
-                vm.uiState.value.selectedTab shouldBe
-                        HomeViewModel.DeliveryTab.DINING
+                vm.uiState.value.selectedTab shouldBe HomeViewModel.DeliveryTab.DINING
             }
         }
 
@@ -585,9 +614,9 @@ class HomeViewModelSpec : BehaviorSpec({
             then("NavigateToSearch emitted with correct query") {
                 val vm = createViewModel()
                 vm.events.test {
-                    vm.onSearchClicked("Burger")
+                    vm.onSearchClicked(HOME_SEARCH_QUERY_BURGER)
                     awaitItem() shouldBe
-                            HomeViewModel.HomeEvent.NavigateToSearch("Burger")
+                            HomeViewModel.HomeEvent.NavigateToSearch(HOME_SEARCH_QUERY_BURGER)
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -595,29 +624,32 @@ class HomeViewModelSpec : BehaviorSpec({
     }
 })
 
-// ── Shared helper — used by both Spec files ───────────────────────────────
 fun fakeRestaurant(
-    id:       String = "r1",
-    name:     String = "Test Restaurant",
-    locality: String = "Koramangala",
+    id: String = HOME_REST_R1,
+    name: String = HOME_TEST_REST_NAME,
+    locality: String = HOME_LOC_KORAMANGALA,
+    rating: Double = RESTAURANT_RATING_45,
 ) = Restaurant(
-    id              = id,
-    name            = name,
-    imageUrl        = "https://picsum.photos/seed/$id/600/300",
-    thumbUrl        = "https://picsum.photos/seed/$id/200/200",
-    rating          = 4.5,
-    ratingText      = "Excellent",
-    ratingColor     = "#3F7E00",
-    totalVotes      = 5000,
-    avgDeliveryTime = 30,
-    deliveryFee     = 30.0,
-    avgCostForTwo   = 500,
-    minOrder        = 100,
-    cuisines        = listOf("Biryani", "South Indian"),
-    address         = "$locality, Bengaluru",
-    locality        = locality,
-    distanceKm      = 0.0,
-    hasDelivery     = true,
-    isOpen          = true,
-    offers          = listOf("50% off"),
+    id = id,
+    name = name,
+    imageUrl = "https://picsum.photos/seed/$id/600/300",
+    thumbUrl = "https://picsum.photos/seed/$id/200/200",
+    rating = rating,
+    ratingText = HOME_RATING_TEXT_EXCELLENT,
+    ratingColor = HOME_RATING_COLOR,
+    totalVotes = RESTAURANT_VOTES_5000,
+    avgDeliveryTime = DELIVERY_TIME,
+    deliveryFee = HOME_DELIVERY_FEE,
+    avgCostForTwo = RESTAURANT_COST_500,
+    minOrder = RESTAURANT_MIN_ORDER_100,
+    cuisines = listOf(
+        HOME_CATEGORY_BIRYANI,
+        HOME_SOUTH_INDIAN
+    ),
+    address = "$locality, Bengaluru",
+    locality = locality,
+    distanceKm = 0.0,
+    hasDelivery = true,
+    isOpen = true,
+    offers = listOf(HOME_OFFERS_50_OFF),
 )

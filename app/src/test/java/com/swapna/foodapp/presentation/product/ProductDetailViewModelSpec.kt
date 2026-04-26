@@ -1,12 +1,5 @@
 package com.swapna.foodapp.presentation.product
 
-// ── Kotest ────────────────────────────────────────────────────
-
-// ── Coroutines ────────────────────────────────────────────────
-
-// ── App ───────────────────────────────────────────────────────
-
-
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.swapna.foodapp.domain.model.Customisation
@@ -16,6 +9,48 @@ import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.usecase.cart.AddToCartUseCase
 import com.swapna.foodapp.presentation.navigation.AppRoutes
 import com.swapna.foodapp.utils.AppBusinessRules
+import com.swapna.foodapp.utils.TestConstants.CART_QTY_1
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_COUNT_SIZE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_GROUP_SIZE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_GROUP_SPICE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_HOT
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_LARGE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_MEDIUM
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_MILD
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_REGULAR
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_XL
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_NAME_SIZE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_NAME_SPICE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_EXTRA_LARGE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_HOT
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_LARGE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_MEDIUM
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_MILD
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_REGULAR
+import com.swapna.foodapp.utils.TestConstants.ERR_CART_FULL
+import com.swapna.foodapp.utils.TestConstants.ERR_FAILED_LOAD_ITEM_MSG
+import com.swapna.foodapp.utils.TestConstants.ERR_ITEM_NOT_FOUND_MSG
+import com.swapna.foodapp.utils.TestConstants.EXTRA_PRICE_100
+import com.swapna.foodapp.utils.TestConstants.EXTRA_PRICE_LARGE
+import com.swapna.foodapp.utils.TestConstants.EXTRA_PRICE_ZERO
+import com.swapna.foodapp.utils.TestConstants.MENU_DESC_BIRYANI
+import com.swapna.foodapp.utils.TestConstants.MENU_DESC_NAAN
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_1
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_2
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_UNKNOWN
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_BIR
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_PLAIN_NAAN
+import com.swapna.foodapp.utils.TestConstants.MSG_BIRYANI_ADDED_CART
+import com.swapna.foodapp.utils.TestConstants.PRICE_249
+import com.swapna.foodapp.utils.TestConstants.PRICE_50
+import com.swapna.foodapp.utils.TestConstants.QTY_15_REPEAT
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_1
+import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_100
+import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_1047
+import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_299
+import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_349_P
+import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_498
+import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_598
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -38,14 +73,12 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 
     val dispatcher = UnconfinedTestDispatcher()
 
-    // ── MockK dependencies ────────────────────────────────────
     val restaurantRepository = mockk<RestaurantRepository>()
     val addToCartUseCase = mockk<AddToCartUseCase>()
 
-    // ── createViewModel helper ────────────────────────────────
     fun createViewModel(
-        restaurantId: String = "r1",
-        menuItemId: String = "m1",
+        restaurantId: String = RESTAURANT_ID_1,
+        menuItemId: String = MENU_ID_1,
     ): ProductDetailViewModel {
         val handle = SavedStateHandle(
             mapOf(
@@ -64,17 +97,13 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         clearAllMocks()
         Dispatchers.setMain(dispatcher)
 
-        // Default: success with customisable item m1 + simple item m2
         every { restaurantRepository.getMenuItems(any()) } returns
                 flowOf(Result.success(fakeMenuWithCustomisations()))
 
-        // Default: add to cart succeeds silently
         coEvery { addToCartUseCase(any(), any(), any()) } just runs
     }
 
-    afterEach {
-        Dispatchers.resetMain()
-    }
+    afterEach { Dispatchers.resetMain() }
 
     // ══════════════════════════════════════════════════════════
     // GROUP 1 — Load Menu Item
@@ -85,28 +114,25 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         `when`("menu loads successfully") {
             then("uiState.item should be Chicken Biryani") {
                 createViewModel().uiState.value
-                    .item?.name shouldBe "Chicken Biryani"
+                    .item?.name shouldBe MENU_ITEM_CHICK_BIR
             }
         }
 
         `when`("menu loads successfully") {
             then("isLoading should be false") {
-                createViewModel().uiState.value
-                    .isLoading shouldBe false
+                createViewModel().uiState.value.isLoading shouldBe false
             }
         }
 
         `when`("menu loads successfully") {
             then("error should be null") {
-                createViewModel().uiState.value
-                    .error shouldBe null
+                createViewModel().uiState.value.error shouldBe null
             }
         }
 
         `when`("menu loads successfully") {
             then("initial quantity should be 1") {
-                createViewModel().uiState.value
-                    .quantity shouldBe 1
+                createViewModel().uiState.value.quantity shouldBe CART_QTY_1
             }
         }
 
@@ -114,15 +140,14 @@ class ProductDetailViewModelSpec : BehaviorSpec({
             then("item should have 2 customisation groups") {
                 val item = createViewModel().uiState.value.item
 
-                item?.customisations?.size shouldBe 2
-                item?.customisations?.any { it.name == "Size" } shouldBe true
-                item?.customisations?.any { it.name == "Spice Level" } shouldBe true
+                item?.customisations?.size shouldBe CUSTOMISE_COUNT_SIZE
+                item?.customisations?.any { it.name == CUSTOMISE_NAME_SIZE } shouldBe true
+                item?.customisations?.any { it.name == CUSTOMISE_NAME_SPICE } shouldBe true
             }
         }
 
         `when`("menu API throws error") {
             then("error state should be shown") {
-                // Override default stub → failure
                 every { restaurantRepository.getMenuItems(any()) } returns
                         flowOf(Result.failure(Exception()))
 
@@ -130,17 +155,16 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 
                 vm.uiState.value.isLoading shouldBe false
                 vm.uiState.value.item shouldBe null
-                vm.uiState.value.error shouldBe "Failed to load item"
+                vm.uiState.value.error shouldBe ERR_FAILED_LOAD_ITEM_MSG
             }
         }
 
         `when`("itemId does not exist in menu") {
             then("error state shows Item not found") {
-                // m999 not in fake menu → not found
-                val vm = createViewModel(menuItemId = "m999")
+                val vm = createViewModel(menuItemId = MENU_ID_UNKNOWN)
 
                 vm.uiState.value.item shouldBe null
-                vm.uiState.value.error shouldBe "Item not found"
+                vm.uiState.value.error shouldBe ERR_ITEM_NOT_FOUND_MSG
             }
         }
     }
@@ -154,21 +178,20 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         `when`("screen opens") {
             then("first option of Size group is pre-selected") {
                 createViewModel().uiState.value
-                    .selectedOptions["size_group"] shouldBe "regular"
+                    .selectedOptions[CUSTOMISE_GROUP_SIZE] shouldBe CUSTOMISE_OPT_REGULAR
             }
         }
 
         `when`("screen opens") {
             then("first option of Spice group is pre-selected") {
                 createViewModel().uiState.value
-                    .selectedOptions["spice_group"] shouldBe "mild"
+                    .selectedOptions[CUSTOMISE_GROUP_SPICE] shouldBe CUSTOMISE_OPT_MILD
             }
         }
 
         `when`("item has NO customisations") {
             then("selectedOptions should be empty") {
-                val vm = createViewModel(menuItemId = "m2")
-
+                val vm = createViewModel(menuItemId = MENU_ID_2)
                 vm.uiState.value.selectedOptions shouldBe emptyMap()
             }
         }
@@ -182,8 +205,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 
         `when`("default selections are applied") {
             then("totalPrice should equal base price (no extras)") {
-                createViewModel().uiState.value
-                    .totalPrice shouldBe 249.0
+                createViewModel().uiState.value.totalPrice shouldBe PRICE_249
             }
         }
     }
@@ -197,58 +219,70 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         `when`("user selects Large size (+₹50)") {
             then("selectedOptions updates to large for size_group") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "large")
+                vm.onOptionSelected(
+                    groupId = CUSTOMISE_GROUP_SIZE,
+                    optionId = CUSTOMISE_OPT_LARGE
+                ) // ✅
 
-                vm.uiState.value.selectedOptions["size_group"] shouldBe "large"
+                vm.uiState.value.selectedOptions[CUSTOMISE_GROUP_SIZE] shouldBe CUSTOMISE_OPT_LARGE
             }
         }
 
         `when`("user selects Large size (+₹50)") {
             then("totalPrice should be 299.0") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "large")
+                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SIZE, optionId = CUSTOMISE_OPT_LARGE)
 
-                vm.uiState.value.totalPrice shouldBe 299.0
+                vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_299
             }
         }
 
         `when`("user selects Extra Large size (+₹100)") {
             then("totalPrice should be 349.0") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "extra_large")
+                vm.onOptionSelected(
+                    groupId = CUSTOMISE_GROUP_SIZE,
+                    optionId = CUSTOMISE_OPT_EXTRA_LARGE
+                )
 
-                vm.uiState.value.totalPrice shouldBe 349.0
+                vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_349_P
             }
         }
 
         `when`("user switches Large back to Regular") {
             then("totalPrice should return to base 249.0") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "large")
-                vm.onOptionSelected(groupId = "size_group", optionId = "regular")
+                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SIZE, optionId = CUSTOMISE_OPT_LARGE)
+                vm.onOptionSelected(
+                    groupId = CUSTOMISE_GROUP_SIZE,
+                    optionId = CUSTOMISE_OPT_REGULAR
+                )
 
-                vm.uiState.value.totalPrice shouldBe 249.0
+                vm.uiState.value.totalPrice shouldBe PRICE_249
             }
         }
 
         `when`("user selects option in Spice group") {
             then("size selection is NOT changed") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "large")
-                vm.onOptionSelected(groupId = "spice_group", optionId = "hot")
+                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SIZE, optionId = CUSTOMISE_OPT_LARGE)
+                vm.onOptionSelected(
+                    groupId = CUSTOMISE_GROUP_SPICE,
+                    optionId = CUSTOMISE_OPT_HOT
+                )
 
-                vm.uiState.value.selectedOptions["size_group"] shouldBe "large"
-                vm.uiState.value.selectedOptions["spice_group"] shouldBe "hot"
+                vm.uiState.value.selectedOptions[CUSTOMISE_GROUP_SIZE] shouldBe CUSTOMISE_OPT_LARGE
+                vm.uiState.value.selectedOptions[CUSTOMISE_GROUP_SPICE] shouldBe CUSTOMISE_OPT_HOT
             }
         }
 
         `when`("user selects both Large size + different spice") {
             then("totalPrice includes only size extra (spice is free)") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "large")
-                vm.onOptionSelected(groupId = "spice_group", optionId = "hot")
+                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SIZE, optionId = CUSTOMISE_OPT_LARGE)
+                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SPICE, optionId = CUSTOMISE_OPT_HOT)
 
-                vm.uiState.value.totalPrice shouldBe 299.0
+                vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_299
             }
         }
     }
@@ -263,7 +297,6 @@ class ProductDetailViewModelSpec : BehaviorSpec({
             then("quantity should be 2") {
                 val vm = createViewModel()
                 vm.onIncrementQuantity()
-
                 vm.uiState.value.quantity shouldBe 2
             }
         }
@@ -273,7 +306,6 @@ class ProductDetailViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.onIncrementQuantity()
                 vm.onIncrementQuantity()
-
                 vm.uiState.value.quantity shouldBe 3
             }
         }
@@ -283,8 +315,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.onIncrementQuantity()
                 vm.onDecrementQuantity()
-
-                vm.uiState.value.quantity shouldBe 1
+                vm.uiState.value.quantity shouldBe CART_QTY_1
             }
         }
 
@@ -292,18 +323,16 @@ class ProductDetailViewModelSpec : BehaviorSpec({
             then("quantity should stay at 1") {
                 val vm = createViewModel()
                 vm.onDecrementQuantity()
-
-                vm.uiState.value.quantity shouldBe 1
+                vm.uiState.value.quantity shouldBe CART_QTY_1
             }
         }
 
         `when`("user increments beyond MAX_ITEM_QUANTITY") {
             then("quantity should not exceed MAX") {
                 val vm = createViewModel()
-                repeat(15) { vm.onIncrementQuantity() }
+                repeat(QTY_15_REPEAT) { vm.onIncrementQuantity() }
 
-                vm.uiState.value.quantity shouldBe
-                        AppBusinessRules.MAX_ITEM_QUANTITY
+                vm.uiState.value.quantity shouldBe AppBusinessRules.MAX_ITEM_QUANTITY
             }
         }
     }
@@ -318,40 +347,39 @@ class ProductDetailViewModelSpec : BehaviorSpec({
             then("totalPrice should be 249.0 × 2 = 498.0") {
                 val vm = createViewModel()
                 vm.onIncrementQuantity()
-
-                vm.uiState.value.totalPrice shouldBe 498.0
+                vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_498
             }
         }
 
         `when`("user selects Large (+₹50) and qty 2") {
             then("totalPrice should be (249+50)×2 = 598.0") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "large")
+                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SIZE, optionId = CUSTOMISE_OPT_LARGE)
                 vm.onIncrementQuantity()
-
-                vm.uiState.value.totalPrice shouldBe 598.0
+                vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_598
             }
         }
 
         `when`("user selects Large (+₹50) then decrements to 1") {
             then("totalPrice should be (249+50)×1 = 299.0") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "large")
+                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SIZE, optionId = CUSTOMISE_OPT_LARGE)
                 vm.onIncrementQuantity()
                 vm.onDecrementQuantity()
-
-                vm.uiState.value.totalPrice shouldBe 299.0
+                vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_299
             }
         }
 
         `when`("qty is 3 with Extra Large (+₹100)") {
             then("totalPrice should be (249+100)×3 = 1047.0") {
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "extra_large")
+                vm.onOptionSelected(
+                    groupId = CUSTOMISE_GROUP_SIZE,
+                    optionId = CUSTOMISE_OPT_EXTRA_LARGE
+                )
                 vm.onIncrementQuantity()
                 vm.onIncrementQuantity()
-
-                vm.uiState.value.totalPrice shouldBe 1047.0
+                vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_1047
             }
         }
     }
@@ -366,35 +394,27 @@ class ProductDetailViewModelSpec : BehaviorSpec({
             then("AddToCartUseCase is called once") {
                 val vm = createViewModel()
                 vm.onAddToCart()
-
-                // coVerify replaces fakeAddToCart.callCount
-                coVerify(exactly = 1) {
-                    addToCartUseCase(any(), any(), any())
-                }
+                coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) }
             }
         }
 
         `when`("item loaded with default selections") {
             then("AddToCartUseCase called with correct MenuItem") {
                 val itemSlot = slot<MenuItem>()
-                coEvery {
-                    addToCartUseCase(capture(itemSlot), any(), any())
-                } just runs
+                coEvery { addToCartUseCase(capture(itemSlot), any(), any()) } just runs
 
                 val vm = createViewModel()
                 vm.onAddToCart()
 
-                itemSlot.captured.id shouldBe "m1"
-                itemSlot.captured.name shouldBe "Chicken Biryani"
+                itemSlot.captured.id shouldBe MENU_ID_1
+                itemSlot.captured.name shouldBe MENU_ITEM_CHICK_BIR
             }
         }
 
         `when`("user selected qty 2") {
             then("AddToCartUseCase called with qty 2") {
                 val qtySlot = slot<Int>()
-                coEvery {
-                    addToCartUseCase(any(), capture(qtySlot), any())
-                } just runs
+                coEvery { addToCartUseCase(any(), capture(qtySlot), any()) } just runs
 
                 val vm = createViewModel()
                 vm.onIncrementQuantity()
@@ -407,16 +427,14 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         `when`("user selected Large size option") {
             then("AddToCartUseCase called with Large customisation") {
                 val customisationsSlot = slot<List<CustomisationOption>>()
-                coEvery {
-                    addToCartUseCase(any(), any(), capture(customisationsSlot))
-                } just runs
+                coEvery { addToCartUseCase(any(), any(), capture(customisationsSlot)) } just runs
 
                 val vm = createViewModel()
-                vm.onOptionSelected(groupId = "size_group", optionId = "large")
+                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SIZE, optionId = CUSTOMISE_OPT_LARGE)
                 vm.onAddToCart()
 
                 customisationsSlot.captured
-                    .any { it.id == "large" } shouldBe true
+                    .any { it.id == CUSTOMISE_OPT_LARGE } shouldBe true
             }
         }
 
@@ -426,9 +444,8 @@ class ProductDetailViewModelSpec : BehaviorSpec({
                 vm.events.test {
                     vm.onAddToCart()
 
-                    awaitItem() shouldBe
-                            ProductDetailViewModel.ProductDetailEvent
-                                .ShowSnackbar("Chicken Biryani added to cart 🛒")
+                    awaitItem() shouldBe ProductDetailViewModel.ProductDetailEvent
+                        .ShowSnackbar(MSG_BIRYANI_ADDED_CART)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -443,8 +460,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 
                     awaitItem() // consume ShowSnackbar
 
-                    awaitItem() shouldBe
-                            ProductDetailViewModel.ProductDetailEvent.NavigateBack
+                    awaitItem() shouldBe ProductDetailViewModel.ProductDetailEvent.NavigateBack
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -453,17 +469,15 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 
         `when`("AddToCartUseCase throws exception") {
             then("ShowError event emitted with error message") {
-                coEvery {
-                    addToCartUseCase(any(), any(), any())
-                } throws Exception("Cart is full")
+                coEvery { addToCartUseCase(any(), any(), any()) } throws
+                        Exception(ERR_CART_FULL)
 
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onAddToCart()
 
-                    awaitItem() shouldBe
-                            ProductDetailViewModel.ProductDetailEvent
-                                .ShowError("Cart is full")
+                    awaitItem() shouldBe ProductDetailViewModel.ProductDetailEvent
+                        .ShowError(ERR_CART_FULL)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -483,8 +497,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 
                     val event = awaitItem()
                     assert(
-                        event is ProductDetailViewModel
-                        .ProductDetailEvent.ShowError
+                        event is ProductDetailViewModel.ProductDetailEvent.ShowError
                     ) { "Expected ShowError but got $event" }
 
                     cancelAndIgnoreRemainingEvents()
@@ -504,10 +517,8 @@ class ProductDetailViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onBackPressed()
-
                     awaitItem() shouldBe
                             ProductDetailViewModel.ProductDetailEvent.NavigateBack
-
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -522,35 +533,32 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 
         `when`("screen opens with simple item m2") {
             then("item loads correctly") {
-                createViewModel(menuItemId = "m2").uiState.value
-                    .item?.name shouldBe "Plain Naan"
+                createViewModel(menuItemId = MENU_ID_2).uiState.value
+                    .item?.name shouldBe MENU_ITEM_PLAIN_NAAN
             }
         }
 
         `when`("simple item loaded") {
             then("totalPrice equals base price × qty") {
-                createViewModel(menuItemId = "m2").uiState.value
-                    .totalPrice shouldBe 50.0
+                createViewModel(menuItemId = MENU_ID_2).uiState.value
+                    .totalPrice shouldBe PRICE_50
             }
         }
 
         `when`("user increments qty on simple item") {
             then("totalPrice updates correctly") {
-                val vm = createViewModel(menuItemId = "m2")
+                val vm = createViewModel(menuItemId = MENU_ID_2)
                 vm.onIncrementQuantity()
-
-                vm.uiState.value.totalPrice shouldBe 100.0
+                vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_100
             }
         }
 
         `when`("user adds simple item to cart") {
             then("AddToCartUseCase called with empty customisations") {
                 val customisationsSlot = slot<List<CustomisationOption>>()
-                coEvery {
-                    addToCartUseCase(any(), any(), capture(customisationsSlot))
-                } just runs
+                coEvery { addToCartUseCase(any(), any(), capture(customisationsSlot)) } just runs
 
-                val vm = createViewModel(menuItemId = "m2")
+                val vm = createViewModel(menuItemId = MENU_ID_2)
                 vm.onAddToCart()
 
                 coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) }
@@ -560,19 +568,16 @@ class ProductDetailViewModelSpec : BehaviorSpec({
     }
 })
 
-// ── Local test data helpers ───────────────────────────────────────────────
-// WHY local not from FakeRepository companion?
-// Spec is self-contained — no dependency on fake class
-// Easy to read: data is right here in this file
+// ── Local test data helpers ───────────────────────────────────
 
 private fun fakeMenuWithCustomisations(): Map<String, List<MenuItem>> = mapOf(
     "Biryani" to listOf(
         MenuItem(
-            id = "m1",
-            restaurantId = "r1",
-            name = "Chicken Biryani",
-            description = "Delicious Chicken Biryani",
-            price = 249.0,
+            id = MENU_ID_1,
+            restaurantId = RESTAURANT_ID_1,
+            name = MENU_ITEM_CHICK_BIR,
+            description = MENU_DESC_BIRYANI,
+            price = PRICE_249,
             imageUrl = "",
             category = "Biryani",
             isVeg = false,
@@ -581,21 +586,45 @@ private fun fakeMenuWithCustomisations(): Map<String, List<MenuItem>> = mapOf(
             isAvailable = true,
             customisations = listOf(
                 Customisation(
-                    id = "size_group",
-                    name = "Size",
+                    id = CUSTOMISE_GROUP_SIZE,
+                    name = CUSTOMISE_NAME_SIZE,
                     options = listOf(
-                        CustomisationOption("regular", "Regular", 0.0),
-                        CustomisationOption("large", "Large", 50.0),
-                        CustomisationOption("extra_large", "Extra Large", 100.0),
+                        CustomisationOption(
+                            CUSTOMISE_OPT_REGULAR,
+                            CUSTOMISE_LABEL_REGULAR,
+                            EXTRA_PRICE_ZERO
+                        ),
+                        CustomisationOption(
+                            CUSTOMISE_OPT_LARGE,
+                            CUSTOMISE_LABEL_LARGE,
+                            EXTRA_PRICE_LARGE
+                        ),
+                        CustomisationOption(
+                            CUSTOMISE_OPT_EXTRA_LARGE,
+                            CUSTOMISE_LABEL_XL,
+                            EXTRA_PRICE_100
+                        ),
                     ),
                 ),
                 Customisation(
-                    id = "spice_group",
-                    name = "Spice Level",
+                    id = CUSTOMISE_GROUP_SPICE,
+                    name = CUSTOMISE_NAME_SPICE,
                     options = listOf(
-                        CustomisationOption("mild", "Mild", 0.0),
-                        CustomisationOption("medium", "Medium", 0.0),
-                        CustomisationOption("hot", "Hot", 0.0),
+                        CustomisationOption(
+                            CUSTOMISE_OPT_MILD,
+                            CUSTOMISE_LABEL_MILD,
+                            EXTRA_PRICE_ZERO
+                        ),
+                        CustomisationOption(
+                            CUSTOMISE_OPT_MEDIUM,
+                            CUSTOMISE_LABEL_MEDIUM,
+                            EXTRA_PRICE_ZERO
+                        ),
+                        CustomisationOption(
+                            CUSTOMISE_OPT_HOT,
+                            CUSTOMISE_LABEL_HOT,
+                            EXTRA_PRICE_ZERO
+                        ),
                     ),
                 ),
             ),
@@ -603,18 +632,18 @@ private fun fakeMenuWithCustomisations(): Map<String, List<MenuItem>> = mapOf(
     ),
     "Breads" to listOf(
         MenuItem(
-            id = "m2",
-            restaurantId = "r1",
-            name = "Plain Naan",
-            description = "Delicious Plain Naan",
-            price = 50.0,
+            id = MENU_ID_2,
+            restaurantId = RESTAURANT_ID_1,
+            name = MENU_ITEM_PLAIN_NAAN,
+            description = MENU_DESC_NAAN,
+            price = PRICE_50,
             imageUrl = "",
             category = "Breads",
             isVeg = true,
             isRecommended = false,
             isBestseller = false,
             isAvailable = true,
-            customisations = emptyList(),  // no customisations
+            customisations = emptyList(),
         )
     ),
 )

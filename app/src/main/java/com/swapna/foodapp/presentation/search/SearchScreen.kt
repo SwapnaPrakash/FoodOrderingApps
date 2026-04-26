@@ -23,20 +23,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.swapna.foodapp.presentation.navigation.AppRoutes
-import com.swapna.foodapp.presentation.search.components.EmptySearchResult
-import com.swapna.foodapp.presentation.search.components.FilterBottomSheet
-import com.swapna.foodapp.presentation.search.components.FilterButton
-import com.swapna.foodapp.presentation.search.components.FilterChipsRow
-import com.swapna.foodapp.presentation.search.components.SearchResultItem
-import com.swapna.foodapp.presentation.search.components.SearchTopBar
-import com.swapna.foodapp.presentation.search.components.activeCount
+import com.swapna.foodapp.presentation.common.EmptySearchResult
+import com.swapna.foodapp.presentation.common.FilterBottomSheet
+import com.swapna.foodapp.presentation.common.FilterButton
+import com.swapna.foodapp.presentation.common.FilterChipsRow
+import com.swapna.foodapp.presentation.common.SearchResultItem
+import com.swapna.foodapp.presentation.common.SearchTopBar
+import com.swapna.foodapp.presentation.common.activeCount
 import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.COUNT
+import com.swapna.foodapp.utils.AppConstants.EMOJI_SEARCH
+import com.swapna.foodapp.utils.AppConstants.EMOJI_WARNING
 import com.swapna.foodapp.utils.AppConstants.FILTER_ACTIVE
 import com.swapna.foodapp.utils.AppConstants.RESTAURANT_FOUND
 import com.swapna.foodapp.utils.AppConstants.RESTAURANT_SEARCH
@@ -54,12 +58,9 @@ fun SearchScreen(
     var showFilterSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(initialQuery) {
-        if (initialQuery.isNotEmpty()) {
-            viewModel.onQueryChange(initialQuery)
-        }
+        if (initialQuery.isNotEmpty()) viewModel.onQueryChange(initialQuery)
     }
 
-    // Filter bottom sheet
     if (showFilterSheet) {
         FilterBottomSheet(
             sheetState = filterSheetState,
@@ -71,7 +72,7 @@ fun SearchScreen(
             onMinRatingSelected = viewModel::onMinRatingSelected,
             onDeliveryTimeSelected = viewModel::onDeliveryTimeSelected,
             onClearAll = viewModel::clearFilters,
-            onApply = { /* filters already reactive */ },
+            onApply = { },
             onDismiss = { showFilterSheet = false },
         )
     }
@@ -93,7 +94,6 @@ fun SearchScreen(
                 .padding(paddingValues),
         ) {
 
-            // Loading indicator
             if (state.isLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
@@ -103,12 +103,10 @@ fun SearchScreen(
                 HorizontalDivider()
             }
 
-            // Filter row: chips + filter button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Quick filter chips — scrollable horizontally
                 FilterChipsRow(
                     filters = state.filters,
                     cuisines = state.cuisines.take(4),
@@ -118,8 +116,6 @@ fun SearchScreen(
                     onMinRatingSelected = viewModel::onMinRatingSelected,
                     modifier = Modifier.weight(1f),
                 )
-
-                // Filter button with active count badge
                 FilterButton(
                     filters = state.filters,
                     onClick = { showFilterSheet = true },
@@ -129,11 +125,9 @@ fun SearchScreen(
 
             HorizontalDivider()
 
-            // Active filter summary
             if (state.filters.activeCount() > 0 && state.hasSearched) {
                 Text(
-                    text = "${state.filters.activeCount()} " + FILTER_ACTIVE +
-                            "${state.results.size} " + RESULTS,
+                    text = "${state.filters.activeCount()} $FILTER_ACTIVE${state.results.size} $RESULTS",
                     style = MaterialTheme.typography.labelSmall,
                     color = AppGray,
                     modifier = Modifier.padding(
@@ -143,13 +137,11 @@ fun SearchScreen(
                 )
             }
 
-            // Results / States
             Box(modifier = Modifier.fillMaxSize()) {
                 when {
-                    // Error state
                     state.error != null && !state.isLoading -> {
                         Text(
-                            text = "⚠️  ${state.error}",
+                            text = "$EMOJI_WARNING${state.error}",
                             color = AppGray,
                             modifier = Modifier
                                 .align(Alignment.Center)
@@ -157,28 +149,19 @@ fun SearchScreen(
                         )
                     }
 
-                    // No results after search
-                    state.hasSearched
-                            && state.results.isEmpty()
-                            && !state.isLoading -> {
+                    state.hasSearched && state.results.isEmpty() && !state.isLoading -> {
                         EmptySearchResult(query = state.query)
                     }
 
-                    // Idle — no query entered yet
                     !state.hasSearched && state.query.isEmpty() -> {
-                        IdleSearchHint(
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                        IdleSearchHint(modifier = Modifier.align(Alignment.Center))
                     }
 
-                    // Results list
                     state.results.isNotEmpty() -> {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
-
-                            // Result count
-                            item(key = "count") {
+                            item(key = COUNT) {
                                 Text(
-                                    text = "${state.results.size} " + RESTAURANT_FOUND,
+                                    text = "${state.results.size} $RESTAURANT_FOUND",
                                     color = AppGray,
                                     style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier.padding(
@@ -187,7 +170,6 @@ fun SearchScreen(
                                     ),
                                 )
                             }
-
                             items(state.results, key = { it.id }) { restaurant ->
                                 SearchResultItem(
                                     restaurant = restaurant,
@@ -206,7 +188,6 @@ fun SearchScreen(
     }
 }
 
-//Idle hint
 @Composable
 private fun IdleSearchHint(modifier: Modifier = Modifier) {
     Column(
@@ -214,15 +195,16 @@ private fun IdleSearchHint(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
     ) {
-        Text("🔍", style = MaterialTheme.typography.displayMedium)
-        androidx.compose.foundation.layout.Spacer(
-            Modifier.padding(Dimens.SpaceM)
+        Text(
+            text = EMOJI_SEARCH,
+            style = MaterialTheme.typography.displayMedium,
         )
+        androidx.compose.foundation.layout.Spacer(Modifier.padding(Dimens.SpaceM))
         Text(
             text = RESTAURANT_SEARCH,
             style = MaterialTheme.typography.bodyLarge,
             color = AppGray,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            textAlign = TextAlign.Center,
         )
     }
 }

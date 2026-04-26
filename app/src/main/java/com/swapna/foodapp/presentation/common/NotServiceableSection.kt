@@ -25,14 +25,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.swapna.foodapp.presentation.ui.theme.AppGray
+import com.swapna.foodapp.presentation.ui.theme.AppWhiteSurface
 import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.presentation.ui.theme.Dimens.AreaChipRadius
+import com.swapna.foodapp.presentation.ui.theme.Dimens.NotServiceableButtonHeight
+import com.swapna.foodapp.presentation.ui.theme.Dimens.NotServiceableCardElevation
+import com.swapna.foodapp.presentation.ui.theme.Dimens.NotServiceableIconSize
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SadEmojiSize
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.ALPHA_CHIP_BG
+import com.swapna.foodapp.utils.AppConstants.CHANGE_DELIVERY_LOCATION
+import com.swapna.foodapp.utils.AppConstants.CURRENTLY_DELIVER_IN
+import com.swapna.foodapp.utils.AppConstants.EMOJI_SAD
+import com.swapna.foodapp.utils.AppConstants.NOT_SERVICEABLE_PREFIX
+import com.swapna.foodapp.utils.AppConstants.NOT_SERVICEABLE_SUBTITLE
+import com.swapna.foodapp.utils.AppConstants.NOT_SERVICEABLE_SUFFIX
+import com.swapna.foodapp.utils.AppConstants.NO_RESTAURANTS_FOUND
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -50,17 +61,15 @@ fun NotServiceableSection(
 
         Spacer(Modifier.height(Dimens.SpaceXXL))
 
-        // ── Sad emoji illustration ────────────────────────────
         Text(
-            text = "😔",
-            fontSize = 64.sp,
+            text = EMOJI_SAD,
+            fontSize = SadEmojiSize,
         )
 
         Spacer(Modifier.height(Dimens.SpaceL))
 
-        // ── Main message ──────────────────────────────────────
         Text(
-            text = "We're not in $requestedArea yet",
+            text = "$NOT_SERVICEABLE_PREFIX$requestedArea$NOT_SERVICEABLE_SUFFIX",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -68,10 +77,8 @@ fun NotServiceableSection(
 
         Spacer(Modifier.height(Dimens.SpaceS))
 
-        // ── Sub message ───────────────────────────────────────
         Text(
-            text = "We are rapidly expanding!\n" +
-                    "Try selecting a nearby area.",
+            text = NOT_SERVICEABLE_SUBTITLE,
             style = MaterialTheme.typography.bodyMedium,
             color = AppGray,
             textAlign = TextAlign.Center,
@@ -79,17 +86,15 @@ fun NotServiceableSection(
 
         Spacer(Modifier.height(Dimens.SpaceXL))
 
-        // ── Available areas section ───────────────────────────
         if (availableAreas.isNotEmpty()) {
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
+                    containerColor = AppWhiteSurface,
                 ),
                 shape = RoundedCornerShape(Dimens.RadiusM),
                 elevation = CardDefaults.cardElevation(
-                    defaultElevation = 2.dp,
+                    defaultElevation = NotServiceableCardElevation,
                 ),
             ) {
                 Column(
@@ -97,10 +102,8 @@ fun NotServiceableSection(
                         .fillMaxWidth()
                         .padding(Dimens.SpaceL),
                 ) {
-
-                    // Section label
                     Text(
-                        text = "We currently deliver in:",
+                        text = CURRENTLY_DELIVER_IN,
                         style = MaterialTheme.typography.labelLarge,
                         color = AppGray,
                         fontWeight = FontWeight.SemiBold,
@@ -108,23 +111,13 @@ fun NotServiceableSection(
 
                     Spacer(Modifier.height(Dimens.SpaceM))
 
-                    // ── Area chips ────────────────────────────
-                    // Shows: Koramangala, Indiranagar,
-                    //        HSR Layout, Whitefield,
-                    //        Electronic City
                     FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(
-                            Dimens.SpaceS
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(
-                            Dimens.SpaceS
-                        ),
+                        horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceS),
+                        verticalArrangement = Arrangement.spacedBy(Dimens.SpaceS),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         availableAreas.forEach { area ->
-                            AreaChip(
-                                areaName = area,
-                            )
+                            AreaChip(areaName = area)
                         }
                     }
                 }
@@ -133,12 +126,11 @@ fun NotServiceableSection(
 
         Spacer(Modifier.height(Dimens.SpaceXL))
 
-        // ── Change location button ────────────────────────────
         Button(
             onClick = onChangeLocation,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
+                .height(NotServiceableButtonHeight),
             colors = ButtonDefaults.buttonColors(
                 containerColor = ZomatoRed,
             ),
@@ -147,13 +139,13 @@ fun NotServiceableSection(
             Icon(
                 imageVector = Icons.Default.LocationOn,
                 contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(20.dp),
+                tint = AppWhiteSurface,
+                modifier = Modifier.size(NotServiceableIconSize),
             )
             Spacer(Modifier.width(Dimens.SpaceS))
             Text(
-                text = "Change Delivery Location",
-                color = Color.White,
+                text = CHANGE_DELIVERY_LOCATION,
+                color = AppWhiteSurface,
                 fontWeight = FontWeight.SemiBold,
                 style = MaterialTheme.typography.bodyLarge,
             )
@@ -163,14 +155,13 @@ fun NotServiceableSection(
     }
 }
 
-// ── Area chip ─────────────────────────────────────────────────
 @Composable
 private fun AreaChip(areaName: String) {
     Box(
         modifier = Modifier
             .background(
-                color = ZomatoRed.copy(alpha = 0.08f),
-                shape = RoundedCornerShape(20.dp),
+                color = ZomatoRed.copy(alpha = ALPHA_CHIP_BG),
+                shape = RoundedCornerShape(AreaChipRadius),
             )
             .padding(
                 horizontal = Dimens.SpaceM,
@@ -185,8 +176,6 @@ private fun AreaChip(areaName: String) {
     }
 }
 
-// ── Empty restaurants card ────────────────────────────────────
-// Shows when filter returns empty but not NOT_SERVICEABLE
 @Composable
 private fun EmptyRestaurantsCard() {
     Box(
@@ -196,7 +185,7 @@ private fun EmptyRestaurantsCard() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "No restaurants found\nfor this area",
+            text = NO_RESTAURANTS_FOUND,
             style = MaterialTheme.typography.bodyLarge,
             color = AppGray,
             textAlign = TextAlign.Center,

@@ -166,6 +166,10 @@ object AppConstants {
     const val KEY_LOCALITY = "locality"
     const val KEY_CITY = "city"
     const val KEY_ZIPCODE = "zipcode"
+    const val EDIT_PROFILE  = "Edit Profile"
+    const val NAME          = "Name"
+    const val EMAIL         = "Email"
+    const val SAVE_CHANGES  = "Save Changes"
     const val NO_INTERNET_LOAD_RESTAURANT =
         "Could not load restaurant. Check your connection."
     const val URI_FALL_BACK =
@@ -189,7 +193,7 @@ object AppConstants {
     const val GO_TO_CART = "Go to cart"
     const val SEARCH_HINT = "Search for restaurants and food"
     const val SEARCH_ICON_DESC = "Search"
-    const val CURRENT_LOCATION_DESC = "Current location"
+    const val CURRENT_LOCATION = "Current location"
     const val ENABLE_LOCATION_PERMISSION = "Enable location permission"
     const val SAVED_ADDRESSES = "SAVED ADDRESSES"
     const val POPULAR_LOCATIONS = "POPULAR LOCATIONS"
@@ -255,102 +259,233 @@ object AppConstants {
     const val WRONG_OTP = "Wrong OTP. Please check and try again."
     const val VERIFY_FAILED = "Verification failed"
     const val OFFLINE = "You're offline — showing cached data"
-    const val DEFAULT_DELIVERY_TIME  = 30
-    const val MAX_REVIEWS_SHOWN      = 5
-    const val MENU_STICKY_OFFSET     = 56
-    const val RESTAURANT_HERO_ALPHA  = 0.6f
+    const val EMOJI_CART             = "🛒"
+    const val CART_EMPTY_TITLE       = "Your cart is empty"
+    const val CART_EMPTY_SUBTITLE    = "Add items from a restaurant\nto get started"
+    const val BROWSE_RESTAURANTS     = "Browse Restaurants"
+    const val DEFAULT_DELIVERY_TIME = 30
+    const val MAX_REVIEWS_SHOWN = 5
+    const val MENU_STICKY_OFFSET = 56
+    const val RESTAURANT_HERO_ALPHA = 0.6f
     const val QUICK_ADD_ANIMATION_MS = 200L
-    const val SEARCH_MAX_RESULTS     = 20
-    const val CATEGORY_CHIPS_MAX     = 5
-    const val MAX_OFFER_CARDS        = 5
-    const val MAX_RECOMMENDED_ITEMS  = 5
-    const val RATING_EXCELLENT       = 4.5
-    const val RATING_VERY_GOOD       = 4.0
-    const val RATING_GOOD            = 3.5
-    const val RATING_AVERAGE         = 3.0
-    const val RECOMMENDED_CARD_MAX    = 5
+    const val SEARCH_MAX_RESULTS = 20
+    const val CATEGORY_CHIPS_MAX = 5
+    const val MAX_OFFER_CARDS = 5
+    const val MAX_RECOMMENDED_ITEMS = 5
+    const val RATING_EXCELLENT = 4.5
+    const val RATING_VERY_GOOD = 4.0
+    const val RATING_GOOD = 3.5
+    const val RATING_AVERAGE = 3.0
+    const val RECOMMENDED_CARD_MAX = 5
     const val RECOMMENDED_SECTION_KEY = "recommended_section"
-    const val MENU_TAB_KEY            = "menu_tab_row"
-    const val CATEGORY_FOOTER_KEY     = "category_footer"
-    const val CD_SEARCH_LOCATION    = "Search for a delivery location"
-    const val CD_CURRENT_LOCATION   = "Use device current location"
-    const val CD_LOCATION_PIN       = "Location pin"
-    const val CD_CLOSE_SHEET        = "Close location picker"
-    const val COL_IS_BESTSELLER     = "is_bestseller"
-    const val COL_IS_AVAILABLE      = "is_available"
-    const val COL_DISTANCE_KM       = "distance_km"
-    const val COL_PHONE_NUMBER      = "phone_number"
-    const val COL_OPENING_HOURS     = "opening_hours"
-    const val COL_HIGHLIGHTS_JSON   = "highlights_json"
-    const val COL_KNOWN_FOR         = "known_for"
-    const val REVIEWS_MAX_SHOWN     = 10
+    const val MENU_TAB_KEY = "menu_tab_row"
+    const val CATEGORY_FOOTER_KEY = "category_footer"
+    const val CD_SEARCH_LOCATION = "Search for a delivery location"
+    const val CD_CURRENT_LOCATION = "Use device current location"
+    const val CD_LOCATION_PIN = "Location pin"
+    const val CD_CLOSE_SHEET = "Close location picker"
+    const val COL_IS_BESTSELLER = "is_bestseller"
+    const val COL_IS_AVAILABLE = "is_available"
+    const val COL_DISTANCE_KM = "distance_km"
+    const val COL_PHONE_NUMBER = "phone_number"
+    const val COL_OPENING_HOURS = "opening_hours"
+    const val COL_HIGHLIGHTS_JSON = "highlights_json"
+    const val COL_KNOWN_FOR = "known_for"
+    const val REVIEWS_MAX_SHOWN = 10
     const val REVIEW_TEXT_MAX_LINES = 3
+    const val EMOJI_SAD                   = "😔"
+    const val NOT_SERVICEABLE_PREFIX      = "We're not in "
+    const val NOT_SERVICEABLE_SUFFIX      = " yet"
+    const val NOT_SERVICEABLE_SUBTITLE    = "We are rapidly expanding!\nTry selecting a nearby area."
+    const val CURRENTLY_DELIVER_IN        = "We currently deliver in:"
+    const val CHANGE_DELIVERY_LOCATION    = "Change Delivery Location"
+    const val NO_RESTAURANTS_FOUND        = "No restaurants found\nfor this area"
 
-    // ══════════════════════════════════════════════════════════
-    // SharedFlow Buffer Constants
-    // WHY constants not hardcoded numbers?
-    // Single place to tune all buffer sizes across all ViewModels
-    // Change here → all ViewModels updated automatically
-    // ══════════════════════════════════════════════════════════
+    const val PROFILE_ICON_DESC           = "Profile"
+    const val PHONE_PREFIX                = "+91 "
 
-    // Navigation events — buffer 10, overflow = SUSPEND
-    // WHY SUSPEND? Navigation must NEVER be dropped
-    //   Dropped NavigateBack = user stuck on screen = worst UX bug
-    //   SUSPEND = ViewModel coroutine waits → event never lost
-    // WHY 10? Navigation events are rare (1 per user tap)
-    //   Buffer 10 = handles 10 rapid taps without blocking
+    const val ALPHA_CHIP_BG               = 0.08f  // area chip background tint
+    const val ALPHA_AVATAR_BG             = 0.1f   // avatar circle background tint
+    const val CUSTOMISE               = "Customise"
+    const val TOTAL_PREFIX            = "Total: $CURRENCY_SYMBOL"
+    const val ADD_TO_CART_PREFIX      = "Add to Cart  •  $CURRENCY_SYMBOL"
+    const val BESTSELLER_LABEL        = "🏆 Bestseller"
+    const val HARDCODED_RATING        = "4.5"
+    const val KEY_HERO_IMAGE          = "hero_image"
+    const val KEY_ITEM_INFO           = "item_info"
+    const val KEY_CUSTOMISE_HEADER    = "customise_header"
+    const val KEY_PRODUCT_BOTTOM      = "bottom_space"
+    const val PHONE_NUMBER_LABEL      = "Phone Number"
+    const val NOT_SET                 = "Not set"
+    const val SAVED_ADDRESSES_TITLE   = "Saved Addresses"
+    const val NO_SAVED_ADDRESSES      = "No saved addresses yet"
+    const val RECENT_ORDERS_TITLE     = "Recent Orders"
+    const val NO_ORDERS               = "No orders yet.\nStart ordering!"
+    const val LOGOUT                  = "Logout"
+    const val CANCEL                  = "Cancel"
+    const val SAVE                    = "Save"
+    const val PROFILE_AVATAR_DESC     = "Profile avatar"
+    const val DELETE_ADDRESS_DESC     = "Delete address"
+    const val ORDER_ITEMS_MORE_SUFFIX = " more"
+    const val ORDER_STATUS_DELIVERED  = "delivered"
+    const val ORDER_STATUS_CANCELLED  = "cancelled"
+    const val ADDRESS_LABEL_HOME      = "home"
+    const val COUNT = "count"
+    const val SHIMMER_TRANSLATE_START  = 0f      // initial shimmer X position
+    const val SHIMMER_TRANSLATE_END    = 1000f   // target shimmer X position
+    const val SHIMMER_GRADIENT_OFFSET  = 300f
+    val FIXED_ITEMS_BEFORE_MENU = 4
+    const val SEARCH_FIELD_PLACEHOLDER = "Search area, street or landmark..."
+    const val DELIVERY_LOCATION         = "Delivery Location"
+    const val WHERE_DELIVER             = "Where should we deliver?"
+    const val CLOSE                     = "Close"
+    const val DETECTING_LOCATION        = "Detecting location..."
+    const val GETTING_GPS               = "Getting GPS coordinates..."
+    const val USES_DEVICE_GPS           = "Uses your device GPS"
+    const val NOT_IN_AREA_MESSAGE       = "We're not in your area yet. We'll notify you when we expand! 🚀"
+    const val NO_SAVED_ADDRESSES_HINT   = "No saved addresses"
+    const val ADD_HOME_WORK             = "Add Home & Work in your Profile"
+    const val EMOJI_PIN                 = "📍"
+    const val EMOJI_FIRE                = "🔥"
+    const val EMOJI_CROSS               = "❌"
+    const val EMOJI_NO_ENTRY            = "🚫"
+    const val EMOJI_HOUSE               = "🏠"
+    const val SEARCH_LOCATION_DESC      = "Search"
+    const val USE_CURRENT_LOCATION_DESC = "Use current location"
+    const val SECTION_SAVED_ADDRESSES   = "SAVED ADDRESSES"
+    const val SECTION_POPULAR_LOCATIONS = "POPULAR LOCATIONS"
+    const val KEY_SAVED_HEADER    = "saved_header"
+    const val KEY_NO_SAVED        = "no_saved"
+    const val KEY_GAP             = "gap"
+    const val KEY_POPULAR_HEADER  = "popular_header"
+    const val KEY_BOTTOM          = "bottom"
+    const val ITEM_SINGULAR       = "item"
+    const val ITEM_PLURAL         = "items"
+    const val ITEM_COUNT_SPACE    = "  "
+    const val BULLET_SEPARATOR    = "  •  "
+    const val VIEW_CART           = "View Cart"
+    const val GO_TO_CART_DESC     = "Go to cart"
+    const val ADD_LABEL           = "ADD  +"
+    const val REMOVE_DESC         = "Remove"
+    const val ADD_DESC            = "Add"
+    const val ADD_TO_CART_DESC    = "Add to cart"
+    const val QUANTITY_LABEL      = "quantity"
+    const val ADD_OR_QUANTITY_LABEL = "add_or_quantity"
+    const val RECOMMENDED         = "Recommended"
+    const val EMOJI_STAR          = "⭐"
+    const val ADD_BTN_LABEL       = "ADD"
+    const val ITEMS_SUFFIX        = " items"
+    const val RATINGS_SUFFIX      = " ratings"
+    const val DELIVERY_TIME_LABEL = "Delivery Time"
+    const val COST_FOR_TWO_LABEL  = "Cost for two"
+    const val OPEN_NOW            = "Open Now"
+    const val CLOSED              = "Closed"
+    const val OFFER_TAG_PREFIX    = "🏷 "
+    const val VOTES_FORMAT        = "%.1fK"
+    const val VOTES_THOUSAND      = 1000
+    const val NO_RESULTS_PREFIX    = "No results for \""
+    const val NO_RESULTS_SUFFIX    = "\""
+    const val ALPHA_FILTER_ACTIVE_BG = 0.08f
+    const val SEARCH_MENU_DESC    = "Search menu"
+    const val SHARE_DESC          = "Share restaurant"
+    const val CART_DESC           = "Cart"
+    const val SHIMMER_LABEL       = "shimmer"
+    const val SHIMMER_X_LABEL     = "shimmer_x"
+    const val ALPHA_CART_BADGE_BG      = 0.2f   // item count badge in CartBottomBar
+    const val ALPHA_HERO_OVERLAY_MID   = 0.2f   // hero gradient middle stop
+    const val ALPHA_HERO_OVERLAY_DARK  = 0.7f   // hero gradient bottom stop
+    const val ALPHA_CUISINE_TEXT       = 0.85f  // cuisine text on hero image
+    const val ALPHA_CART_SHADOW        = 0.3f   // CartBottomBar shadow color
+    const val ALPHA_CIRCLE_BTN_BG      = 0.9f   // restaurant top bar circle button bg
+    const val RESTAURANTS_SUFFIX = " restaurants"  // "10 restaurants"
+    const val FREE_DELIVERY          = "Free delivery"
+    const val DELIVERY_FEE_PREFIX    = "₹"
+    const val DELIVERY_FEE_SUFFIX    = " delivery"
+    const val CUISINE_SEPARATOR      = " • "
+    const val MINS_SUFFIX            = " mins"
+    const val DELIVERY_INFO_SEPARATOR = " min  •  "
+    const val OFFER_TAG_EMOJI         = "🏷 "
+    const val ALPHA_VEG_CHIP_UNSELECTED  = 0.5f   // veg icon tint when unselected
+    const val ALPHA_VEG_CHIP_SELECTED    = 0.15f  // veg chip selected background
+    const val ALPHA_FILTER_CHIP_SELECTED = 0.12f  // filter chip selected background
+    const val ALPHA_VEG_SWITCH_TRACK     = 0.3f   // veg toggle switch track
+    const val ALPHA_SCRIM              = 0.6f   // bottom sheet scrim
+    const val ALPHA_OFFER_CARD_CAPTION = 0.8f   // offer card restaurant count
+    const val ALPHA_LOCATION_ICON      = 0.4f   // trailing location icon tint
+    const val ALPHA_LOCATION_SUBTITLE  = 0.7f   // GPS subtitle text
+    const val CATEGORY_SEC = "🔖"
+    const val KEY_PROFILE_HEADER      = "profile_header"
+    const val KEY_PHONE_SECTION       = "phone_section"
+    const val KEY_ADDRESSES_HEADER    = "addresses_header"
+    const val KEY_NO_ADDRESS          = "no_address"
+    const val KEY_ORDERS_HEADER       = "orders_header"
+    const val KEY_NO_ORDERS           = "no_orders"
+    const val KEY_LOGOUT              = "logout"
+    const val RESTAURANTS_NEAR_YOU    = "Restaurants Near You"
+    const val EMOJI_WARNING           = "⚠️  "
+    const val EMOJI_SEARCH            = "🔍"
+    const val KEY_OFFERS_TITLE        = "offers_title"
+    const val KEY_OFFERS_ROW          = "offers_row"
+    const val KEY_CATEGORIES_TITLE    = "categories_title"
+    const val KEY_CATEGORIES_ROW      = "categories_row"
+    const val KEY_STORES_TITLE        = "stores_title"
+    const val KEY_NO_RESTAURANTS      = "no_restaurants"
+    const val KEY_NOT_SERVICEABLE     = "not_serviceable"
+    const val MSG_ITEM_ADDED_CART     = " added to cart 🛒"
+    const val KEY_RESTAURANT_HEADER   = "restaurant_header"
+    const val KEY_RECOMMENDED         = "recommended"
+    const val SPLASH_LOGO_ANIM_MS     = 500
+    const val SPLASH_FADE_ANIM_MS     = 600
+    const val SPLASH_DOT_ANIM_MS      = 300
+    const val ALPHA_SPLASH_LOGO_BG    = 0.15f  // splash logo circle bg
+    const val ALPHA_SPLASH_TAGLINE    = 0.8f   // splash tagline text
+    const val ALPHA_SPLASH_DOTS       = 0.6f   // loading dots
+    const val ALPHA_SPLASH_DOT_MIN    = 0.3f   // dots minimum alpha
+    const val ALPHA_NAV_INDICATOR     = 0.1f   // bottom nav indicator
+
     const val EVENT_BUFFER_NAVIGATION = 10
 
-    // UI feedback events — buffer 3, overflow = DROP_OLDEST
-    // WHY DROP_OLDEST? Snackbar/error messages are informational
-    //   Latest message is most relevant to user
-    //   Older queued snackbars are stale → safe to drop
-    // WHY 3? Max 3 queued messages makes UX sense
     const val EVENT_BUFFER_UI = 3
 
-    // General/mixed events — buffer 5, overflow = SUSPEND
-    // WHY SUSPEND? Safer default when event criticality is unclear
-    //   Better to wait briefly than silently lose an event
-    const val EVENT_BUFFER_DEFAULT = 5
-    const val ERR_CART_EMPTY          = "Cart is empty"
-    const val ERR_FAILED_UPDATE_ITEM  = "Failed to update item"
-    const val ERR_FAILED_REMOVE_ITEM  = "Failed to remove item"
-    const val ERR_FAILED_PLACE_ORDER  = "Failed to place order"
-    const val MSG_ITEM_REMOVED        = " removed"
-    const val MSG_ITEM_REMOVED_CART   = " removed from cart"
-    const val ERR_MIN_ORDER           = "Minimum order is ₹"
+    const val ERR_CART_EMPTY = "Cart is empty"
+    const val ERR_FAILED_UPDATE_ITEM = "Failed to update item"
+    const val ERR_FAILED_REMOVE_ITEM = "Failed to remove item"
+    const val ERR_FAILED_PLACE_ORDER = "Failed to place order"
+    const val MSG_ITEM_REMOVED = " removed"
+    const val MSG_ITEM_REMOVED_CART = " removed from cart"
+    const val ERR_MIN_ORDER = "Minimum order is ₹"
     const val ERR_LOCATION_PERMISSION =
         "Location permission denied. Please enable in Settings."
-    const val ERR_GPS_DISABLED        =
+    const val ERR_GPS_DISABLED =
         "GPS is turned off. Please enable location."
-    const val ERR_LOCATION_DETECT     =
+    const val ERR_LOCATION_DETECT =
         "Could not detect location. Please pick manually."
     const val ERR_LOCATION_PERMISSION_DENIED =
         "Location permission denied. Pick an area below."
     const val PERMISSION = "permission"
     const val DISABLED = "disabled"
     const val ARG_RESTAURANT_ID_REQUIRED = "restaurantId required"
-    const val ARG_MENU_ITEM_ID_REQUIRED  = "menuItemId required"
-    const val ERR_ITEM_NOT_FOUND         = "Item not found"
-    const val ERR_FAILED_LOAD_ITEM       = "Failed to load item"
-    const val ERR_FAILED_ADD_CART        = "Failed to add to cart"
-    const val MSG_ADDED_TO_CART          = " added to cart 🛒"
-    const val ERR_NO_USER_FOUND          = "No user found. Please login again."
-    const val ERR_NAME_EMPTY             = "Name cannot be empty"
-    const val ERR_FAILED_UPDATE_PROFILE  = "Failed to update profile"
-    const val ERR_FAILED_REMOVE_ADDRESS  = "Failed to remove address"
-    const val ERR_LOGOUT_FAILED          = "Logout failed. Please try again."
-    const val MSG_PROFILE_UPDATED        = "Profile updated ✅"
-    const val MSG_ADDRESS_REMOVED        = "Address removed"
-    const val PLACEHOLDER_ADD_NAME       = "Add your name"
-    const val PLACEHOLDER_ADD_EMAIL      = "Add email address"
+    const val ARG_MENU_ITEM_ID_REQUIRED = "menuItemId required"
+    const val ERR_ITEM_NOT_FOUND = "Item not found"
+    const val ERR_FAILED_LOAD_ITEM = "Failed to load item"
+    const val ERR_FAILED_ADD_CART = "Failed to add to cart"
+    const val MSG_ADDED_TO_CART = " added to cart 🛒"
+    const val ERR_NO_USER_FOUND = "No user found. Please login again."
+    const val ERR_NAME_EMPTY = "Name cannot be empty"
+    const val ERR_FAILED_UPDATE_PROFILE = "Failed to update profile"
+    const val ERR_FAILED_REMOVE_ADDRESS = "Failed to remove address"
+    const val ERR_LOGOUT_FAILED = "Logout failed. Please try again."
+    const val MSG_PROFILE_UPDATED = "Profile updated ✅"
+    const val MSG_ADDRESS_REMOVED = "Address removed"
+    const val PLACEHOLDER_ADD_NAME = "Add your name"
+    const val PLACEHOLDER_ADD_EMAIL = "Add email address"
     const val ERR_COULD_NOT_LOAD_PROFILE = "Could not load profile"
-    const val ARG_RESTAURANT_ID_MISSING  =
+    const val ARG_RESTAURANT_ID_MISSING =
         "restaurantId is required for RestaurantScreen"
     const val ERR_COULD_NOT_LOAD_RESTAURANT = "Could not load restaurant"
-    const val ERR_COULD_NOT_ADD_CART     = "Could not add to cart"
-    const val ERR_FAILED_ADD_ITEM        = "Failed to add item"
-    const val ERR_FAILED_UPDATE_CART     = "Failed to update cart"
+    const val ERR_COULD_NOT_ADD_CART = "Could not add to cart"
+    const val ERR_FAILED_ADD_ITEM = "Failed to add item"
+    const val ERR_FAILED_UPDATE_CART = "Failed to update cart"
     const val TIME = "11 AM - 11 PM"
 
     const val GET_CATEGORIES = "categories.json"
@@ -366,13 +501,13 @@ object AppConstants {
     const val GET_LOCATIONS = "locations.json"
     const val GET_RESTAURANT = "restaurant.json"
 
-    const val APP_BCK              =
+    const val APP_BCK =
         "App is in background. Please reopen and try again."
-    const val FAILED_OTP_SEND      =
+    const val FAILED_OTP_SEND =
         "Failed to send OTP. Please try again."
-    const val FAILED_VERIFICATION  =
+    const val FAILED_VERIFICATION =
         "Wrong OTP. Please check and try again."
-    const val FAILED_PROFILE       =
+    const val FAILED_PROFILE =
         "Failed to load profile. Please try again."
     const val FAILED_UPDATED_PROFILE =
         "Failed to update profile. Please try again."
@@ -384,14 +519,31 @@ object AppConstants {
     const val FOR_TWO = "for two"
     const val MINUTES = "min"
     const val SELECT_LOCATION = "Select Location"
-    const val CURRENT_LOCATION = "Current Location"
-    const val EMOJI_BURGER          = "🍔"
-    const val EMOJI_SUCCESS_TICK    = "✅"
-    const val LOGIN_SCREEN_TAG      = "LoginScreen"
-    const val ALPHA_BORDER_UNFOCUSED  = 0.5f
-    const val ALPHA_BORDER_DISABLED   = 0.3f
-    const val ALPHA_LABEL_DISABLED    = 0.5f
-    const val ALPHA_PREFIX_DISABLED   = 0.5f
+    const val EMOJI_BURGER = "🍔"
+    const val EMOJI_SUCCESS_TICK = "✅"
+    const val LOGIN_SCREEN_TAG = "LoginScreen"
+    const val ALPHA_BORDER_UNFOCUSED = 0.5f
+    const val ALPHA_BORDER_DISABLED = 0.3f
+    const val ALPHA_LABEL_DISABLED = 0.5f
+    const val ALPHA_PREFIX_DISABLED = 0.5f
+    const val MY_CART = "My Cart"
+    const val ITEMS = " items"
+    const val PLACE_ORDER_PREFIX = "Place Order  •  ₹"
+    const val ORDER_PLACED_SUCCESS = "Order placed successfully! 🎉"
+    const val CART_RESTAURANT_NAME_KEY = "restaurant_name"
+    const val CART_SPACER_KEY = "spacer"
+    const val CART_BILL_KEY = "bill_details"
+    const val CART_BOTTOM_SPACE_KEY = "bottom_space"
+    const val BILL_DETAILS = "Bill Details"
+    const val ITEM_TOTAL = "Item total"
+    const val DELIVERY_FEE = "Delivery fee"
+    const val GST_CHARGES = "GST & charges"
+    const val TO_PAY = "To Pay"
+    const val FREE = "FREE"
+    const val UNKNOWN_ERROR = "Unknown error"
+    const val CUSTOMISATIONS_SEPARATOR = ", "
+    const val INCLUDED = "Included"
+
 
     val LOCATION_KEYWORDS = listOf(
         "bengaluru",

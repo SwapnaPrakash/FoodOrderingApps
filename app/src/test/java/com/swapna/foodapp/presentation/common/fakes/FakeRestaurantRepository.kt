@@ -2,38 +2,29 @@ package com.swapna.foodapp.presentation.common.fakes
 
 import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.Cuisine
+import com.swapna.foodapp.domain.model.Customisation
+import com.swapna.foodapp.domain.model.CustomisationOption
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.domain.model.Restaurant
 import com.swapna.foodapp.domain.model.Review
 import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.repository.RestaurantRepository
+import com.swapna.foodapp.utils.TestConstants
+import com.swapna.foodapp.utils.TestConstants.ERROR_MESSAGE
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import com.swapna.foodapp.domain.model.Customisation
-import com.swapna.foodapp.domain.model.CustomisationOption
-
-// WHY FakeRestaurantRepository?
-// Tests need to CONTROL what API returns
-// Real API = needs internet + real server
-// Fake = deterministic, instant, offline
-// Control flags = one flag per failure scenario
-import com.swapna.foodapp.utils.TestConstants
 
 class FakeRestaurantRepository : RestaurantRepository {
 
-    // ── Control flags ─────────────────────────────────────────
     var shouldThrowRestaurant = false
-    var shouldThrowMenu       = false
-    var errorMessage          = "Something went wrong"
+    var shouldThrowMenu = false
+    var errorMessage = ERROR_MESSAGE
 
-    // Override per test
     var menuResult: Map<String, List<MenuItem>> =
         fakeMenuByCategory()
 
     var restaurantResult: Restaurant = fakeRestaurant()
-
-    // ── Interface ─────────────────────────────────────────────
 
     override fun getNearbyRestaurants():
             Flow<Result<List<Restaurant>>> =
@@ -75,7 +66,7 @@ class FakeRestaurantRepository : RestaurantRepository {
         flowOf(Result.success(emptyList()))
 
     override fun searchRestaurants(
-        query:   String,
+        query: String,
         filters: SearchFilters,
     ): Flow<Result<List<Restaurant>>> =
         flowOf(Result.success(emptyList()))
@@ -84,170 +75,164 @@ class FakeRestaurantRepository : RestaurantRepository {
             Flow<Result<List<Cuisine>>> =
         flowOf(Result.success(emptyList()))
 
-    // ══════════════════════════════════════════════════════════
-    companion object {
-        // ══════════════════════════════════════════════════════════
 
-        // ── fakeRestaurant ────────────────────────────────────
-        // ✅ SYNCED with TestFunctions.fakeRestaurant()
-        // All new Restaurant fields included
+    companion object {
         fun fakeRestaurant(
-            id:           String       = TestConstants.RESTAURANT_ID,
-            name:         String       = TestConstants.RESTAURANT_NAME,
-            rating:       Double       = TestConstants.RESTAURANT_RATING,
-            deliveryTime: Int          = TestConstants.DELIVERY_TIME,
-            isOpen:       Boolean      = true,
-            cuisines:     List<String> = listOf(
-                "Biryani", "South Indian"
+            id: String = TestConstants.RESTAURANT_ID,
+            name: String = TestConstants.RESTAURANT_NAME,
+            rating: Double = TestConstants.RESTAURANT_RATING,
+            deliveryTime: Int = TestConstants.DELIVERY_TIME,
+            isOpen: Boolean = true,
+            cuisines: List<String> = listOf(
+                TestConstants.HOME_CATEGORY_BIRYANI,
+                TestConstants.HOME_SOUTH_INDIAN,
             ),
-            locality:     String       = TestConstants.LOCALITY,
+            locality: String = TestConstants.LOCALITY,
         ) = Restaurant(
-            id              = id,
-            name            = name,
-            imageUrl        = TestConstants.IMAGE_URL,
-            thumbUrl        = TestConstants.THUMB_URL,
-            rating          = rating,
-            ratingText      = "Very Good",
-            ratingColor     = "5BA829",
-            totalVotes      = 1000,
+            id = id,
+            name = name,
+            imageUrl = TestConstants.IMAGE_URL,
+            thumbUrl = TestConstants.THUMB_URL,
+            rating = rating,
+            ratingText = TestConstants.ENTITY_RATING_TEXT,
+            ratingColor = TestConstants.ENTITY_RATING_COLOR,
+            totalVotes = TestConstants.FAKE_RESTAURANT_VOTES,
             avgDeliveryTime = deliveryTime,
-            deliveryFee     = 30.0,
-            minOrder        = 100,
-            cuisines        = cuisines,
-            address         = TestConstants.RESTAURANT_ADDRESS,
-            locality        = locality,
-            isOpen          = isOpen,
-            hasDelivery     = true,
-            offers          = listOf("50% off upto ₹100"),
-            avgCostForTwo   = 600,
-            phoneNumber     = "",
-            openingHours    = "11 AM - 11 PM",
-            highlights      = emptyList(),
-            knownFor        = "",
-            distanceKm      = 0.0,
+            deliveryFee = TestConstants.HOME_DELIVERY_FEE,
+            minOrder = TestConstants.RESTAURANT_MIN_ORDER_100,
+            cuisines = cuisines,
+            address = TestConstants.RESTAURANT_ADDRESS,
+            locality = locality,
+            isOpen = isOpen,
+            hasDelivery = true,
+            offers = listOf(TestConstants.FAKE_OFFER_UPTO_100),
+            avgCostForTwo = TestConstants.ENTITY_COST_TWO,
+            phoneNumber = "",
+            openingHours = TestConstants.OPENING_HOURS_DEFAULT,
+            highlights = emptyList(),
+            knownFor = "",
+            distanceKm = 0.0,
         )
 
-        // ── fakeMenuItem ──────────────────────────────────────
-        // ✅ FIX: isBestseller + isAvailable + customisations added
-        // Matches MenuItem domain model exactly
-        // ALL params have defaults → call as:
-        //   fakeMenuItem()                    → all defaults
-        //   fakeMenuItem("m1")                → id only
-        //   fakeMenuItem("m1", "Biryani", 249.0) → positional
-        //   fakeMenuItem(price = 50.0)        → named
-        //   fakeMenuItem(isBestseller = true) → named
         fun fakeMenuItem(
-            id:             String              = TestConstants.MENU_ID,
-            name:           String              = TestConstants.MENU_NAME,
-            price:          Double              = TestConstants.MENU_PRICE,
-            category:       String              = TestConstants.CATEGORY,
-            isVeg:          Boolean             = false,
-            isRecommended:  Boolean             = false,
-            // ✅ FIX: was missing from original
-            isBestseller:   Boolean             = false,
-            // ✅ FIX: was missing from original
-            isAvailable:    Boolean             = true,
-            // ✅ FIX: was missing from original
+            id: String = TestConstants.MENU_ID,
+            name: String = TestConstants.MENU_NAME,
+            price: Double = TestConstants.MENU_PRICE,
+            category: String = TestConstants.CATEGORY,
+            isVeg: Boolean = false,
+            isRecommended: Boolean = false,
+            isBestseller: Boolean = false,
+            isAvailable: Boolean = true,
             customisations: List<Customisation> = emptyList(),
-            restaurantId:   String              = TestConstants.RESTAURANT_ID,
+            restaurantId: String = TestConstants.RESTAURANT_ID,
         ) = MenuItem(
-            id             = id,
-            restaurantId   = restaurantId,
-            name           = name,
-            description    = "Delicious $name",
-            price          = price,
-            imageUrl       = TestConstants.FOOD_IMAGE,
-            category       = category,
-            isVeg          = isVeg,
-            isRecommended  = isRecommended,
-            isBestseller   = isBestseller,
-            isAvailable    = isAvailable,
+            id = id,
+            restaurantId = restaurantId,
+            name = name,
+            description = "Delicious $name",
+            price = price,
+            imageUrl = TestConstants.FOOD_IMAGE,
+            category = category,
+            isVeg = isVeg,
+            isRecommended = isRecommended,
+            isBestseller = isBestseller,
+            isAvailable = isAvailable,
             customisations = customisations,
         )
 
-        // ── fakeMenuByCategory ────────────────────────────────
-        // Default menu: 2 categories, 4 items total
-        // m1 + m3 are recommended
-        // m1 is bestseller
         fun fakeMenuByCategory() = mapOf(
-            "Biryani" to listOf(
+            TestConstants.HOME_CATEGORY_BIRYANI to listOf(
                 fakeMenuItem(
-                    id            = "m1",
-                    name          = "Chicken Biryani",
-                    price         = 249.0,
+                    id = TestConstants.MENU_ID_1,
+                    name = TestConstants.MENU_ITEM_CHICK_BIR,
+                    price = TestConstants.PRICE_249,
                     isRecommended = true,
-                    isBestseller  = true,
+                    isBestseller = true,
                 ),
                 fakeMenuItem(
-                    id    = "m2",
-                    name  = "Mutton Biryani",
-                    price = 349.0,
+                    id = TestConstants.MENU_ID_2,
+                    name = TestConstants.MENU_ITEM_MUTTON_BIR,
+                    price = TestConstants.PRICE_349,
                 ),
             ),
-            "Starters" to listOf(
+            TestConstants.CATEGORY_STARTERS to listOf(
                 fakeMenuItem(
-                    id            = "m3",
-                    name          = "Chicken 65",
-                    price         = 199.0,
+                    id = TestConstants.MENU_ID_3,
+                    name = TestConstants.MENU_ITEM_CHICK_65,
+                    price = TestConstants.PRICE_199,
                     isRecommended = true,
-                    category      = "Starters",
+                    category = TestConstants.CATEGORY_STARTERS,
                 ),
                 fakeMenuItem(
-                    id       = "m4",
-                    name     = "Paneer Tikka",
-                    price    = 179.0,
-                    isVeg    = true,
-                    category = "Starters",
+                    id = TestConstants.MENU_ID_4,
+                    name = TestConstants.MENU_ITEM_PANEER_TIKKA,
+                    price = TestConstants.PRICE_179,
+                    isVeg = true,
+                    category = TestConstants.CATEGORY_STARTERS,
                 ),
             ),
         )
 
-        // ── fakeMenuItemWithCustomisations ────────────────────
-        // Used in ProductDetailViewModelSpec
         fun fakeMenuItemWithCustomisations() = fakeMenuItem(
-            id             = TestConstants.MENU_ID,
-            name           = TestConstants.MENU_NAME,
-            price          = TestConstants.MENU_PRICE,
-            isRecommended  = true,
-            isBestseller   = true,
+            id = TestConstants.MENU_ID,
+            name = TestConstants.MENU_NAME,
+            price = TestConstants.MENU_PRICE,
+            isRecommended = true,
+            isBestseller = true,
             customisations = listOf(
                 Customisation(
-                    id      = "size_group",
-                    name    = "Size",
+                    id = TestConstants.CUSTOMISE_GROUP_SIZE,
+                    name = TestConstants.CUSTOMISE_NAME_SIZE,
                     options = listOf(
-                        CustomisationOption("opt1", "Regular", 0.0),
-                        CustomisationOption("opt2", "Large",   50.0),
+                        CustomisationOption(
+                            TestConstants.OPT_ID_1,
+                            TestConstants.CUSTOMISE_LABEL_REGULAR,
+                            TestConstants.EXTRA_PRICE_ZERO,
+                        ),
+                        CustomisationOption(
+                            TestConstants.OPT_ID_2,
+                            TestConstants.CUSTOMISE_LABEL_LARGE,
+                            TestConstants.EXTRA_PRICE_LARGE,
+                        ),
                     ),
                 ),
                 Customisation(
-                    id      = "spice_group",
-                    name    = "Spice Level",
+                    id = TestConstants.CUSTOMISE_GROUP_SPICE,
+                    name = TestConstants.CUSTOMISE_NAME_SPICE,
                     options = listOf(
-                        CustomisationOption("opt3", "Mild",   0.0),
-                        CustomisationOption("opt4", "Medium", 0.0),
-                        CustomisationOption("opt5", "Hot",    0.0),
+                        CustomisationOption(
+                            TestConstants.OPT_ID_3,
+                            TestConstants.CUSTOMISE_LABEL_MILD,
+                            TestConstants.EXTRA_PRICE_ZERO,
+                        ),
+                        CustomisationOption(
+                            TestConstants.OPT_ID_4,
+                            TestConstants.CUSTOMISE_LABEL_MEDIUM,
+                            TestConstants.EXTRA_PRICE_ZERO,
+                        ),
+                        CustomisationOption(
+                            TestConstants.OPT_ID_5,
+                            TestConstants.CUSTOMISE_LABEL_HOT,
+                            TestConstants.EXTRA_PRICE_ZERO,
+                        ),
                     ),
                 ),
             ),
         )
 
-        // ── fakeSimpleMenuItem ────────────────────────────────
-        // No customisations — for simple add to cart tests
         fun fakeSimpleMenuItem() = fakeMenuItem(
-            id            = "m_simple",
-            name          = "Plain Naan",
-            price         = 50.0,
-            isVeg         = true,
-            category      = "Breads",
+            id = TestConstants.MENU_ID_SIMPLE,
+            name = TestConstants.MENU_ITEM_PLAIN_NAAN,
+            price = TestConstants.PRICE_50,
+            isVeg = true,
+            category = TestConstants.CATEGORY_BREADS,
         )
 
-        // ── fakeMenuByCategoryWithCustomisations ──────────────
-        // Used in ProductDetailViewModelSpec
         fun fakeMenuByCategoryWithCustomisations() = mapOf(
-            "Biryani" to listOf(
+            TestConstants.HOME_CATEGORY_BIRYANI to listOf(
                 fakeMenuItemWithCustomisations(),
             ),
-            "Breads" to listOf(
+            TestConstants.CATEGORY_BREADS to listOf(
                 fakeSimpleMenuItem(),
             ),
         )

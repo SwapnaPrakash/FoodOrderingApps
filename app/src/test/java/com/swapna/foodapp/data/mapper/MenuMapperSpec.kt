@@ -7,6 +7,56 @@ import com.swapna.foodapp.data.remote.dto.DailyMenuResponse
 import com.swapna.foodapp.data.remote.dto.DailyMenuWrapper
 import com.swapna.foodapp.data.remote.dto.DishDto
 import com.swapna.foodapp.data.remote.dto.DishWrapper
+import com.swapna.foodapp.utils.TestConstants.API_IS_NOT_VEG
+import com.swapna.foodapp.utils.TestConstants.API_IS_RECOMMENDED
+import com.swapna.foodapp.utils.TestConstants.API_IS_VEG
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_EMPTY_NAME
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_EMPTY_SHORT
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_STARTERS
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_GROUP_SIZE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_GROUP_SPICE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_HOT
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_LARGE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_MEDIUM
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_MILD
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_LABEL_REGULAR
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_NAME_SIZE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_NAME_SPICE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_HOT
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_LARGE
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_MEDIUM
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_MILD
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_OPT_REGULAR
+import com.swapna.foodapp.utils.TestConstants.EXTRA_PRICE_LARGE
+import com.swapna.foodapp.utils.TestConstants.EXTRA_PRICE_ZERO
+import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_BIRYANI
+import com.swapna.foodapp.utils.TestConstants.MENU_DESCRIPTION_BIRYANI
+import com.swapna.foodapp.utils.TestConstants.MENU_DTO_ID_1
+import com.swapna.foodapp.utils.TestConstants.MENU_DTO_ID_2
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_1
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_2
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_3
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_65
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_BIR
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_MUTTON_BIR
+import com.swapna.foodapp.utils.TestConstants.MENU_PRICE_STR
+import com.swapna.foodapp.utils.TestConstants.PRICE_199
+import com.swapna.foodapp.utils.TestConstants.PRICE_249
+import com.swapna.foodapp.utils.TestConstants.PRICE_349
+import com.swapna.foodapp.utils.TestConstants.PRICE_PARSED_99_5
+import com.swapna.foodapp.utils.TestConstants.PRICE_PARSED_RS_449
+import com.swapna.foodapp.utils.TestConstants.PRICE_STR_199
+import com.swapna.foodapp.utils.TestConstants.PRICE_STR_249_RS
+import com.swapna.foodapp.utils.TestConstants.PRICE_STR_349
+import com.swapna.foodapp.utils.TestConstants.PRICE_STR_349_RUPEE
+import com.swapna.foodapp.utils.TestConstants.PRICE_STR_99_50
+import com.swapna.foodapp.utils.TestConstants.PRICE_STR_INVALID
+import com.swapna.foodapp.utils.TestConstants.PRICE_STR_RS_449
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_1
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_2
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_R99
+import com.swapna.foodapp.utils.TestConstants.REVIEW_IMG_URL
+import com.swapna.foodapp.utils.TestConstants.SINGLE_ITEM_MENU_ID
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -16,18 +66,14 @@ class MenuMapperSpec : DescribeSpec({
 
     val mapper = MenuMapper()
 
-    // ── Helper — reduces DailyMenuWrapper boilerplate ─────────
-    // WHY helper function?
-    // DailyMenuWrapper(DailyMenuDto(...)) is verbose
-    // Most tests only change price/isVeg/imageUrl
-    // Helper makes each test read clearly — same pattern as fakeRestaurant()
+    // ── Local helper — reduces DailyMenuWrapper boilerplate ───
     fun singleItemResponse(
-        category: String = "Biryani",
-        id: String = "m1",
-        name: String = "Chicken Biryani",
-        price: String = "249",
-        isVeg: Int = 0,
-        isRecommended: Int = 1,
+        category: String = HOME_CATEGORY_BIRYANI,
+        id: String = MENU_ID_1,
+        name: String = MENU_ITEM_CHICK_BIR,
+        price: String = MENU_PRICE_STR,
+        isVeg: Int = API_IS_NOT_VEG,
+        isRecommended: Int = API_IS_RECOMMENDED,
         imageUrl: String? = null,
         customisations: List<CustomisationDto>? = null,
         description: String = "",
@@ -35,7 +81,7 @@ class MenuMapperSpec : DescribeSpec({
         dailyMenus = listOf(
             DailyMenuWrapper(
                 menu = DailyMenuDto(
-                    id = "menu_1",
+                    id = SINGLE_ITEM_MENU_ID,
                     name = category,
                     dishes = listOf(
                         DishWrapper(
@@ -60,201 +106,205 @@ class MenuMapperSpec : DescribeSpec({
 
         describe("toDomain") {
 
-            // ══════════════════════════════════════════════════
-            // Basic mapping
-            // ══════════════════════════════════════════════════
-
             context("response with single category and single item") {
 
                 val response = singleItemResponse(
-                    price = "249 Rs.",
-                    isVeg = 0,
-                    isRecommended = 1,
+                    price = PRICE_STR_249_RS,
+                    isVeg = API_IS_NOT_VEG,
+                    isRecommended = API_IS_RECOMMENDED,
                 )
 
                 it("returns map with one category") {
-                    mapper.toDomain(response, "r1").size shouldBe 1
+                    mapper.toDomain(response, RESTAURANT_ID_1).size shouldBe 1
                 }
 
                 it("category key is Biryani") {
-                    mapper.toDomain(response, "r1")
-                        .containsKey("Biryani") shouldBe true
+                    mapper.toDomain(response, RESTAURANT_ID_1)
+                        .containsKey(HOME_CATEGORY_BIRYANI) shouldBe true
                 }
 
                 it("category has one item") {
-                    mapper.toDomain(response, "r1")["Biryani"]?.shouldHaveSize(1)
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]
+                        ?.shouldHaveSize(1)
                 }
 
                 it("maps item id correctly") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().id shouldBe "m1"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().id shouldBe MENU_ID_1
                 }
 
                 it("maps item name correctly") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().name shouldBe "Chicken Biryani"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().name shouldBe MENU_ITEM_CHICK_BIR
                 }
 
                 it("maps restaurantId from parameter") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().restaurantId shouldBe "r1"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().restaurantId shouldBe RESTAURANT_ID_1
                 }
 
                 it("maps category to item.category") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().category shouldBe "Biryani"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().category shouldBe HOME_CATEGORY_BIRYANI
                 }
 
                 it("maps description correctly") {
-                    val r = singleItemResponse(description = "Delicious Biryani")
-                    mapper.toDomain(r, "r1")["Biryani"]!!
-                        .first().description shouldBe "Delicious Biryani"
+                    val r =
+                        singleItemResponse(description = MENU_DESCRIPTION_BIRYANI)
+                    mapper.toDomain(r, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().description shouldBe MENU_DESCRIPTION_BIRYANI
                 }
 
-                // WHY test isBestseller = false always?
-                // API has no isBestseller field in DishDto
-                // mapper hardcodes false — must verify this contract
                 it("maps isBestseller to false always — not from API") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
                         .first().isBestseller shouldBe false
                 }
 
                 it("maps isAvailable to true always") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
                         .first().isAvailable shouldBe true
                 }
 
                 it("null customisations maps to empty list") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
                         .first().customisations.shouldBeEmpty()
                 }
             }
 
-            // ══════════════════════════════════════════════════
-            // restaurantId parameter
-            // ══════════════════════════════════════════════════
-
             context("restaurantId parameter") {
 
                 it("maps restaurantId r1 correctly") {
-                    mapper.toDomain(singleItemResponse(), "r1")["Biryani"]!!
-                        .first().restaurantId shouldBe "r1"
+                    mapper.toDomain(singleItemResponse(), RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().restaurantId shouldBe RESTAURANT_ID_1
                 }
 
                 it("maps restaurantId r99 correctly — different id") {
-                    mapper.toDomain(singleItemResponse(), "r99")["Biryani"]!!
-                        .first().restaurantId shouldBe "r99"
+                    mapper.toDomain(
+                        singleItemResponse(),
+                        RESTAURANT_ID_R99
+                    )[HOME_CATEGORY_BIRYANI]!!
+                        .first().restaurantId shouldBe RESTAURANT_ID_R99
                 }
             }
 
             // ══════════════════════════════════════════════════
             // isVeg — Int → Boolean mapping
-            // WHY test this specifically?
-            // API sends 0/1 not true/false
-            // isVeg = dto.isVeg == 1
-            // If changed to > 0 or != 0 → behavior changes silently
             // ══════════════════════════════════════════════════
 
             context("isVeg flag mapping — Int to Boolean") {
 
                 it("isVeg 1 maps to true") {
-                    mapper.toDomain(singleItemResponse(isVeg = 1), "r1")["Biryani"]!!
+                    mapper.toDomain(
+                        singleItemResponse(isVeg = API_IS_VEG),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
                         .first().isVeg shouldBe true
                 }
 
                 it("isVeg 0 maps to false") {
-                    mapper.toDomain(singleItemResponse(isVeg = 0), "r1")["Biryani"]!!
+                    mapper.toDomain(
+                        singleItemResponse(isVeg = API_IS_NOT_VEG),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
                         .first().isVeg shouldBe false
                 }
             }
 
-            // ══════════════════════════════════════════════════
-            // isRecommended — Int → Boolean mapping
-            // ══════════════════════════════════════════════════
-
             context("isRecommended flag mapping — Int to Boolean") {
 
                 it("isRecommended 1 maps to true") {
-                    mapper.toDomain(singleItemResponse(isRecommended = 1), "r1")["Biryani"]!!
+                    mapper.toDomain(
+                        singleItemResponse(isRecommended = API_IS_RECOMMENDED),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
                         .first().isRecommended shouldBe true
                 }
 
                 it("isRecommended 0 maps to false") {
-                    mapper.toDomain(singleItemResponse(isRecommended = 0), "r1")["Biryani"]!!
+                    mapper.toDomain(
+                        singleItemResponse(isRecommended = API_IS_NOT_VEG),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
                         .first().isRecommended shouldBe false
                 }
             }
 
-            // ══════════════════════════════════════════════════
-            // Price string parsing
-            // WHY critical to test?
-            // "249 Rs." → parsePriceString() → 249.0
-            // Wrong price = wrong bill shown to user
-            // parsePriceString strips non-numeric chars → toDoubleOrNull
-            // ══════════════════════════════════════════════════
-
             context("price string parsing") {
 
                 it("parses '249 Rs.' to 249.0") {
-                    mapper.toDomain(singleItemResponse(price = "249 Rs."), "r1")["Biryani"]!!
-                        .first().price shouldBe 249.0
+                    mapper.toDomain(
+                        singleItemResponse(price = PRICE_STR_249_RS),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
+                        .first().price shouldBe PRICE_249
                 }
 
                 it("parses '₹349' to 349.0") {
-                    mapper.toDomain(singleItemResponse(price = "₹349"), "r1")["Biryani"]!!
-                        .first().price shouldBe 349.0
+                    mapper.toDomain(
+                        singleItemResponse(price = PRICE_STR_349_RUPEE),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
+                        .first().price shouldBe PRICE_349
                 }
 
                 it("parses '99.50' to 99.5") {
-                    mapper.toDomain(singleItemResponse(price = "99.50"), "r1")["Biryani"]!!
-                        .first().price shouldBe 99.5
+                    mapper.toDomain(
+                        singleItemResponse(price = PRICE_STR_99_50),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
+                        .first().price shouldBe PRICE_PARSED_99_5
                 }
 
                 it("parses plain number '199' to 199.0") {
-                    mapper.toDomain(singleItemResponse(price = "199"), "r1")["Biryani"]!!
-                        .first().price shouldBe 199.0
+                    mapper.toDomain(
+                        singleItemResponse(price = PRICE_STR_199),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
+                        .first().price shouldBe PRICE_199
                 }
 
-                // ✅ FIX: "Rs. 449" keeps the dot → ". 449" → toDoubleOrNull() = null → 0.0
-                // The regex [^0-9.] whitelists dots, so "Rs." dot is preserved
-                // ". 449" is not a valid Double → falls back to 0.0
                 it("parses 'Rs. 449' to 0.449 — dot from Rs. is kept") {
-                    mapper.toDomain(singleItemResponse(price = "Rs. 449"), "r1")["Biryani"]!!
-                        .first().price shouldBe 0.449
+                    mapper.toDomain(
+                        singleItemResponse(price = PRICE_STR_RS_449),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
+                        .first().price shouldBe PRICE_PARSED_RS_449
                 }
 
                 it("parses invalid price string 'N/A' to 0.0") {
-                    mapper.toDomain(singleItemResponse(price = "N/A"), "r1")["Biryani"]!!
-                        .first().price shouldBe 0.0
+                    mapper.toDomain(
+                        singleItemResponse(price = PRICE_STR_INVALID),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
+                        .first().price shouldBe EXTRA_PRICE_ZERO
                 }
 
                 it("parses empty price string to 0.0") {
-                    mapper.toDomain(singleItemResponse(price = ""), "r1")["Biryani"]!!
-                        .first().price shouldBe 0.0
+                    mapper.toDomain(
+                        singleItemResponse(price = ""),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
+                        .first().price shouldBe EXTRA_PRICE_ZERO
                 }
             }
-
-            // ══════════════════════════════════════════════════
-            // imageUrl — nullable handling
-            // ══════════════════════════════════════════════════
 
             context("imageUrl nullable mapping") {
 
                 it("null imageUrl maps to empty string") {
-                    mapper.toDomain(singleItemResponse(imageUrl = null), "r1")["Biryani"]!!
+                    mapper.toDomain(
+                        singleItemResponse(imageUrl = null),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!
                         .first().imageUrl shouldBe ""
                 }
 
                 it("non-null imageUrl maps correctly") {
                     mapper.toDomain(
-                        singleItemResponse(imageUrl = "https://img.jpg"), "r1"
-                    )["Biryani"]!!.first().imageUrl shouldBe "https://img.jpg"
+                        singleItemResponse(imageUrl = REVIEW_IMG_URL),
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]!!.first().imageUrl shouldBe REVIEW_IMG_URL
                 }
             }
-
-            // ══════════════════════════════════════════════════
-            // Multiple categories
-            // ══════════════════════════════════════════════════
 
             context("multiple categories") {
 
@@ -262,21 +312,27 @@ class MenuMapperSpec : DescribeSpec({
                     dailyMenus = listOf(
                         DailyMenuWrapper(
                             DailyMenuDto(
-                                id = "1",
-                                name = "Biryani",
+                                id = MENU_DTO_ID_1,
+                                name = HOME_CATEGORY_BIRYANI,
                                 dishes = listOf(
                                     DishWrapper(
                                         DishDto(
-                                            id = "m1", name = "Chicken Biryani",
-                                            price = "249", description = "",
-                                            isVeg = 0, isRecommended = 1,
+                                            id = MENU_ID_1,
+                                            name = MENU_ITEM_CHICK_BIR,
+                                            price = MENU_PRICE_STR,
+                                            description = "",
+                                            isVeg = API_IS_NOT_VEG,
+                                            isRecommended = API_IS_RECOMMENDED,
                                         )
                                     ),
                                     DishWrapper(
                                         DishDto(
-                                            id = "m2", name = "Mutton Biryani",
-                                            price = "349", description = "",
-                                            isVeg = 0, isRecommended = 0,
+                                            id = MENU_ID_2,
+                                            name = MENU_ITEM_MUTTON_BIR,
+                                            price = PRICE_STR_349,
+                                            description = "",
+                                            isVeg = API_IS_NOT_VEG,
+                                            isRecommended = API_IS_NOT_VEG,
                                         )
                                     ),
                                 ),
@@ -284,14 +340,17 @@ class MenuMapperSpec : DescribeSpec({
                         ),
                         DailyMenuWrapper(
                             DailyMenuDto(
-                                id = "2",
-                                name = "Starters",
+                                id = MENU_DTO_ID_2,
+                                name = CATEGORY_STARTERS,
                                 dishes = listOf(
                                     DishWrapper(
                                         DishDto(
-                                            id = "m3", name = "Chicken 65",
-                                            price = "199", description = "",
-                                            isVeg = 0, isRecommended = 1,
+                                            id = MENU_ID_3,
+                                            name = MENU_ITEM_CHICK_65,
+                                            price = PRICE_STR_199,
+                                            description = "",
+                                            isVeg = API_IS_NOT_VEG,
+                                            isRecommended = API_IS_RECOMMENDED,
                                         )
                                     ),
                                 ),
@@ -301,106 +360,118 @@ class MenuMapperSpec : DescribeSpec({
                 )
 
                 it("returns map with 2 categories") {
-                    mapper.toDomain(response, "r1").size shouldBe 2
+                    mapper.toDomain(response, RESTAURANT_ID_1).size shouldBe 2
                 }
 
                 it("Biryani category has 2 items") {
-                    mapper.toDomain(response, "r1")["Biryani"]?.shouldHaveSize(2)
+                    mapper.toDomain(
+                        response,
+                        RESTAURANT_ID_1
+                    )[HOME_CATEGORY_BIRYANI]?.shouldHaveSize(2)
                 }
 
                 it("Starters category has 1 item") {
-                    mapper.toDomain(response, "r1")["Starters"]?.shouldHaveSize(1)
+                    mapper.toDomain(response, RESTAURANT_ID_1)[CATEGORY_STARTERS]?.shouldHaveSize(1)
                 }
 
                 it("Biryani first item is Chicken Biryani") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().name shouldBe "Chicken Biryani"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().name shouldBe MENU_ITEM_CHICK_BIR
                 }
 
                 it("Starters first item is Chicken 65") {
-                    mapper.toDomain(response, "r1")["Starters"]!!
-                        .first().name shouldBe "Chicken 65"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[CATEGORY_STARTERS]!!
+                        .first().name shouldBe MENU_ITEM_CHICK_65
                 }
 
                 it("all items have correct restaurantId") {
-                    val menu = mapper.toDomain(response, "r2")
+                    val menu = mapper.toDomain(response, RESTAURANT_ID_2)
                     menu.values.flatten()
-                        .all { it.restaurantId == "r2" } shouldBe true
+                        .all { it.restaurantId == RESTAURANT_ID_2 } shouldBe true
                 }
 
                 it("Biryani items have category = Biryani") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .all { it.category == "Biryani" } shouldBe true
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .all { it.category == HOME_CATEGORY_BIRYANI } shouldBe true
                 }
 
                 it("Starters items have category = Starters") {
-                    mapper.toDomain(response, "r1")["Starters"]!!
-                        .all { it.category == "Starters" } shouldBe true
+                    mapper.toDomain(response, RESTAURANT_ID_1)[CATEGORY_STARTERS]!!
+                        .all { it.category == CATEGORY_STARTERS } shouldBe true
                 }
             }
-
-            // ══════════════════════════════════════════════════
-            // Customisations mapping
-            // ══════════════════════════════════════════════════
 
             context("customisations mapping") {
 
                 val response = singleItemResponse(
                     customisations = listOf(
                         CustomisationDto(
-                            id = "size_group",
-                            name = "Size",
+                            id = CUSTOMISE_GROUP_SIZE,
+                            name = CUSTOMISE_NAME_SIZE,
                             options = listOf(
-                                CustomisationOptionDto("regular", "Regular", 0.0),
-                                CustomisationOptionDto("large", "Large", 50.0),
+                                CustomisationOptionDto(
+                                    CUSTOMISE_OPT_REGULAR,
+                                    CUSTOMISE_LABEL_REGULAR,
+                                    EXTRA_PRICE_ZERO
+                                ),
+                                CustomisationOptionDto(
+                                    CUSTOMISE_OPT_LARGE,
+                                    CUSTOMISE_LABEL_LARGE,
+                                    EXTRA_PRICE_LARGE
+                                ),
                             )
                         )
                     )
                 )
 
                 it("maps one customisation group") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
                         .first().customisations shouldHaveSize 1
                 }
 
                 it("maps customisation group id correctly") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations.first().id shouldBe "size_group"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().customisations.first().id shouldBe CUSTOMISE_GROUP_SIZE
                 }
 
                 it("maps customisation group name correctly") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations.first().name shouldBe "Size"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().customisations.first().name shouldBe CUSTOMISE_NAME_SIZE
                 }
 
                 it("maps 2 customisation options") {
-                    val options = mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations.first().options
+                    val options =
+                        mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                            .first().customisations.first().options
                     options shouldHaveSize 2
                 }
 
                 it("maps first option id correctly") {
-                    val options = mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations.first().options
-                    options[0].id shouldBe "regular"
+                    val options =
+                        mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                            .first().customisations.first().options
+                    options[0].id shouldBe CUSTOMISE_OPT_REGULAR
                 }
 
                 it("maps second option id correctly") {
-                    val options = mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations.first().options
-                    options[1].id shouldBe "large"
+                    val options =
+                        mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                            .first().customisations.first().options
+                    options[1].id shouldBe CUSTOMISE_OPT_LARGE
                 }
 
                 it("maps option extraPrice correctly") {
-                    val options = mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations.first().options
-                    options[1].extraPrice shouldBe 50.0
+                    val options =
+                        mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                            .first().customisations.first().options
+                    options[1].extraPrice shouldBe EXTRA_PRICE_LARGE
                 }
 
                 it("maps option label correctly") {
-                    val options = mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations.first().options
-                    options[1].label shouldBe "Large"
+                    val options =
+                        mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                            .first().customisations.first().options
+                    options[1].label shouldBe CUSTOMISE_LABEL_LARGE
                 }
             }
 
@@ -409,56 +480,71 @@ class MenuMapperSpec : DescribeSpec({
                 val response = singleItemResponse(
                     customisations = listOf(
                         CustomisationDto(
-                            id = "size_group",
-                            name = "Size",
+                            id = CUSTOMISE_GROUP_SIZE,
+                            name = CUSTOMISE_NAME_SIZE,
                             options = listOf(
-                                CustomisationOptionDto("regular", "Regular", 0.0),
-                                CustomisationOptionDto("large", "Large", 50.0),
+                                CustomisationOptionDto(
+                                    CUSTOMISE_OPT_REGULAR,
+                                    CUSTOMISE_LABEL_REGULAR,
+                                    EXTRA_PRICE_ZERO
+                                ),
+                                CustomisationOptionDto(
+                                    CUSTOMISE_OPT_LARGE,
+                                    CUSTOMISE_LABEL_LARGE,
+                                    EXTRA_PRICE_LARGE
+                                ),
                             )
                         ),
                         CustomisationDto(
-                            id = "spice_group",
-                            name = "Spice Level",
+                            id = CUSTOMISE_GROUP_SPICE,
+                            name = CUSTOMISE_NAME_SPICE,
                             options = listOf(
-                                CustomisationOptionDto("mild", "Mild", 0.0),
-                                CustomisationOptionDto("medium", "Medium", 0.0),
-                                CustomisationOptionDto("hot", "Hot", 0.0),
+                                CustomisationOptionDto(
+                                    CUSTOMISE_OPT_MILD,
+                                    CUSTOMISE_LABEL_MILD,
+                                    EXTRA_PRICE_ZERO
+                                ),
+                                CustomisationOptionDto(
+                                    CUSTOMISE_OPT_MEDIUM,
+                                    CUSTOMISE_LABEL_MEDIUM,
+                                    EXTRA_PRICE_ZERO
+                                ),
+                                CustomisationOptionDto(
+                                    CUSTOMISE_OPT_HOT,
+                                    CUSTOMISE_LABEL_HOT,
+                                    EXTRA_PRICE_ZERO
+                                ),
                             )
                         ),
                     )
                 )
 
                 it("maps 2 customisation groups") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
                         .first().customisations shouldHaveSize 2
                 }
 
                 it("first group is Size") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations[0].name shouldBe "Size"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().customisations[0].name shouldBe CUSTOMISE_NAME_SIZE
                 }
 
                 it("second group is Spice Level") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
-                        .first().customisations[1].name shouldBe "Spice Level"
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
+                        .first().customisations[1].name shouldBe CUSTOMISE_NAME_SPICE
                 }
 
                 it("Spice Level group has 3 options") {
-                    mapper.toDomain(response, "r1")["Biryani"]!!
+                    mapper.toDomain(response, RESTAURANT_ID_1)[HOME_CATEGORY_BIRYANI]!!
                         .first().customisations[1].options shouldHaveSize 3
                 }
             }
-
-            // ══════════════════════════════════════════════════
-            // Empty / edge cases
-            // ══════════════════════════════════════════════════
 
             context("empty menu response") {
 
                 it("empty dailyMenus returns empty map") {
                     val response = DailyMenuResponse(dailyMenus = emptyList())
-                    // ✅ Map has no shouldBeEmpty() — use isEmpty()
-                    mapper.toDomain(response, "r1").isEmpty() shouldBe true
+                    mapper.toDomain(response, RESTAURANT_ID_1).isEmpty() shouldBe true
                 }
 
                 it("category with empty dishes is excluded from result") {
@@ -466,15 +552,14 @@ class MenuMapperSpec : DescribeSpec({
                         dailyMenus = listOf(
                             DailyMenuWrapper(
                                 DailyMenuDto(
-                                    id = "1",
-                                    name = "Empty Category",
+                                    id = MENU_DTO_ID_1,
+                                    name = CATEGORY_EMPTY_NAME,
                                     dishes = emptyList(),
                                 )
                             )
                         )
                     )
-                    // ✅ Remove ?. — not nullable. Use isEmpty() not shouldBeEmpty()
-                    mapper.toDomain(response, "r1").isEmpty() shouldBe true
+                    mapper.toDomain(response, RESTAURANT_ID_1).isEmpty() shouldBe true
                 }
 
                 it("mix of empty and non-empty categories — only non-empty included") {
@@ -482,22 +567,24 @@ class MenuMapperSpec : DescribeSpec({
                         dailyMenus = listOf(
                             DailyMenuWrapper(
                                 DailyMenuDto(
-                                    id = "1", name = "Empty", dishes = emptyList()
+                                    id = MENU_DTO_ID_1,
+                                    name = CATEGORY_EMPTY_SHORT,
+                                    dishes = emptyList(),
                                 )
                             ),
                             DailyMenuWrapper(
                                 DailyMenuDto(
-                                    id = "2",
-                                    name = "Biryani",
+                                    id = MENU_DTO_ID_2,
+                                    name = HOME_CATEGORY_BIRYANI,
                                     dishes = listOf(
                                         DishWrapper(
                                             DishDto(
-                                                id = "m1",
-                                                name = "Chicken Biryani",
-                                                price = "249",
+                                                id = MENU_ID_1,
+                                                name = MENU_ITEM_CHICK_BIR,
+                                                price = MENU_PRICE_STR,
                                                 description = "",
-                                                isVeg = 0,
-                                                isRecommended = 1,
+                                                isVeg = API_IS_NOT_VEG,
+                                                isRecommended = API_IS_RECOMMENDED,
                                             )
                                         )
                                     ),
@@ -505,10 +592,10 @@ class MenuMapperSpec : DescribeSpec({
                             ),
                         )
                     )
-                    val result = mapper.toDomain(response, "r1")
+                    val result = mapper.toDomain(response, RESTAURANT_ID_1)
                     result.size shouldBe 1
-                    result.containsKey("Biryani") shouldBe true
-                    result.containsKey("Empty") shouldBe false
+                    result.containsKey(HOME_CATEGORY_BIRYANI) shouldBe true
+                    result.containsKey(CATEGORY_EMPTY_SHORT) shouldBe false
                 }
             }
         }

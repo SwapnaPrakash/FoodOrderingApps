@@ -40,7 +40,6 @@ fun ErrorScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // Error icon
         Icon(
             imageVector = Icons.Default.WifiOff,
             contentDescription = ERROR,

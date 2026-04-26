@@ -1,6 +1,20 @@
 package com.swapna.foodapp.presentation.auth
 
 import com.swapna.foodapp.domain.repository.UserRepository
+import com.swapna.foodapp.utils.TestConstants.ERR_APP_IN_BACKGROUND
+import com.swapna.foodapp.utils.TestConstants.ERR_NETWORK_UNAVAILABLE
+import com.swapna.foodapp.utils.TestConstants.ERR_WRONG_OTP_FIREBASE
+import com.swapna.foodapp.utils.TestConstants.ERR_WRONG_OTP_REPOSITORY
+import com.swapna.foodapp.utils.TestConstants.OTP_EMPTY
+import com.swapna.foodapp.utils.TestConstants.OTP_TOO_SHORT
+import com.swapna.foodapp.utils.TestConstants.OTP_WRONG
+import com.swapna.foodapp.utils.TestConstants.OTP_WRONG_FIREBASE
+import com.swapna.foodapp.utils.TestConstants.PHONE_EMPTY
+import com.swapna.foodapp.utils.TestConstants.PHONE_TOO_LONG
+import com.swapna.foodapp.utils.TestConstants.PHONE_TOO_SHORT
+import com.swapna.foodapp.utils.TestConstants.PHONE_WITH_LETTERS
+import com.swapna.foodapp.utils.TestConstants.VALID_OTP
+import com.swapna.foodapp.utils.TestConstants.VALID_PHONE
 import com.swapna.foodapp.utils.fakeUser
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
@@ -19,22 +33,21 @@ import kotlinx.coroutines.test.setMain
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthViewModelSpec : BehaviorSpec({
 
-    // ── Test doubles
     val userRepository = mockk<UserRepository>()
     lateinit var viewModel: AuthViewModel
 
-    // ── Setup / Teardown
     beforeEach {
         clearAllMocks()
         Dispatchers.setMain(UnconfinedTestDispatcher())
         viewModel = AuthViewModel(userRepository)
     }
 
-    afterEach {
-        Dispatchers.resetMain()
-    }
+    afterEach { Dispatchers.resetMain() }
 
-    // GIVEN: Initial state
+    // ══════════════════════════════════════════════════════════
+    // Initial State
+    // ══════════════════════════════════════════════════════════
+
     given("ViewModel is just created") {
         `when`("no action has been taken") {
             then("state should be Idle") {
@@ -44,26 +57,28 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // GIVEN: Invalid phone — all actions INSIDE then
-    given("phone number is less than 10 digits") {
-        `when`("sendOtp is called with '98765'") {
-            then("state should be Error — no API call made") {
+    // ══════════════════════════════════════════════════════════
+    // Phone Validation — invalid inputs
+    // ══════════════════════════════════════════════════════════
 
-                viewModel.sendOtp("98765")
+    given("phone number is less than 10 digits") {
+        `when`("sendOtp is called with '$PHONE_TOO_SHORT'") {
+            then("state should be Error — no API call made") {
+                viewModel.sendOtp(PHONE_TOO_SHORT)
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
-                val error = viewModel.state.value as AuthViewModel.AuthState.Error
-                error.message.shouldNotBeEmpty()
+                (viewModel.state.value as AuthViewModel.AuthState.Error)
+                    .message.shouldNotBeEmpty()
                 coVerify(exactly = 0) { userRepository.sendOtp(any()) }
             }
         }
     }
 
-    given("phone number is empty string") {
-        `when`("sendOtp is called with ''") {
-            then("state should be Error") {
-                viewModel.sendOtp("")
+    given("phone number is empty") {
+        `when`("sendOtp is called with empty string") {
+            then("state should be Error — no API call made") {
+                viewModel.sendOtp(PHONE_EMPTY)
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -73,9 +88,9 @@ class AuthViewModelSpec : BehaviorSpec({
     }
 
     given("phone number contains letters") {
-        `when`("sendOtp is called with 'abc1234567'") {
+        `when`("sendOtp is called with '$PHONE_WITH_LETTERS'") {
             then("state should be Error — letters are not valid") {
-                viewModel.sendOtp("abc1234567")
+                viewModel.sendOtp(PHONE_WITH_LETTERS)                // ✅ was "9876abc210"
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -85,9 +100,9 @@ class AuthViewModelSpec : BehaviorSpec({
     }
 
     given("phone number has more than 10 digits") {
-        `when`("sendOtp is called with '123456789012'") {
-            then("state should be Error") {
-                viewModel.sendOtp("123456789012")
+        `when`("sendOtp is called with '$PHONE_TOO_LONG'") {
+            then("state should be Error — no API call made") {
+                viewModel.sendOtp(PHONE_TOO_LONG)                    // ✅ was "98765432101"
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -96,60 +111,77 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // GIVEN: Valid phone + API outcomes
+    // ══════════════════════════════════════════════════════════
+    // Send OTP — valid phone + API outcomes
+    // ══════════════════════════════════════════════════════════
+
     given("phone number is valid 10 digits") {
 
         `when`("sendOtp is called and repository returns success") {
             then("state should be OtpSent with the phone number") {
                 coEvery {
-                    userRepository.sendOtp("9876543210")
+                    userRepository.sendOtp(VALID_PHONE)              // ✅ was "9876543210"
                 } returns Result.success(Unit)
 
-                viewModel.sendOtp("9876543210")
+                viewModel.sendOtp(VALID_PHONE)
 
                 viewModel.state.value shouldBe
-                        AuthViewModel.AuthState.OtpSent("9876543210")
+                        AuthViewModel.AuthState.OtpSent(VALID_PHONE)
             }
         }
 
-        `when`("sendOtp is called and repository throws network error") {
+        `when`("sendOtp is called and repository returns network error") {
             then("state should be Error with the failure message") {
                 coEvery {
                     userRepository.sendOtp(any())
-                } returns Result.failure(Exception("Network unavailable"))
+                } returns Result.failure(Exception(ERR_NETWORK_UNAVAILABLE)) // ✅ was hardcoded
 
-                viewModel.sendOtp("9876543210")
+                viewModel.sendOtp(VALID_PHONE)
 
                 val state = viewModel.state.value
                 state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
                 (state as AuthViewModel.AuthState.Error).message shouldBe
-                        "Network unavailable"
+                        ERR_NETWORK_UNAVAILABLE
+            }
+        }
+
+        `when`("sendOtp is called and app is in background") {
+            then("state should be Error with background message") {
+                coEvery {
+                    userRepository.sendOtp(any())
+                } returns Result.failure(Exception(ERR_APP_IN_BACKGROUND)) // ✅ was hardcoded
+
+                viewModel.sendOtp(VALID_PHONE)
+
+                val state = viewModel.state.value
+                state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
+                (state as AuthViewModel.AuthState.Error).message shouldBe
+                        ERR_APP_IN_BACKGROUND
             }
         }
     }
 
-    // GIVEN: OTP has been sent
-    // Use nested beforeEach for shared OTP setup
-    given("OTP was sent to 9876543210") {
+    // ══════════════════════════════════════════════════════════
+    // Verify OTP — after OTP sent
+    // ══════════════════════════════════════════════════════════
 
-        // nested beforeEach — runs AFTER outer beforeEach
-        // Order: clearAllMocks → create viewModel → this block → then
+    given("OTP was sent to $VALID_PHONE") {
+
         beforeEach {
             coEvery {
                 userRepository.sendOtp(any())
             } returns Result.success(Unit)
-            viewModel.sendOtp("9876543210")
-            // viewModel is now in OtpSent state for all thens inside this given
+            viewModel.sendOtp(VALID_PHONE)
         }
 
         `when`("verifyOtp is called with correct 6-digit OTP") {
             then("state should be Success with the returned User") {
                 val mockUser = fakeUser()
                 coEvery {
-                    userRepository.verifyOtp("123456")
+                    userRepository.verifyOtp(VALID_OTP)              // ✅ was "123456"
                 } returns Result.success(mockUser)
 
-                viewModel.verifyOtp("123456")
+                viewModel.verifyOtp(VALID_OTP)
 
                 viewModel.state.value shouldBe
                         AuthViewModel.AuthState.Success(mockUser)
@@ -157,23 +189,38 @@ class AuthViewModelSpec : BehaviorSpec({
         }
 
         `when`("verifyOtp is called with wrong OTP") {
-            then("state should be Error with the failure message") {
+            then("state should be Error with repository failure message") {
                 coEvery {
                     userRepository.verifyOtp(any())
-                } returns Result.failure(Exception("Wrong OTP. Try again."))
+                } returns Result.failure(Exception(ERR_WRONG_OTP_REPOSITORY)) // ✅
 
-                viewModel.verifyOtp("000000")
+                viewModel.verifyOtp(OTP_WRONG)                       // ✅ was "000000"
 
                 val state = viewModel.state.value
                 state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
                 (state as AuthViewModel.AuthState.Error).message shouldBe
-                        "Wrong OTP. Try again."
+                        ERR_WRONG_OTP_REPOSITORY
             }
         }
 
-        `when`("verifyOtp is called with only 4 digits") {
-            then("state should be Error — OTP too short") {
-                viewModel.verifyOtp("1234")
+        `when`("verifyOtp is called and Firebase rejects OTP") {
+            then("state should be Error with Firebase rejection message") {
+                coEvery {
+                    userRepository.verifyOtp(any())
+                } returns Result.failure(Exception(ERR_WRONG_OTP_FIREBASE))   // ✅
+
+                viewModel.verifyOtp(OTP_WRONG_FIREBASE)              // ✅ was "999999"
+
+                val state = viewModel.state.value
+                state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
+                (state as AuthViewModel.AuthState.Error).message shouldBe
+                        ERR_WRONG_OTP_FIREBASE
+            }
+        }
+
+        `when`("verifyOtp is called with OTP shorter than 6 digits") {
+            then("state should be Error — no API call made") {
+                viewModel.verifyOtp(OTP_TOO_SHORT)                   // ✅ was "1234"
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -182,8 +229,8 @@ class AuthViewModelSpec : BehaviorSpec({
         }
 
         `when`("verifyOtp is called with empty string") {
-            then("state should be Error") {
-                viewModel.verifyOtp("")
+            then("state should be Error — no API call made") {
+                viewModel.verifyOtp(OTP_EMPTY)                       // ✅ was ""
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -192,7 +239,10 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // GIVEN: Slow network / loading transition
+    // ══════════════════════════════════════════════════════════
+    // Loading state
+    // ══════════════════════════════════════════════════════════
+
     given("valid phone and slow network") {
         `when`("sendOtp is called") {
             then("final state should be OtpSent — Loading was intermediate") {
@@ -200,26 +250,25 @@ class AuthViewModelSpec : BehaviorSpec({
                     userRepository.sendOtp(any())
                 } returns Result.success(Unit)
 
-                viewModel.sendOtp("9876543210")
+                viewModel.sendOtp(VALID_PHONE)
 
-                // UnconfinedTestDispatcher runs coroutine synchronously
-                // so Loading → OtpSent happens before this assertion
                 viewModel.state.value shouldBe
-                        AuthViewModel.AuthState.OtpSent("9876543210")
+                        AuthViewModel.AuthState.OtpSent(VALID_PHONE)
             }
         }
     }
 
-    // GIVEN: resetState
+    // ══════════════════════════════════════════════════════════
+    // Reset State
+    // ══════════════════════════════════════════════════════════
+
     given("state is currently Error") {
         `when`("resetState is called") {
             then("state should go back to Idle") {
-                // First cause an error
-                viewModel.sendOtp("123")
+                viewModel.sendOtp(PHONE_TOO_SHORT)
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
 
-                // Then reset
                 viewModel.resetState()
 
                 viewModel.state.value
@@ -227,106 +276,4 @@ class AuthViewModelSpec : BehaviorSpec({
             }
         }
     }
-
-    // GIVEN: Background activity error
-    given("app is in background when OTP is requested") {
-        `when`("sendOtp is called and repo returns activity error") {
-            then("state should be Error with background message") {
-                coEvery {
-                    userRepository.sendOtp(any())
-                } returns Result.failure(
-                    Exception("App is in background. Please reopen and try again.")
-                )
-
-                viewModel.sendOtp("9876543210")
-
-                val state = viewModel.state.value
-                state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
-                (state as AuthViewModel.AuthState.Error).message shouldBe
-                        "App is in background. Please reopen and try again."
-            }
-        }
-    }
-
-    // GIVEN: Firebase rejects OTP
-    given("OTP was sent successfully and Firebase rejects verify") {
-
-        beforeEach {
-            coEvery {
-                userRepository.sendOtp(any())
-            } returns Result.success(Unit)
-            viewModel.sendOtp("9876543210")
-        }
-
-        `when`("verifyOtp called with wrong OTP and Firebase rejects") {
-            then("state should be Error with Firebase rejection message") {
-                coEvery {
-                    userRepository.verifyOtp(any())
-                } returns Result.failure(
-                    Exception("Wrong OTP. Please check and try again.")
-                )
-
-                viewModel.verifyOtp("999999")
-
-                val state = viewModel.state.value
-                state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
-                (state as AuthViewModel.AuthState.Error).message shouldBe
-                        "Wrong OTP. Please check and try again."
-            }
-        }
-    }
-
-
-    // GIVEN: Activity is in background (activityProvider returns null)
-    given("app is in background when OTP is requested") {
-        `when`("sendOtp is called and repo returns activity error") {
-
-            then("state should be Error with background message") {
-                coEvery {
-                    userRepository.sendOtp(any())
-                } returns Result.failure(
-                    Exception("App is in background. Please reopen and try again.")
-                )
-
-                viewModel.sendOtp("9876543210")
-
-                val state = viewModel.state.value
-                state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
-                val error = state as AuthViewModel.AuthState.Error
-                error.message shouldBe
-                        "App is in background. Please reopen and try again."
-            }
-        }
-    }
-
-    // GIVEN: Firebase returns wrong OTP error
-    given("OTP was sent successfully") {
-
-        beforeEach {
-            coEvery {
-                userRepository.sendOtp(any())
-            } returns Result.success(Unit)
-            viewModel.sendOtp("9876543210")
-        }
-
-        `when`("verifyOtp called with wrong OTP and Firebase rejects") {
-
-            then("state should be Error with Firebase rejection message") {
-                coEvery {
-                    userRepository.verifyOtp(any())
-                } returns Result.failure(
-                    Exception("Wrong OTP. Please check and try again.")
-                )
-
-                viewModel.verifyOtp("999999")
-
-                val state = viewModel.state.value
-                state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
-                val error = state as AuthViewModel.AuthState.Error
-                error.message shouldBe
-                        "Wrong OTP. Please check and try again."
-            }
-        }
-    }
-
 })

@@ -10,6 +10,40 @@ import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.usecase.cart.AddToCartUseCase
 import com.swapna.foodapp.presentation.navigation.AppRoutes
 import com.swapna.foodapp.utils.AppBusinessRules
+import com.swapna.foodapp.utils.TestConstants.CART_COUNT_3
+import com.swapna.foodapp.utils.TestConstants.CART_ID_STR_1
+import com.swapna.foodapp.utils.TestConstants.CART_UUID_1
+import com.swapna.foodapp.utils.TestConstants.CART_UUID_2
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_BIRYANI_CAT
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_STARTERS
+import com.swapna.foodapp.utils.TestConstants.ERR_COULD_NOT_ADD_CART
+import com.swapna.foodapp.utils.TestConstants.ERR_COULD_NOT_LOAD_REST
+import com.swapna.foodapp.utils.TestConstants.ERR_NO_INTERNET_HOME
+import com.swapna.foodapp.utils.TestConstants.LOC_KORAMANGALA
+import com.swapna.foodapp.utils.TestConstants.MENU_CATEGORY_COUNT
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_1
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_2
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_3
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_4
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_65
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_BIR
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_MUTTON_BIR
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_PANEER_TIKKA
+import com.swapna.foodapp.utils.TestConstants.OFFER_50_OFF
+import com.swapna.foodapp.utils.TestConstants.PRICE_100
+import com.swapna.foodapp.utils.TestConstants.PRICE_179
+import com.swapna.foodapp.utils.TestConstants.PRICE_199
+import com.swapna.foodapp.utils.TestConstants.PRICE_249
+import com.swapna.foodapp.utils.TestConstants.PRICE_349
+import com.swapna.foodapp.utils.TestConstants.PRICE_50
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ADDRESS_KORA
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_COST_500
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_1
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_2
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_MEGHANA
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_MIN_ORDER_100
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_RATING_45
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_VOTES_5000
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearAllMocks
@@ -39,22 +73,33 @@ class RestaurantViewModelSpec : BehaviorSpec({
     val cartRepository = mockk<CartRepository>()
     val addToCartUseCase = mockk<AddToCartUseCase>()
 
-    // ── Controllable cart flow ────────────────────────────────
-    // WHY MutableStateFlow not flowOf()?
-    // onIncrementItem/onDecrementItem mutate cart
-    // answers block updates cartItemsFlow
-    // → quantities StateFlow re-emits automatically
     val cartItemsFlow = MutableStateFlow<List<CartItem>>(emptyList())
 
     // ── Test data ─────────────────────────────────────────────
-    val chickenBiryani =
-        testMenuItem("m1", "Chicken Biryani", 249.0, isRecommended = true, isBestseller = true)
-    val muttonBiryani = testMenuItem("m2", "Mutton Biryani", 349.0)
-    val chicken65 =
-        testMenuItem("m3", "Chicken 65", 199.0, isRecommended = true, category = "Starters")
-    val paneerTikka = testMenuItem("m4", "Paneer Tikka", 179.0, isVeg = true, category = "Starters")
+    val chickenBiryani = testMenuItem(
+        MENU_ID_1,
+        MENU_ITEM_CHICK_BIR,
+        PRICE_249,
+        isRecommended = true,
+        isBestseller = true
+    )
+    val muttonBiryani = testMenuItem(MENU_ID_2, MENU_ITEM_MUTTON_BIR, PRICE_349)
+    val chicken65 = testMenuItem(
+        MENU_ID_3,
+        MENU_ITEM_CHICK_65,
+        PRICE_199,
+        isRecommended = true,
+        category = CATEGORY_STARTERS
+    )
+    val paneerTikka = testMenuItem(
+        MENU_ID_4,
+        MENU_ITEM_PANEER_TIKKA,
+        PRICE_179,
+        isVeg = true,
+        category = CATEGORY_STARTERS
+    )
 
-    fun createViewModel(restaurantId: String = "r1"): RestaurantViewModel {
+    fun createViewModel(restaurantId: String = RESTAURANT_ID_1): RestaurantViewModel {
         val handle = SavedStateHandle(
             mapOf(AppRoutes.ARG_RESTAURANT_ID to restaurantId)
         )
@@ -71,7 +116,6 @@ class RestaurantViewModelSpec : BehaviorSpec({
         Dispatchers.setMain(dispatcher)
         cartItemsFlow.value = emptyList()
 
-        // Default stubs
         every { restaurantRepository.getRestaurantDetail(any()) } returns
                 flowOf(Result.success(testRestaurant()))
         every { restaurantRepository.getMenuItems(any()) } returns
@@ -85,8 +129,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
                 cartItemsFlow.map { items ->
                     val subtotal = items.sumOf { it.totalPrice }
                     val delivery = if (subtotal >= AppBusinessRules.FREE_DELIVERY_ABOVE) 0.0
-                    else if (subtotal > 0) AppBusinessRules.DEFAULT_DELIVERY_FEE
-                    else 0.0
+                    else if (subtotal > 0) AppBusinessRules.DEFAULT_DELIVERY_FEE else 0.0
                     val taxes = subtotal * AppBusinessRules.GST_RATE
                     com.swapna.foodapp.domain.model.CartPriceBreakdown(
                         subtotal = subtotal,
@@ -97,9 +140,6 @@ class RestaurantViewModelSpec : BehaviorSpec({
                 }
         coEvery { addToCartUseCase(any(), any(), any()) } just runs
 
-        // WHY answers not just runs?
-        // updateQuantity/removeItem must mutate cartItemsFlow
-        // so quantities StateFlow re-emits with updated values
         coEvery { cartRepository.updateQuantity(any(), any()) } answers {
             val cartItemId = firstArg<String>()
             val newQty = secondArg<Int>()
@@ -124,7 +164,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("restaurant detail loads successfully") {
             then("restaurant name should be Meghana Foods") {
                 createViewModel().uiState.value
-                    .restaurant?.name shouldBe "Meghana Foods"
+                    .restaurant?.name shouldBe RESTAURANT_MEGHANA
             }
         }
 
@@ -143,9 +183,9 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("menu loads successfully") {
             then("menuByCategory has 2 categories Biryani and Starters") {
                 val menu = createViewModel().uiState.value.menuByCategory
-                menu.size shouldBe 2
-                menu.containsKey("Biryani") shouldBe true
-                menu.containsKey("Starters") shouldBe true
+                menu.size shouldBe MENU_CATEGORY_COUNT
+                menu.containsKey(CATEGORY_BIRYANI_CAT) shouldBe true
+                menu.containsKey(CATEGORY_STARTERS) shouldBe true
             }
         }
 
@@ -160,10 +200,10 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("restaurant API throws network error") {
             then("error shown restaurant null isLoading false") {
                 every { restaurantRepository.getRestaurantDetail(any()) } returns
-                        flowOf(Result.failure(Exception("No internet")))
+                        flowOf(Result.failure(Exception(ERR_NO_INTERNET_HOME)))
 
                 val vm = createViewModel()
-                vm.uiState.value.error shouldBe "Could not load restaurant"
+                vm.uiState.value.error shouldBe ERR_COULD_NOT_LOAD_REST
                 vm.uiState.value.restaurant shouldBe null
                 vm.uiState.value.isLoading shouldBe false
             }
@@ -179,10 +219,10 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("cart has item1 qty 2 and item2 qty 1") {
             then("cartItemCount should be 3 total") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("c1", chickenBiryani, qty = 2),
-                    testCartItem("c2", muttonBiryani, qty = 1),
+                    testCartItem(CART_UUID_1, chickenBiryani, qty = 2),
+                    testCartItem(CART_UUID_2, muttonBiryani, qty = 1),
                 )
-                createViewModel().uiState.value.cartItemCount shouldBe 3
+                createViewModel().uiState.value.cartItemCount shouldBe CART_COUNT_3
             }
         }
 
@@ -195,11 +235,11 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("cart has 3 single qty items") {
             then("cartItemCount should be 3") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("c1", chickenBiryani, qty = 1),
-                    testCartItem("c2", muttonBiryani, qty = 1),
-                    testCartItem("c3", chicken65, qty = 1),
+                    testCartItem(CART_UUID_1, chickenBiryani, qty = 1),
+                    testCartItem(CART_UUID_2, muttonBiryani, qty = 1),
+                    testCartItem("cart_uuid_3", chicken65, qty = 1),
                 )
-                createViewModel().uiState.value.cartItemCount shouldBe 3
+                createViewModel().uiState.value.cartItemCount shouldBe CART_COUNT_3
             }
         }
     }
@@ -213,10 +253,14 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("1 item below free delivery threshold") {
             then("cartTotal equals subtotal plus delivery plus taxes") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("c1", testMenuItem("m_cheap", price = 50.0), qty = 1)
+                    testCartItem(
+                        CART_UUID_1,
+                        testMenuItem("m_cheap", price = PRICE_50),
+                        qty = 1
+                    ) // ✅
                 )
                 val vm = createViewModel()
-                val subtotal = 50.0
+                val subtotal = PRICE_50
                 val delivery = AppBusinessRules.DEFAULT_DELIVERY_FEE
                 val taxes = subtotal * AppBusinessRules.GST_RATE
                 vm.uiState.value.cartTotal shouldBe subtotal + delivery + taxes
@@ -225,9 +269,9 @@ class RestaurantViewModelSpec : BehaviorSpec({
 
         `when`("1 item above free delivery threshold") {
             then("cartTotal equals subtotal plus taxes only") {
-                val price = AppBusinessRules.FREE_DELIVERY_ABOVE + 100.0
+                val price = AppBusinessRules.FREE_DELIVERY_ABOVE + PRICE_100
                 cartItemsFlow.value = listOf(
-                    testCartItem("c1", testMenuItem("m_exp", price = price), qty = 1)
+                    testCartItem(CART_UUID_1, testMenuItem("m_exp", price = price), qty = 1)
                 )
                 val vm = createViewModel()
                 val taxes = price * AppBusinessRules.GST_RATE
@@ -250,17 +294,16 @@ class RestaurantViewModelSpec : BehaviorSpec({
 
         `when`("1 item at price 50 — all fields checked") {
             then("subtotal deliveryFee taxes total all correct") {
-                val price = 50.0
                 cartItemsFlow.value = listOf(
-                    testCartItem("c1", testMenuItem("m1", price = price), qty = 1)
+                    testCartItem(CART_UUID_1, testMenuItem(MENU_ID_1, price = PRICE_50), qty = 1)
                 )
                 val vm = createViewModel()
-                val expectedDelivery = AppBusinessRules.DEFAULT_DELIVERY_FEE
-                val expectedTaxes = price * AppBusinessRules.GST_RATE
-                val expectedTotal = price + expectedDelivery + expectedTaxes
+                val expectedDel = AppBusinessRules.DEFAULT_DELIVERY_FEE
+                val expectedTaxes = PRICE_50 * AppBusinessRules.GST_RATE
+                val expectedTotal = PRICE_50 + expectedDel + expectedTaxes
 
-                vm.cartBreakdown.value.subtotal shouldBe price
-                vm.cartBreakdown.value.deliveryFee shouldBe expectedDelivery
+                vm.cartBreakdown.value.subtotal shouldBe PRICE_50
+                vm.cartBreakdown.value.deliveryFee shouldBe expectedDel
                 vm.cartBreakdown.value.taxes shouldBe expectedTaxes
                 vm.cartBreakdown.value.total shouldBe expectedTotal
             }
@@ -292,8 +335,8 @@ class RestaurantViewModelSpec : BehaviorSpec({
                 vm.quickAddToCart(chickenBiryani)
 
                 coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) }
-                itemSlot.captured.id shouldBe "m1"
-                itemSlot.captured.name shouldBe "Chicken Biryani"
+                itemSlot.captured.id shouldBe MENU_ID_1
+                itemSlot.captured.name shouldBe MENU_ITEM_CHICK_BIR
             }
         }
 
@@ -302,8 +345,8 @@ class RestaurantViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.events.test {
                     vm.quickAddToCart(chickenBiryani)
-                    awaitItem() shouldBe
-                            RestaurantViewModel.RestaurantEvent.ItemAdded("Chicken Biryani")
+                    awaitItem() shouldBe RestaurantViewModel.RestaurantEvent
+                        .ItemAdded(MENU_ITEM_CHICK_BIR)
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -314,8 +357,8 @@ class RestaurantViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.events.test {
                     vm.quickAddToCart(muttonBiryani)
-                    awaitItem() shouldBe
-                            RestaurantViewModel.RestaurantEvent.ItemAdded("Mutton Biryani")
+                    awaitItem() shouldBe RestaurantViewModel.RestaurantEvent
+                        .ItemAdded(MENU_ITEM_MUTTON_BIR)
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -324,13 +367,13 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("AddToCartUseCase throws exception") {
             then("ShowError event emitted with error message") {
                 coEvery { addToCartUseCase(any(), any(), any()) } throws
-                        Exception("Could not add to cart")
+                        Exception(ERR_COULD_NOT_ADD_CART)
 
                 val vm = createViewModel()
                 vm.events.test {
                     vm.quickAddToCart(chickenBiryani)
-                    awaitItem() shouldBe
-                            RestaurantViewModel.RestaurantEvent.ShowError("Could not add to cart")
+                    awaitItem() shouldBe RestaurantViewModel.RestaurantEvent
+                        .ShowError(ERR_COULD_NOT_ADD_CART)
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -365,31 +408,20 @@ class RestaurantViewModelSpec : BehaviorSpec({
             }
         }
 
-        // ── THE KEY BUG FIX TEST ──────────────────────────────
-        // WHY this test is critical?
-        // Old bug: _quantities used cartItem.id (UUID) as key
-        //          onIncrementItem looked up menuItem.id → miss → always 0
-        //          → called addToCartUseCase every time → 4 separate rows
-        // Fix: _quantities now uses menuItem.id as key → hit → updateQuantity called
         `when`("item already in cart — quantities keyed by menuItem.id") {
             then("updateQuantity called NOT addToCartUseCase — prevents duplicate rows") {
-                // Seed cart with CartItem where menuItem.id = "m1"
-                // cartItem.id = "cart_uuid_1" (different from menuItem.id)
                 cartItemsFlow.value = listOf(
-                    testCartItem(id = "cart_uuid_1", menuItem = chickenBiryani, qty = 1)
+                    testCartItem(id = CART_UUID_1, menuItem = chickenBiryani, qty = 1)
                 )
 
                 val vm = createViewModel()
 
-                // quantities should be keyed by menuItem.id "m1" not "cart_uuid_1"
-                vm.quantities.value["m1"] shouldBe 1
-                vm.quantities.value["cart_uuid_1"] shouldBe null // UUID key must NOT exist
+                vm.quantities.value[MENU_ID_1] shouldBe 1
+                vm.quantities.value[CART_UUID_1] shouldBe null
 
                 vm.onIncrementItem(chickenBiryani)
 
-                // updateQuantity called with CartItem UUID (cart_uuid_1) not menuItem.id
-                coVerify { cartRepository.updateQuantity("cart_uuid_1", 2) }
-                // addToCartUseCase must NOT be called — item already in cart
+                coVerify { cartRepository.updateQuantity(CART_UUID_1, 2) }
                 coVerify(exactly = 0) { addToCartUseCase(any(), any(), any()) }
             }
         }
@@ -397,20 +429,20 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("item already in cart with qty 1") {
             then("updateQuantity called with qty 2") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_id_1", chickenBiryani, qty = 1)
+                    testCartItem(CART_ID_STR_1, chickenBiryani, qty = 1)
                 )
 
                 val vm = createViewModel()
                 vm.onIncrementItem(chickenBiryani)
 
-                coVerify { cartRepository.updateQuantity("cart_id_1", 2) }
+                coVerify { cartRepository.updateQuantity(CART_ID_STR_1, 2) }
             }
         }
 
         `when`("item in cart with qty 3") {
             then("updateQuantity called with qty 4") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_id_1", chickenBiryani, qty = 3)
+                    testCartItem(CART_ID_STR_1, chickenBiryani, qty = 3)
                 )
 
                 val vm = createViewModel()
@@ -424,7 +456,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
             then("quantity capped at MAX not exceeded") {
                 cartItemsFlow.value = listOf(
                     testCartItem(
-                        "cart_id_1", chickenBiryani,
+                        CART_ID_STR_1, chickenBiryani,
                         qty = AppBusinessRules.MAX_ITEM_QUANTITY
                     )
                 )
@@ -438,36 +470,28 @@ class RestaurantViewModelSpec : BehaviorSpec({
             }
         }
 
-        // ── Regression test for original bug ──────────────────
-        // Tapping + 4 times must produce 1 cart row with qty=4
-        // not 4 separate cart rows
         `when`("user taps + four times on same item") {
             then("addToCartUseCase called only once — subsequent taps update quantity") {
                 val vm = createViewModel()
 
-                // First tap — item not in cart → addToCartUseCase
                 vm.onIncrementItem(chickenBiryani)
                 coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) }
 
-                // Simulate cart updated after first add
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_uuid_1", chickenBiryani, qty = 1)
+                    testCartItem(CART_UUID_1, chickenBiryani, qty = 1)
                 )
 
-                // Second tap — item now in cart → updateQuantity
                 vm.onIncrementItem(chickenBiryani)
-                coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) } // still 1
-                coVerify { cartRepository.updateQuantity("cart_uuid_1", 2) }
+                coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) }
+                coVerify { cartRepository.updateQuantity(CART_UUID_1, 2) }
 
-                // Update cart to qty=2
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_uuid_1", chickenBiryani, qty = 2)
+                    testCartItem(CART_UUID_1, chickenBiryani, qty = 2)
                 )
 
-                // Third tap
                 vm.onIncrementItem(chickenBiryani)
-                coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) } // still 1
-                coVerify { cartRepository.updateQuantity("cart_uuid_1", 3) }
+                coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) }
+                coVerify { cartRepository.updateQuantity(CART_UUID_1, 3) }
             }
         }
     }
@@ -478,49 +502,42 @@ class RestaurantViewModelSpec : BehaviorSpec({
 
     given("user taps - on menu item row") {
 
-        // ── THE KEY BUG FIX TEST ──────────────────────────────
-        // WHY critical?
-        // onDecrementItem receives menuItem.id (e.g. "m1")
-        // cartRepository.removeItem/updateQuantity need CartItem UUID
-        // Must look up CartItem by menuItem.id to get correct UUID
         `when`("item in cart with qty 2 — uses CartItem UUID for updateQuantity") {
             then("updateQuantity called with CartItem UUID not menuItem.id") {
                 cartItemsFlow.value = listOf(
-                    testCartItem(id = "cart_uuid_1", menuItem = chickenBiryani, qty = 2)
+                    testCartItem(id = CART_UUID_1, menuItem = chickenBiryani, qty = 2)
                 )
 
                 val vm = createViewModel()
-                vm.onDecrementItem("m1") // passes menuItem.id
+                vm.onDecrementItem(MENU_ID_1)
 
-                // Must use CartItem UUID "cart_uuid_1" not "m1"
-                coVerify { cartRepository.updateQuantity("cart_uuid_1", 1) }
+                coVerify { cartRepository.updateQuantity(CART_UUID_1, 1) }
             }
         }
 
         `when`("item in cart with qty 2") {
             then("updateQuantity called with qty 1") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_id_1", chickenBiryani, qty = 2)
+                    testCartItem(CART_ID_STR_1, chickenBiryani, qty = 2)
                 )
 
                 val vm = createViewModel()
-                vm.onDecrementItem("m1") // menuItem.id
+                vm.onDecrementItem(MENU_ID_1)
 
-                coVerify { cartRepository.updateQuantity("cart_id_1", 1) }
+                coVerify { cartRepository.updateQuantity(CART_ID_STR_1, 1) }
             }
         }
 
         `when`("item in cart with qty 1") {
             then("removeItem called with CartItem UUID — item fully removed") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_uuid_1", chickenBiryani, qty = 1)
+                    testCartItem(CART_UUID_1, chickenBiryani, qty = 1)
                 )
 
                 val vm = createViewModel()
-                vm.onDecrementItem("m1") // menuItem.id
+                vm.onDecrementItem(MENU_ID_1)
 
-                // removeItem must use CartItem UUID not menuItem.id
-                coVerify(exactly = 1) { cartRepository.removeItem("cart_uuid_1") }
+                coVerify(exactly = 1) { cartRepository.removeItem(CART_UUID_1) }
                 coVerify(exactly = 0) { cartRepository.updateQuantity(any(), any()) }
             }
         }
@@ -545,17 +562,14 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("cart has m1 qty 2 and m2 qty 1") {
             then("quantities keyed by menuItem.id not cartItem.id") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_uuid_1", chickenBiryani, qty = 2),
-                    testCartItem("cart_uuid_2", muttonBiryani, qty = 1),
+                    testCartItem(CART_UUID_1, chickenBiryani, qty = 2),
+                    testCartItem(CART_UUID_2, muttonBiryani, qty = 1),
                 )
                 val vm = createViewModel()
 
-                // WHY check menuItem.id keys?
-                // After bug fix: quantities uses menuItem.id ("m1", "m2")
-                // Before bug: it used cartItem.id ("cart_uuid_1") — wrong
-                vm.quantities.value["m1"] shouldBe 2   // menuItem.id
-                vm.quantities.value["m2"] shouldBe 1   // menuItem.id
-                vm.quantities.value["cart_uuid_1"] shouldBe null // UUID must NOT be key
+                vm.quantities.value[MENU_ID_1] shouldBe 2          // menuItem.id
+                vm.quantities.value[MENU_ID_2] shouldBe 1          // menuItem.id
+                vm.quantities.value[CART_UUID_1] shouldBe null        // UUID must NOT be key
             }
         }
 
@@ -568,31 +582,30 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("item removed from cart via decrement") {
             then("quantities map no longer contains that menuItem.id") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_uuid_1", chickenBiryani, qty = 1)
+                    testCartItem(CART_UUID_1, chickenBiryani, qty = 1)
                 )
 
                 val vm = createViewModel()
-                vm.quantities.value.containsKey("m1") shouldBe true
+                vm.quantities.value.containsKey(MENU_ID_1) shouldBe true
 
-                // removeItem answers block filters cartItemsFlow
-                vm.onDecrementItem("m1")
+                vm.onDecrementItem(MENU_ID_1)
 
-                vm.quantities.value.containsKey("m1") shouldBe false
+                vm.quantities.value.containsKey(MENU_ID_1) shouldBe false
             }
         }
 
         `when`("quantity increments from 1 to 2") {
             then("quantities map updates to 2 for that menuItem.id") {
                 cartItemsFlow.value = listOf(
-                    testCartItem("cart_uuid_1", chickenBiryani, qty = 1)
+                    testCartItem(CART_UUID_1, chickenBiryani, qty = 1)
                 )
 
                 val vm = createViewModel()
-                vm.quantities.value["m1"] shouldBe 1
+                vm.quantities.value[MENU_ID_1] shouldBe 1
 
                 vm.onIncrementItem(chickenBiryani)
 
-                vm.quantities.value["m1"] shouldBe 2
+                vm.quantities.value[MENU_ID_1] shouldBe 2
             }
         }
     }
@@ -629,9 +642,9 @@ class RestaurantViewModelSpec : BehaviorSpec({
             then("NavigateToProduct emitted with itemId m1") {
                 val vm = createViewModel()
                 vm.events.test {
-                    vm.onMenuItemTapped("m1")
-                    awaitItem() shouldBe
-                            RestaurantViewModel.RestaurantEvent.NavigateToProduct("m1")
+                    vm.onMenuItemTapped(MENU_ID_1)
+                    awaitItem() shouldBe RestaurantViewModel.RestaurantEvent
+                        .NavigateToProduct(MENU_ID_1)
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -679,8 +692,8 @@ class RestaurantViewModelSpec : BehaviorSpec({
             then("scrollToCategory emits Starters") {
                 val vm = createViewModel()
                 vm.scrollToCategory.test {
-                    vm.onCategoryFooterTapped("Starters")
-                    awaitItem() shouldBe "Starters"
+                    vm.onCategoryFooterTapped(CATEGORY_STARTERS)
+                    awaitItem() shouldBe CATEGORY_STARTERS
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -690,8 +703,8 @@ class RestaurantViewModelSpec : BehaviorSpec({
             then("scrollToCategory emits Biryani") {
                 val vm = createViewModel()
                 vm.scrollToCategory.test {
-                    vm.onCategoryFooterTapped("Biryani")
-                    awaitItem() shouldBe "Biryani"
+                    vm.onCategoryFooterTapped(CATEGORY_BIRYANI_CAT)
+                    awaitItem() shouldBe CATEGORY_BIRYANI_CAT
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -707,17 +720,17 @@ class RestaurantViewModelSpec : BehaviorSpec({
         `when`("user taps retry after connection restored") {
             then("data reloads and restaurant name shown") {
                 every { restaurantRepository.getRestaurantDetail(any()) } returnsMany listOf(
-                    flowOf(Result.failure(Exception("No internet"))),
+                    flowOf(Result.failure(Exception(ERR_NO_INTERNET_HOME))),
                     flowOf(Result.success(testRestaurant())),
                 )
 
                 val vm = createViewModel()
-                vm.uiState.value.error shouldBe "Could not load restaurant"
+                vm.uiState.value.error shouldBe ERR_COULD_NOT_LOAD_REST
                 vm.uiState.value.restaurant shouldBe null
 
                 vm.retry()
 
-                vm.uiState.value.restaurant?.name shouldBe "Meghana Foods"
+                vm.uiState.value.restaurant?.name shouldBe RESTAURANT_MEGHANA
                 vm.uiState.value.error shouldBe null
             }
         }
@@ -733,9 +746,9 @@ class RestaurantViewModelSpec : BehaviorSpec({
             then("returns list containing Biryani and Starters") {
                 val vm = createViewModel()
                 val names = vm.getCategoryNames()
-                names.size shouldBe 2
-                names.contains("Biryani") shouldBe true
-                names.contains("Starters") shouldBe true
+                names.size shouldBe MENU_CATEGORY_COUNT
+                names.contains(CATEGORY_BIRYANI_CAT) shouldBe true
+                names.contains(CATEGORY_STARTERS) shouldBe true
             }
         }
     }
@@ -748,40 +761,38 @@ class RestaurantViewModelSpec : BehaviorSpec({
 
         `when`("opened with restaurantId r1") {
             then("SavedStateHandle correctly passes r1") {
-                createViewModel(restaurantId = "r1").restaurantId shouldBe "r1"
+                createViewModel(restaurantId = RESTAURANT_ID_1).restaurantId shouldBe RESTAURANT_ID_1
             }
         }
 
         `when`("opened with restaurantId r2") {
             then("SavedStateHandle correctly passes r2") {
-                createViewModel(restaurantId = "r2").restaurantId shouldBe "r2"
+                createViewModel(restaurantId = RESTAURANT_ID_2).restaurantId shouldBe RESTAURANT_ID_2
             }
         }
     }
 })
 
-// ── Local test data helpers ───────────────────────────────────
-
 private fun testRestaurant() = Restaurant(
-    id = "r1",
-    name = "Meghana Foods",
+    id = RESTAURANT_ID_1,
+    name = RESTAURANT_MEGHANA,
     imageUrl = "",
     thumbUrl = "",
-    rating = 4.5,
+    rating = RESTAURANT_RATING_45,
     ratingText = "Excellent",
     ratingColor = "#3F7E00",
-    totalVotes = 5000,
+    totalVotes = RESTAURANT_VOTES_5000,
     avgDeliveryTime = 30,
     deliveryFee = 30.0,
-    avgCostForTwo = 500,
-    minOrder = 100,
-    cuisines = listOf("Biryani", "South Indian"),
-    address = "Koramangala, Bengaluru",
-    locality = "Koramangala",
+    avgCostForTwo = RESTAURANT_COST_500,
+    minOrder = RESTAURANT_MIN_ORDER_100,
+    cuisines = listOf(CATEGORY_BIRYANI_CAT, "South Indian"),
+    address = RESTAURANT_ADDRESS_KORA,
+    locality = LOC_KORAMANGALA,
     distanceKm = 0.0,
     hasDelivery = true,
     isOpen = true,
-    offers = listOf("50% off"),
+    offers = listOf(OFFER_50_OFF),
     phoneNumber = "",
     openingHours = "",
     highlights = emptyList(),
@@ -789,16 +800,16 @@ private fun testRestaurant() = Restaurant(
 )
 
 private fun testMenuItem(
-    id: String = "m1",
+    id: String = MENU_ID_1,
     name: String = "Test Item",
-    price: Double = 100.0,
-    category: String = "Biryani",
+    price: Double = PRICE_100,
+    category: String = CATEGORY_BIRYANI_CAT,
     isVeg: Boolean = false,
     isRecommended: Boolean = false,
     isBestseller: Boolean = false,
 ) = MenuItem(
     id = id,
-    restaurantId = "r1",
+    restaurantId = RESTAURANT_ID_1,
     name = name,
     description = "Delicious $name",
     price = price,
@@ -811,13 +822,8 @@ private fun testMenuItem(
     customisations = emptyList(),
 )
 
-// WHY testCartItem has separate id and menuItem params?
-// CartItem.id = UUID (e.g. "cart_uuid_1") — Room primary key
-// CartItem.menuItem.id = MenuItem id (e.g. "m1") — what UI uses
-// These are DIFFERENT — the bug was conflating them
-// Tests must use different values to catch the bug
 private fun testCartItem(
-    id: String = "cart_uuid_1",
+    id: String = CART_UUID_1,
     menuItem: MenuItem = testMenuItem(),
     qty: Int = 1,
 ) = CartItem(
@@ -828,12 +834,32 @@ private fun testCartItem(
 )
 
 private fun testMenuByCategory() = mapOf(
-    "Biryani" to listOf(
-        testMenuItem("m1", "Chicken Biryani", 249.0, isRecommended = true, isBestseller = true),
-        testMenuItem("m2", "Mutton Biryani", 349.0),
+    CATEGORY_BIRYANI_CAT to listOf(
+
+        testMenuItem(
+            MENU_ID_1,
+            MENU_ITEM_CHICK_BIR,
+            PRICE_249,
+            isRecommended = true,
+            isBestseller = true
+        ),
+        testMenuItem(MENU_ID_2, MENU_ITEM_MUTTON_BIR, PRICE_349),
     ),
-    "Starters" to listOf(
-        testMenuItem("m3", "Chicken 65", 199.0, category = "Starters", isRecommended = true),
-        testMenuItem("m4", "Paneer Tikka", 179.0, category = "Starters", isVeg = true),
+    CATEGORY_STARTERS to listOf(
+
+        testMenuItem(
+            MENU_ID_3,
+            MENU_ITEM_CHICK_65,
+            PRICE_199,
+            category = CATEGORY_STARTERS,
+            isRecommended = true
+        ),
+        testMenuItem(
+            MENU_ID_4,
+            MENU_ITEM_PANEER_TIKKA,
+            PRICE_179,
+            category = CATEGORY_STARTERS,
+            isVeg = true
+        ),
     ),
 )

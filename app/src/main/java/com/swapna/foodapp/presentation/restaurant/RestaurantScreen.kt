@@ -1,6 +1,5 @@
 package com.swapna.foodapp.presentation.restaurant
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,13 +22,17 @@ import androidx.navigation.NavController
 import com.swapna.foodapp.domain.model.MenuCategory
 import com.swapna.foodapp.presentation.common.ErrorScreen
 import com.swapna.foodapp.presentation.navigation.AppRoutes
-import com.swapna.foodapp.presentation.restaurant.components.CartBottomBar
-import com.swapna.foodapp.presentation.restaurant.components.CategorySectionHeader
-import com.swapna.foodapp.presentation.restaurant.components.MenuItemRow
-import com.swapna.foodapp.presentation.restaurant.components.MenuTabRow
-import com.swapna.foodapp.presentation.restaurant.components.RecommendedSection
-import com.swapna.foodapp.presentation.restaurant.components.RestaurantInfoHeader
-import com.swapna.foodapp.presentation.restaurant.components.RestaurantShimmer
+import com.swapna.foodapp.presentation.common.CartBottomBar
+import com.swapna.foodapp.presentation.common.CategorySectionHeader
+import com.swapna.foodapp.presentation.common.MenuItemRow
+import com.swapna.foodapp.presentation.common.MenuTabRow
+import com.swapna.foodapp.presentation.common.RecommendedSection
+import com.swapna.foodapp.presentation.common.RestaurantInfoHeader
+import com.swapna.foodapp.presentation.common.RestaurantShimmer
+import com.swapna.foodapp.utils.AppConstants.KEY_RECOMMENDED
+import com.swapna.foodapp.utils.AppConstants.KEY_RESTAURANT_HEADER
+import com.swapna.foodapp.utils.AppConstants.MENU_TAB_KEY
+import com.swapna.foodapp.utils.AppConstants.MSG_ITEM_ADDED_CART
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -41,30 +44,24 @@ fun RestaurantScreen(
     val quantities by viewModel.quantities.collectAsStateWithLifecycle()
     val breakdown by viewModel.cartBreakdown.collectAsStateWithLifecycle()
 
-    Log.d("CLICK", "Test "+ {state.restaurant}.toString())
     val restaurantId = viewModel.restaurantId
-
     val listState = rememberLazyListState()
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // ── One-time events ───────────────────────────────────────
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is RestaurantViewModel.RestaurantEvent.NavigateToProduct ->
-
                     navController.navigate(
                         AppRoutes.product(
-                            restaurantId =  restaurantId, // from savedStateHandle
-                            menuItemId   = event.itemId,
+                            restaurantId = restaurantId,
+                            menuItemId = event.itemId,
                         )
                     )
 
                 is RestaurantViewModel.RestaurantEvent.ItemAdded ->
-                    snackbarHost.showSnackbar(
-                        "${event.itemName} added to cart 🛒"
-                    )
+                    snackbarHost.showSnackbar("${event.itemName}$MSG_ITEM_ADDED_CART")
 
                 is RestaurantViewModel.RestaurantEvent.ShowError ->
                     snackbarHost.showSnackbar(event.message)
@@ -78,21 +75,16 @@ fun RestaurantScreen(
         }
     }
 
-    // ── Scroll to category from footer tap ────────────────────
     LaunchedEffect(Unit) {
         viewModel.scrollToCategory.collect { category ->
             val categories = viewModel.getCategoryNames()
             val idx = categories.indexOf(category)
-            if (idx >= 0) {
-                listState.animateScrollToItem(idx + 3)
-            }
+            if (idx >= 0) listState.animateScrollToItem(idx + 3)
         }
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHost) },
-
-        // ✅ CartBottomBar slides up when cart has items
         bottomBar = {
             CartBottomBar(
                 itemCount = state.cartItemCount,
@@ -103,12 +95,8 @@ fun RestaurantScreen(
     ) { paddingValues ->
 
         when {
-            // ── Loading ───────────────────────────────────────
-            state.isLoading -> {
-                RestaurantShimmer()
-            }
+            state.isLoading -> RestaurantShimmer()
 
-            // ── Error ─────────────────────────────────────────
             state.error != null && state.restaurant == null -> {
                 ErrorScreen(
                     message = state.error!!,
@@ -116,20 +104,16 @@ fun RestaurantScreen(
                 )
             }
 
-            // ── Content ───────────────────────────────────────
             else -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
                 ) {
-
                     LazyColumn(state = listState) {
 
-                        // ── 1. Restaurant Info Header ─────────
                         state.restaurant?.let { restaurant ->
-                            item(key = "restaurant_header") {
-                                Log.d("CLICK", "Test "+ {restaurant}.toString())
+                            item(key = KEY_RESTAURANT_HEADER) {
                                 RestaurantInfoHeader(
                                     restaurant = restaurant,
                                     cartItemCount = state.cartItemCount,
@@ -141,54 +125,31 @@ fun RestaurantScreen(
                             }
                         }
 
-                        // ── 2. Recommended Section ────────────
-                        // ✅ FIX: RecommendedSection uses onItemTap + onAddTap
-                        // NOT quantities/onIncrement/onDecrement
                         if (state.recommended.isNotEmpty()) {
-                            item(key = "recommended") {
+                            item(key = KEY_RECOMMENDED) {
                                 RecommendedSection(
                                     items = state.recommended,
-                                    onItemTap = { itemId ->
-                                        viewModel.onMenuItemTapped(itemId)
-                                    },
-                                    onAddTap = { item ->
-                                        viewModel.quickAddToCart(item)
-                                    },
+                                    onItemTap = { itemId -> viewModel.onMenuItemTapped(itemId) },
+                                    onAddTap = { item -> viewModel.quickAddToCart(item) },
                                 )
                             }
                         }
 
-                        // ── 3. Menu Tab Row (sticky) ──────────
-                        // ✅ FIX: MenuTabRow takes List<MenuCategory>
-                        // Build MenuCategory list from menuByCategory map
                         val menuCategories = state.menuByCategory
                             .entries
                             .mapIndexed { index, (name, items) ->
-                                MenuCategory(
-                                    id = index.toString(),
-                                    name = name,
-                                    items = items,
-                                )
+                                MenuCategory(id = index.toString(), name = name, items = items)
                             }
 
                         if (menuCategories.isNotEmpty()) {
-                            stickyHeader(key = "tab_row") {
-                                // ✅ FIX: MenuTabRow takes:
-                                //   categories: List<MenuCategory>
-                                //   selectedIndex: Int  (from selectedTab)
-                                //   onTabSelected: (Int) -> Unit
-                                //   listState: LazyListState
+                            stickyHeader(key = MENU_TAB_KEY) {
                                 MenuTabRow(
                                     categories = menuCategories,
-                                    selectedIndex = state.menuByCategory
-                                        .keys.toList()
-                                        .indexOf(
-                                            state.menuByCategory
-                                                .keys.firstOrNull()
-                                        ).coerceAtLeast(0),
+                                    selectedIndex = state.menuByCategory.keys.toList()
+                                        .indexOf(state.menuByCategory.keys.firstOrNull())
+                                        .coerceAtLeast(0),
                                     onTabSelected = { index ->
-                                        val tabName = state.menuByCategory
-                                            .keys.toList()
+                                        val tabName = state.menuByCategory.keys.toList()
                                             .getOrNull(index) ?: return@MenuTabRow
                                         viewModel.onCategoryFooterTapped(tabName)
                                     },
@@ -197,38 +158,26 @@ fun RestaurantScreen(
                             }
                         }
 
-                        // ── 4. Menu with Sticky Headers ───────
-                        // ✅ FIX: state.menuByCategory is Map<String, List<MenuItem>>
-                        state.menuByCategory
-                            .entries
-                            .forEachIndexed { catIndex, (category, items) ->
-
-                                stickyHeader(key = "cat_header_$catIndex") {
-                                    CategorySectionHeader(
-                                        categoryName = category,
-                                        itemCount = items.size,
-                                    )
-                                }
-
-                                itemsIndexed(
-                                    items = items,
-                                    key = { _, item -> item.id },
-                                ) { _, item ->
-                                    // ✅ FIX: MenuItemRow has NO onItemTapped param
-                                    // Use existing signature:
-                                    //   item, quantity, onIncrement, onDecrement
-                                    MenuItemRow(
-                                        item = item,
-                                        quantity = quantities[item.id] ?: 0,
-                                        onIncrement = {
-                                            viewModel.onIncrementItem(item)
-                                        },
-                                        onDecrement = {
-                                            viewModel.onDecrementItem(item.id)
-                                        },
-                                    )
-                                }
+                        state.menuByCategory.entries.forEachIndexed { catIndex, (category, items) ->
+                            stickyHeader(key = "cat_header_$catIndex") {
+                                CategorySectionHeader(
+                                    categoryName = category,
+                                    itemCount = items.size,
+                                )
                             }
+
+                            itemsIndexed(
+                                items = items,
+                                key = { _, item -> item.id },
+                            ) { _, item ->
+                                MenuItemRow(
+                                    item = item,
+                                    quantity = quantities[item.id] ?: 0,
+                                    onIncrement = { viewModel.onIncrementItem(item) },
+                                    onDecrement = { viewModel.onDecrementItem(item.id) },
+                                )
+                            }
+                        }
                     }
                 }
             }

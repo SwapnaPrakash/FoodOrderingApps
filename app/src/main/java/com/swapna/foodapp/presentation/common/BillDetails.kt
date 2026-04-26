@@ -15,20 +15,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.swapna.foodapp.domain.model.CartPriceBreakdown
 import com.swapna.foodapp.presentation.ui.theme.AppGray
+import com.swapna.foodapp.presentation.ui.theme.AppWhiteSurface
+import com.swapna.foodapp.presentation.ui.theme.BillTextColor
 import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.presentation.ui.theme.Dimens.BillShadowElevation
+import com.swapna.foodapp.presentation.ui.theme.Dimens.DividerThickness
+import com.swapna.foodapp.presentation.ui.theme.DividerColor
+import com.swapna.foodapp.presentation.ui.theme.FreeDeliveryGreen
+import com.swapna.foodapp.utils.AppConstants.BILL_DETAILS
+import com.swapna.foodapp.utils.AppConstants.CURRENCY_SYMBOL
+import com.swapna.foodapp.utils.AppConstants.DELIVERY_FEE
+import com.swapna.foodapp.utils.AppConstants.FREE
+import com.swapna.foodapp.utils.AppConstants.GST_CHARGES
+import com.swapna.foodapp.utils.AppConstants.ITEM_TOTAL
+import com.swapna.foodapp.utils.AppConstants.TO_PAY
 
 @Composable
 fun BillDetails(
     breakdown: CartPriceBreakdown,
-    modifier: Modifier = Modifier,
+    modifier:  Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = Color.White,
-        shadowElevation = 2.dp,
+        modifier        = modifier.fillMaxWidth(),
+        color           = AppWhiteSurface,
+        shadowElevation = BillShadowElevation,
     ) {
         Column(
             modifier = Modifier
@@ -37,53 +49,53 @@ fun BillDetails(
         ) {
 
             Text(
-                text = "Bill Details",
-                style = MaterialTheme.typography.titleMedium,
+                text       = BILL_DETAILS,
+                style      = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
 
             Spacer(Modifier.height(Dimens.SpaceM))
 
             BillRow(
-                label = "Item total",
-                value = "₹${breakdown.subtotal.toInt()}",
+                label = ITEM_TOTAL,
+                value = "$CURRENCY_SYMBOL${breakdown.subtotal.toInt()}",
             )
 
             Spacer(Modifier.height(Dimens.SpaceS))
 
             BillRow(
-                label = "Delivery fee",
-                value = if (breakdown.deliveryFee == 0.0) {
-                    "FREE"
+                label      = DELIVERY_FEE,
+                value      = if (breakdown.deliveryFee == 0.0) {
+                    FREE
                 } else {
-                    "₹${breakdown.deliveryFee.toInt()}"
+                    "$CURRENCY_SYMBOL${breakdown.deliveryFee.toInt()}"
                 },
                 valueColor = if (breakdown.deliveryFee == 0.0) {
-                    Color(0xFF3D9B35)
+                    FreeDeliveryGreen
                 } else {
-                    Color.Black
+                    BillTextColor
                 },
             )
 
             Spacer(Modifier.height(Dimens.SpaceS))
 
             BillRow(
-                label = "GST & charges",
-                value = "₹${breakdown.taxes.toInt()}",
+                label = GST_CHARGES,
+                value = "$CURRENCY_SYMBOL${breakdown.taxes.toInt()}",
             )
 
             Spacer(Modifier.height(Dimens.SpaceM))
 
             HorizontalDivider(
-                color = Color(0xFFF0F0F0),
-                thickness = 1.dp,
+                color     = DividerColor,
+                thickness = DividerThickness,
             )
 
             Spacer(Modifier.height(Dimens.SpaceM))
 
             BillRow(
-                label = "To Pay",
-                value = "₹${breakdown.total.toInt()}",
+                label  = TO_PAY,
+                value  = "$CURRENCY_SYMBOL${breakdown.total.toInt()}",
                 isBold = true,
             )
         }
@@ -92,33 +104,33 @@ fun BillDetails(
 
 @Composable
 private fun BillRow(
-    label: String,
-    value: String,
-    isBold: Boolean = false,
-    valueColor: Color = Color.Black,
+    label:      String,
+    value:      String,
+    isBold:     Boolean = false,
+    valueColor: Color   = BillTextColor,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier          = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = label,
-            style = if (isBold)
+            text       = label,
+            style      = if (isBold)
                 MaterialTheme.typography.titleSmall
             else
                 MaterialTheme.typography.bodyMedium,
             fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-            color = if (isBold) Color.Black else AppGray,
-            modifier = Modifier.weight(1f),
+            color      = if (isBold) BillTextColor else AppGray,
+            modifier   = Modifier.weight(1f),
         )
         Text(
-            text = value,
-            style = if (isBold)
+            text       = value,
+            style      = if (isBold)
                 MaterialTheme.typography.titleSmall
             else
                 MaterialTheme.typography.bodyMedium,
             fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-            color = valueColor,
+            color      = valueColor,
         )
     }
 }

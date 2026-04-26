@@ -33,6 +33,89 @@ import com.swapna.foodapp.data.remote.dto.ReviewWrapper
 import com.swapna.foodapp.data.remote.dto.ReviewsResponse
 import com.swapna.foodapp.data.remote.dto.SearchResponse
 import com.swapna.foodapp.domain.model.SearchFilters
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_BIRYANI
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_BURGER
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_ID_1
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_ID_2
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_ID_3
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_ID_99
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_PIZZA
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_STARTERS
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_SUSHI
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_THAI
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_COUNT_10
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_COUNT_15
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_COUNT_20
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_DISCOUNT_30
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_DISCOUNT_60
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_FRESH
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_GENERIC_DESC
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_HOT
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_ID_1
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_ID_2
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_ID_42
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_NEW
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_TRENDING
+import com.swapna.foodapp.utils.TestConstants.COLLECTION_WEEKEND
+import com.swapna.foodapp.utils.TestConstants.CUISINE_ID_1
+import com.swapna.foodapp.utils.TestConstants.CUISINE_ID_2
+import com.swapna.foodapp.utils.TestConstants.CUISINE_ID_3
+import com.swapna.foodapp.utils.TestConstants.CUISINE_ID_42
+import com.swapna.foodapp.utils.TestConstants.ENTITY_ADDRESS
+import com.swapna.foodapp.utils.TestConstants.ENTITY_CITY_ID
+import com.swapna.foodapp.utils.TestConstants.ENTITY_COST_TWO
+import com.swapna.foodapp.utils.TestConstants.ENTITY_CUISINES_JSON
+import com.swapna.foodapp.utils.TestConstants.ENTITY_CURRENCY
+import com.swapna.foodapp.utils.TestConstants.ENTITY_DELIVERY_FEE
+import com.swapna.foodapp.utils.TestConstants.ENTITY_DELIVERY_TIME
+import com.swapna.foodapp.utils.TestConstants.ENTITY_LAT
+import com.swapna.foodapp.utils.TestConstants.ENTITY_LNG
+import com.swapna.foodapp.utils.TestConstants.ENTITY_LOCALITY
+import com.swapna.foodapp.utils.TestConstants.ENTITY_PRICE_RANGE
+import com.swapna.foodapp.utils.TestConstants.ENTITY_RATING
+import com.swapna.foodapp.utils.TestConstants.ENTITY_RATING_COLOR
+import com.swapna.foodapp.utils.TestConstants.ENTITY_RATING_TEXT
+import com.swapna.foodapp.utils.TestConstants.ENTITY_VOTES
+import com.swapna.foodapp.utils.TestConstants.ENTITY_ZIPCODE
+import com.swapna.foodapp.utils.TestConstants.ERR_NO_INTERNET
+import com.swapna.foodapp.utils.TestConstants.ERR_SERVER
+import com.swapna.foodapp.utils.TestConstants.MENU_ENTITY_PRICE
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_1
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_2
+import com.swapna.foodapp.utils.TestConstants.MENU_ID_3
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_65
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_BIR
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_DESC
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_ID
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_MUTTON_BIR
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_PRICE_STR
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_BURGER
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_DOMINOS
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_EMPIRE
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_FRESH
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_1
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_2
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_3
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_MEGHANA
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_NEW_NAME
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_OLD_NAME
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_PIZZA
+import com.swapna.foodapp.utils.TestConstants.REVIEW_ID_1
+import com.swapna.foodapp.utils.TestConstants.REVIEW_ID_2
+import com.swapna.foodapp.utils.TestConstants.REVIEW_IMG_URL
+import com.swapna.foodapp.utils.TestConstants.REVIEW_RATING_4
+import com.swapna.foodapp.utils.TestConstants.REVIEW_RATING_5
+import com.swapna.foodapp.utils.TestConstants.REVIEW_TEXT_AMAZING
+import com.swapna.foodapp.utils.TestConstants.REVIEW_TEXT_GOOD
+import com.swapna.foodapp.utils.TestConstants.REVIEW_TEXT_GOOD_BIR
+import com.swapna.foodapp.utils.TestConstants.REVIEW_TIME_1_DAY
+import com.swapna.foodapp.utils.TestConstants.REVIEW_TIME_1_WEEK
+import com.swapna.foodapp.utils.TestConstants.REVIEW_TIME_2_DAYS
+import com.swapna.foodapp.utils.TestConstants.REVIEW_TOTAL_1
+import com.swapna.foodapp.utils.TestConstants.REVIEW_TOTAL_COUNT
+import com.swapna.foodapp.utils.TestConstants.REVIEW_USER_GENERIC
+import com.swapna.foodapp.utils.TestConstants.REVIEW_USER_PRIYA
+import com.swapna.foodapp.utils.TestConstants.REVIEW_USER_SWAPNA
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -56,38 +139,34 @@ import java.io.IOException
 @OptIn(ExperimentalCoroutinesApi::class)
 class RestaurantRepositorySpec : FunSpec({
 
-    val api           = mockk<FoodApi>()
+    val api = mockk<FoodApi>()
     val restaurantDao = mockk<RestaurantDao>()
-    val menuItemDao   = mockk<MenuItemDao>()
-    // WHY real mappers not mocks?
-    // Same reason as CartRepositoryImplSpec
-    // Mappers are pure Kotlin — no Android deps
-    // Real mappers exercise actual mapping logic
+    val menuItemDao = mockk<MenuItemDao>()
     val restaurantMapper = RestaurantMapper()
-    val menuMapper       = MenuMapper()
-    val entityMapper     = EntityMapper()
+    val menuMapper = MenuMapper()
+    val entityMapper = EntityMapper()
 
     fun createRepo() = RestaurantRepositoryImpl(
-        api           = api,
+        api = api,
         restaurantDao = restaurantDao,
-        menuItemDao   = menuItemDao,
+        menuItemDao = menuItemDao,
         restaurantMapper = restaurantMapper,
-        menuMapper       = menuMapper,
-        entityMapper     = entityMapper,
-        ioDispatcher     = UnconfinedTestDispatcher(),
+        menuMapper = menuMapper,
+        entityMapper = entityMapper,
+        ioDispatcher = UnconfinedTestDispatcher(),
     )
 
     beforeEach {
         clearAllMocks()
         Dispatchers.setMain(UnconfinedTestDispatcher())
 
-        every { restaurantDao.getAllRestaurants() }       returns flowOf(emptyList())
-        coEvery { restaurantDao.insertAll(any()) }        just Runs
-        coEvery { restaurantDao.insert(any()) }           just Runs
-        coEvery { restaurantDao.getById(any()) }          returns null
-        coEvery { restaurantDao.count() }                 returns 0
-        every { menuItemDao.getMenuByRestaurant(any()) }  returns flowOf(emptyList())
-        coEvery { menuItemDao.insertAll(any()) }          just Runs
+        every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
+        coEvery { restaurantDao.insertAll(any()) } just Runs
+        coEvery { restaurantDao.insert(any()) } just Runs
+        coEvery { restaurantDao.getById(any()) } returns null
+        coEvery { restaurantDao.count() } returns 0
+        every { menuItemDao.getMenuByRestaurant(any()) } returns flowOf(emptyList())
+        coEvery { menuItemDao.insertAll(any()) } just Runs
         coEvery { menuItemDao.clearForRestaurant(any()) } just Runs
     }
 
@@ -98,49 +177,42 @@ class RestaurantRepositorySpec : FunSpec({
     // ══════════════════════════════════════════════════════════
 
     test("getNearbyRestaurants: emits cached data when Room has restaurants") {
-        val entity = fakeRestaurantEntity("r1", "Meghana Foods")
+        val entity = fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA)
         every { restaurantDao.getAllRestaurants() } returns flowOf(listOf(entity))
-        coEvery { api.getNearbyRestaurants() } throws IOException("No internet")
+        coEvery { api.getNearbyRestaurants() } throws IOException(ERR_NO_INTERNET)
 
         val result = createRepo().getNearbyRestaurants().first()
 
         result.isSuccess shouldBe true
-        result.getOrNull()?.first()?.name shouldBe "Meghana Foods"
+        result.getOrNull()?.first()?.name shouldBe RESTAURANT_MEGHANA
     }
 
     test("getNearbyRestaurants: emits failure when Room empty and API fails") {
         every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
-        coEvery { api.getNearbyRestaurants() } throws IOException("No internet")
+        coEvery { api.getNearbyRestaurants() } throws IOException(ERR_NO_INTERNET)
 
         val result = createRepo().getNearbyRestaurants().first()
 
         result.isFailure shouldBe true
     }
 
-    // ✅ NEW — non-IOException (general Exception branch)
-    // WHY? impl has two catch blocks: IOException and Exception
-    // Without this test, the general Exception branch is never covered
     test("getNearbyRestaurants: emits failure on general exception when cache empty") {
         every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
-        coEvery { api.getNearbyRestaurants() } throws Exception("Server error")
+        coEvery { api.getNearbyRestaurants() } throws Exception(ERR_SERVER)
 
         val result = createRepo().getNearbyRestaurants().first()
 
         result.isFailure shouldBe true
     }
 
-    // ✅ NEW — general exception with cache present — should NOT emit failure
-    // WHY? impl: if (cachedEntities.isEmpty()) → only emit failure if no cache
-    // With cache present + general exception → silently serve cache
     test("getNearbyRestaurants: does not emit failure on exception when cache exists") {
-        val entity = fakeRestaurantEntity("r1", "Meghana Foods")
+        val entity = fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA)
         every { restaurantDao.getAllRestaurants() } returns flowOf(listOf(entity))
-        coEvery { api.getNearbyRestaurants() } throws Exception("Server error")
+        coEvery { api.getNearbyRestaurants() } throws Exception(ERR_SERVER)
 
         val results = mutableListOf<Result<List<*>>>()
         createRepo().getNearbyRestaurants().collect { results.add(it) }
 
-        // Only one emission — the cache — no failure
         results.size shouldBe 1
         results.first().isSuccess shouldBe true
     }
@@ -148,7 +220,7 @@ class RestaurantRepositorySpec : FunSpec({
     test("getNearbyRestaurants: saves API response to Room") {
         every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
         coEvery { api.getNearbyRestaurants() } returns fakeGeocodeResponse(
-            listOf("r1" to "Meghana Foods", "r2" to "Empire")
+            listOf(RESTAURANT_ID_1 to RESTAURANT_MEGHANA, RESTAURANT_ID_2 to RESTAURANT_EMPIRE)
         )
 
         createRepo().getNearbyRestaurants().first()
@@ -157,10 +229,10 @@ class RestaurantRepositorySpec : FunSpec({
     }
 
     test("getNearbyRestaurants: emits cache first then fresh data") {
-        val staleEntity = fakeRestaurantEntity("r1", "Old Name")
+        val staleEntity = fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_OLD_NAME)
         every { restaurantDao.getAllRestaurants() } returns flowOf(listOf(staleEntity))
         coEvery { api.getNearbyRestaurants() } returns fakeGeocodeResponse(
-            listOf("r1" to "New Name")
+            listOf(RESTAURANT_ID_1 to RESTAURANT_NEW_NAME)
         )
 
         val emissions = mutableListOf<String>()
@@ -168,15 +240,18 @@ class RestaurantRepositorySpec : FunSpec({
             result.getOrNull()?.firstOrNull()?.name?.let { emissions.add(it) }
         }
 
-        emissions.first() shouldBe "Old Name"
-        emissions.last()  shouldBe "New Name"
+        emissions.first() shouldBe RESTAURANT_OLD_NAME
+        emissions.last() shouldBe RESTAURANT_NEW_NAME
     }
 
-    // ✅ NEW — fresh data restaurant count
     test("getNearbyRestaurants: fresh data has correct restaurant count") {
         every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
         coEvery { api.getNearbyRestaurants() } returns fakeGeocodeResponse(
-            listOf("r1" to "Meghana Foods", "r2" to "Pizza Hut", "r3" to "Burger King")
+            listOf(
+                RESTAURANT_ID_1 to RESTAURANT_MEGHANA,
+                RESTAURANT_ID_2 to RESTAURANT_PIZZA,
+                RESTAURANT_ID_3 to RESTAURANT_BURGER,
+            )
         )
 
         val result = createRepo().getNearbyRestaurants().first()
@@ -191,8 +266,26 @@ class RestaurantRepositorySpec : FunSpec({
     test("getCollections: returns mapped collections from API") {
         coEvery { api.getCollections() } returns CollectionsResponse(
             collections = listOf(
-                CollectionWrapper(CollectionDto(1, "Trending", "Hot", "", 20, "60% OFF")),
-                CollectionWrapper(CollectionDto(2, "New",      "Fresh", "", 10, "Free Delivery")),
+                CollectionWrapper(
+                    CollectionDto(
+                        COLLECTION_ID_1,
+                        COLLECTION_TRENDING,
+                        COLLECTION_HOT,
+                        "",
+                        COLLECTION_COUNT_20,
+                        COLLECTION_DISCOUNT_60
+                    )
+                ),
+                CollectionWrapper(
+                    CollectionDto(
+                        COLLECTION_ID_2,
+                        COLLECTION_NEW,
+                        COLLECTION_FRESH,
+                        "",
+                        COLLECTION_COUNT_10,
+                        COLLECTION_DISCOUNT_30
+                    )
+                ),
             )
         )
 
@@ -200,12 +293,12 @@ class RestaurantRepositorySpec : FunSpec({
 
         result.isSuccess shouldBe true
         result.getOrNull()!! shouldHaveSize 2
-        result.getOrNull()!![0].title    shouldBe "Trending"
-        result.getOrNull()!![0].discount shouldBe "60% OFF"
+        result.getOrNull()!![0].title shouldBe COLLECTION_TRENDING
+        result.getOrNull()!![0].discount shouldBe COLLECTION_DISCOUNT_60
     }
 
     test("getCollections: returns empty list when API throws — non-critical") {
-        coEvery { api.getCollections() } throws IOException("No internet")
+        coEvery { api.getCollections() } throws IOException(ERR_NO_INTERNET)
 
         val result = createRepo().getCollections().first()
 
@@ -213,18 +306,26 @@ class RestaurantRepositorySpec : FunSpec({
         result.getOrNull()!!.shouldBeEmpty()
     }
 
-    // ✅ NEW — verify collection fields mapped correctly
     test("getCollections: maps collection id and restaurantCount correctly") {
         coEvery { api.getCollections() } returns CollectionsResponse(
             collections = listOf(
-                CollectionWrapper(CollectionDto(42, "Weekend Special", "Desc", "", 15, "30% off"))
+                CollectionWrapper(
+                    CollectionDto(
+                        COLLECTION_ID_42,
+                        COLLECTION_WEEKEND,
+                        COLLECTION_GENERIC_DESC,
+                        "",
+                        COLLECTION_COUNT_15,
+                        COLLECTION_DISCOUNT_30
+                    )
+                )
             )
         )
 
         val result = createRepo().getCollections().first()
 
-        result.getOrNull()!!.first().id              shouldBe 42
-        result.getOrNull()!!.first().restaurantCount shouldBe 15
+        result.getOrNull()!!.first().id shouldBe COLLECTION_ID_42
+        result.getOrNull()!!.first().restaurantCount shouldBe COLLECTION_COUNT_15
     }
 
     // ══════════════════════════════════════════════════════════
@@ -238,11 +339,11 @@ class RestaurantRepositorySpec : FunSpec({
 
         result.isSuccess shouldBe true
         result.getOrNull()!! shouldHaveSize 3
-        result.getOrNull()!![0].name shouldBe "Biryani"
+        result.getOrNull()!![0].name shouldBe CATEGORY_BIRYANI
     }
 
     test("getCategories: returns empty list on API failure — non-critical") {
-        coEvery { api.getCategories() } throws Exception("Error")
+        coEvery { api.getCategories() } throws Exception(ERR_SERVER)
 
         val result = createRepo().getCategories().first()
 
@@ -250,15 +351,14 @@ class RestaurantRepositorySpec : FunSpec({
         result.getOrNull()!!.shouldBeEmpty()
     }
 
-    // ✅ NEW — category id mapped correctly
     test("getCategories: maps category id correctly") {
         coEvery { api.getCategories() } returns CategoriesResponse(
-            categories = listOf(CategoryWrapper(CategoryDto(99, "Sushi")))
+            categories = listOf(CategoryWrapper(CategoryDto(CATEGORY_ID_99, CATEGORY_SUSHI)))
         )
 
         val result = createRepo().getCategories().first()
 
-        result.getOrNull()!!.first().id shouldBe 99
+        result.getOrNull()!!.first().id shouldBe CATEGORY_ID_99
     }
 
     // ══════════════════════════════════════════════════════════
@@ -266,21 +366,21 @@ class RestaurantRepositorySpec : FunSpec({
     // ══════════════════════════════════════════════════════════
 
     test("getRestaurantDetail: serves cached restaurant first") {
-        val entity = fakeRestaurantEntity("r1", "Meghana Foods")
-        coEvery { restaurantDao.getById("r1") } returns entity
-        coEvery { api.getNearbyRestaurants() } throws IOException("Timeout")
+        val entity = fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA)
+        coEvery { restaurantDao.getById(RESTAURANT_ID_1) } returns entity
+        coEvery { api.getNearbyRestaurants() } throws IOException(ERR_NO_INTERNET)
 
-        val result = createRepo().getRestaurantDetail("r1").first()
+        val result = createRepo().getRestaurantDetail(RESTAURANT_ID_1).first()
 
         result.isSuccess shouldBe true
-        result.getOrNull()?.name shouldBe "Meghana Foods"
+        result.getOrNull()?.name shouldBe RESTAURANT_MEGHANA
     }
 
     test("getRestaurantDetail: fails when no cache and no network") {
         coEvery { restaurantDao.getById(any()) } returns null
-        coEvery { api.getNearbyRestaurants() } throws IOException("No internet")
+        coEvery { api.getNearbyRestaurants() } throws IOException(ERR_NO_INTERNET)
 
-        val result = createRepo().getRestaurantDetail("r1").first()
+        val result = createRepo().getRestaurantDetail(RESTAURANT_ID_1).first()
 
         result.isFailure shouldBe true
     }
@@ -288,79 +388,75 @@ class RestaurantRepositorySpec : FunSpec({
     test("getRestaurantDetail: saves fresh data to Room") {
         coEvery { restaurantDao.getById(any()) } returns null
         coEvery { api.getNearbyRestaurants() } returns fakeGeocodeResponse(
-            listOf("r1" to "Fresh Restaurant")
+            listOf(RESTAURANT_ID_1 to RESTAURANT_FRESH)
         )
 
-        createRepo().getRestaurantDetail("r1").first()
+        createRepo().getRestaurantDetail(RESTAURANT_ID_1).first()
 
         coVerify {
             restaurantDao.insertAll(
-                match { entities -> entities.any { it.name == "Fresh Restaurant" } }
+                match { entities -> entities.any { it.name == RESTAURANT_FRESH } }
             )
         }
     }
 
-    // ✅ NEW — restaurant found in API response
-    // WHY? impl searches allRestaurants.find { it.id == id }
-    // Must verify the correct restaurant is returned from API list
     test("getRestaurantDetail: returns correct restaurant when found in API response") {
         coEvery { restaurantDao.getById(any()) } returns null
         coEvery { api.getNearbyRestaurants() } returns fakeGeocodeResponse(
-            listOf("r1" to "Meghana Foods", "r2" to "Pizza Hut")
+            listOf(RESTAURANT_ID_1 to RESTAURANT_MEGHANA, RESTAURANT_ID_2 to RESTAURANT_PIZZA)
         )
 
-        val result = createRepo().getRestaurantDetail("r1").first()
+        val result = createRepo().getRestaurantDetail(RESTAURANT_ID_1).first()
 
         result.isSuccess shouldBe true
-        result.getOrNull()?.name shouldBe "Meghana Foods"
+        result.getOrNull()?.name shouldBe RESTAURANT_MEGHANA
     }
 
-    // ✅ NEW — restaurant NOT found in API response
-    // WHY? if (found != null) else emit failure
-    // Without this test — the else branch is never covered
     test("getRestaurantDetail: returns failure when id not found in API response") {
         coEvery { restaurantDao.getById(any()) } returns null
         coEvery { api.getNearbyRestaurants() } returns fakeGeocodeResponse(
-            listOf("r2" to "Pizza Hut")  // r1 not in list
+            listOf(RESTAURANT_ID_2 to RESTAURANT_PIZZA)              // r1 not in list
         )
 
-        val result = createRepo().getRestaurantDetail("r1").first()
+        val result = createRepo().getRestaurantDetail(RESTAURANT_ID_1).first()
 
         result.isFailure shouldBe true
     }
 
-    // ✅ NEW — cached restaurant id matches
     test("getRestaurantDetail: cached restaurant has correct id") {
-        val entity = fakeRestaurantEntity("r1", "Meghana Foods")
-        coEvery { restaurantDao.getById("r1") } returns entity
+        val entity = fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA)
+        coEvery { restaurantDao.getById(RESTAURANT_ID_1) } returns entity
 
-        val result = createRepo().getRestaurantDetail("r1").first()
+        val result = createRepo().getRestaurantDetail(RESTAURANT_ID_1).first()
 
-        result.getOrNull()?.id shouldBe "r1"
+        result.getOrNull()?.id shouldBe RESTAURANT_ID_1
     }
 
     // ══════════════════════════════════════════════════════════
     // getMenuItems
-    // ✅ NEW — completely missing in original
-    // WHY critical? RestaurantScreen shows menu — must work correctly
     // ══════════════════════════════════════════════════════════
 
     test("getMenuItems: serves cached menu when Room has items") {
-        val entity = fakeMenuItemEntity("m1", "r1", "Chicken Biryani", "Biryani")
-        every { menuItemDao.getMenuByRestaurant("r1") } returns flowOf(listOf(entity))
-        coEvery { api.getDailyMenu() } throws Exception("No internet")
+        val entity = fakeMenuItemEntity(
+            MENU_ID_1,
+            RESTAURANT_ID_1,
+            MENU_ITEM_CHICK_BIR,
+            CATEGORY_BIRYANI
+        )
+        every { menuItemDao.getMenuByRestaurant(RESTAURANT_ID_1) } returns flowOf(listOf(entity))
+        coEvery { api.getDailyMenu() } throws Exception(ERR_NO_INTERNET)
 
-        val result = createRepo().getMenuItems("r1").first()
+        val result = createRepo().getMenuItems(RESTAURANT_ID_1).first()
 
         result.isSuccess shouldBe true
-        result.getOrNull()!!.containsKey("Biryani") shouldBe true
+        result.getOrNull()!!.containsKey(CATEGORY_BIRYANI) shouldBe true
     }
 
     test("getMenuItems: emits failure when no cache and API fails") {
         every { menuItemDao.getMenuByRestaurant(any()) } returns flowOf(emptyList())
-        coEvery { api.getDailyMenu() } throws Exception("No internet")
+        coEvery { api.getDailyMenu() } throws Exception(ERR_NO_INTERNET)
 
-        val result = createRepo().getMenuItems("r1").first()
+        val result = createRepo().getMenuItems(RESTAURANT_ID_1).first()
 
         result.isFailure shouldBe true
     }
@@ -369,7 +465,7 @@ class RestaurantRepositorySpec : FunSpec({
         every { menuItemDao.getMenuByRestaurant(any()) } returns flowOf(emptyList())
         coEvery { api.getDailyMenu() } returns fakeDailyMenuResponse()
 
-        val result = createRepo().getMenuItems("r1").first()
+        val result = createRepo().getMenuItems(RESTAURANT_ID_1).first()
 
         result.isSuccess shouldBe true
     }
@@ -378,12 +474,9 @@ class RestaurantRepositorySpec : FunSpec({
         every { menuItemDao.getMenuByRestaurant(any()) } returns flowOf(emptyList())
         coEvery { api.getDailyMenu() } returns fakeDailyMenuResponse()
 
-        createRepo().getMenuItems("r1").first()
+        createRepo().getMenuItems(RESTAURANT_ID_1).first()
 
-        // WHY verify clearForRestaurant?
-        // impl clears old items before inserting fresh ones
-        // Prevents stale menu items remaining after refresh
-        coVerify { menuItemDao.clearForRestaurant("r1") }
+        coVerify { menuItemDao.clearForRestaurant(RESTAURANT_ID_1) }
         coVerify { menuItemDao.insertAll(any()) }
     }
 
@@ -391,48 +484,62 @@ class RestaurantRepositorySpec : FunSpec({
         every { menuItemDao.getMenuByRestaurant(any()) } returns flowOf(emptyList())
         coEvery { api.getDailyMenu() } returns fakeDailyMenuResponse()
 
-        val result = createRepo().getMenuItems("r1").first()
+        val result = createRepo().getMenuItems(RESTAURANT_ID_1).first()
         val menuMap = result.getOrNull()!!
 
-        menuMap.containsKey("Biryani") shouldBe true
-        menuMap["Biryani"]!! shouldHaveSize 1
+        menuMap.containsKey(CATEGORY_BIRYANI) shouldBe true
+        menuMap[CATEGORY_BIRYANI]!! shouldHaveSize 1
     }
 
     test("getMenuItems: cached items grouped by category correctly") {
         val entities = listOf(
-            fakeMenuItemEntity("m1", "r1", "Chicken Biryani", "Biryani"),
-            fakeMenuItemEntity("m2", "r1", "Mutton Biryani",  "Biryani"),
-            fakeMenuItemEntity("m3", "r1", "Chicken 65",      "Starters"),
+            fakeMenuItemEntity(
+                MENU_ID_1,
+                RESTAURANT_ID_1,
+                MENU_ITEM_CHICK_BIR,
+                CATEGORY_BIRYANI
+            ),
+            fakeMenuItemEntity(
+                MENU_ID_2,
+                RESTAURANT_ID_1,
+                MENU_ITEM_MUTTON_BIR,
+                CATEGORY_BIRYANI
+            ),
+            fakeMenuItemEntity(
+                MENU_ID_3,
+                RESTAURANT_ID_1,
+                MENU_ITEM_CHICK_65,
+                CATEGORY_STARTERS
+            ),
         )
-        every { menuItemDao.getMenuByRestaurant("r1") } returns flowOf(entities)
-        coEvery { api.getDailyMenu() } throws Exception("No internet")
+        every { menuItemDao.getMenuByRestaurant(RESTAURANT_ID_1) } returns flowOf(entities)
+        coEvery { api.getDailyMenu() } throws Exception(ERR_NO_INTERNET)
 
-        val result = createRepo().getMenuItems("r1").first()
+        val result = createRepo().getMenuItems(RESTAURANT_ID_1).first()
         val menuMap = result.getOrNull()!!
 
         menuMap.size shouldBe 2
-        menuMap["Biryani"]!!  shouldHaveSize 2
-        menuMap["Starters"]!! shouldHaveSize 1
+        menuMap[CATEGORY_BIRYANI]!! shouldHaveSize 2
+        menuMap[CATEGORY_STARTERS]!! shouldHaveSize 1
     }
 
     // ══════════════════════════════════════════════════════════
     // getReviews
-    // ✅ NEW — completely missing in original
     // ══════════════════════════════════════════════════════════
 
     test("getReviews: returns mapped reviews from API") {
         coEvery { api.getReviews() } returns fakeReviewsResponse()
 
-        val result = createRepo().getReviews("r1").first()
+        val result = createRepo().getReviews(RESTAURANT_ID_1).first()
 
         result.isSuccess shouldBe true
-        result.getOrNull()!! shouldHaveSize 2
+        result.getOrNull()!! shouldHaveSize REVIEW_TOTAL_COUNT
     }
 
     test("getReviews: returns empty list on API failure — non-critical") {
-        coEvery { api.getReviews() } throws Exception("No internet")
+        coEvery { api.getReviews() } throws Exception(ERR_NO_INTERNET)
 
-        val result = createRepo().getReviews("r1").first()
+        val result = createRepo().getReviews(RESTAURANT_ID_1).first()
 
         result.isSuccess shouldBe true
         result.getOrNull()!!.shouldBeEmpty()
@@ -440,60 +547,67 @@ class RestaurantRepositorySpec : FunSpec({
 
     test("getReviews: maps review fields correctly") {
         coEvery { api.getReviews() } returns ReviewsResponse(
-            totalCount = 1,
+            totalCount = REVIEW_TOTAL_1,
             reviews = listOf(
-                ReviewWrapper(ReviewDto(
-                    id       = 1L,
-                    rating   = 5,
-                    text     = "Amazing food!",
-                    timeAgo  = "2 days ago",
-                    user     = ReviewUserDto(name = "Swapna", profileImage = null),
-                ))
+                ReviewWrapper(
+                    ReviewDto(
+                        id = REVIEW_ID_1,
+                        rating = REVIEW_RATING_5,
+                        text = REVIEW_TEXT_AMAZING,
+                        timeAgo = REVIEW_TIME_2_DAYS,
+                        user = ReviewUserDto(name = REVIEW_USER_SWAPNA, profileImage = null),
+                    )
+                )
             )
         )
 
-        val result = createRepo().getReviews("r1").first()
-        val review = result.getOrNull()!!.first()
+        val review = createRepo().getReviews(RESTAURANT_ID_1).first().getOrNull()!!.first()
 
-        review.id        shouldBe 1L
-        review.rating    shouldBe 5
-        review.text      shouldBe "Amazing food!"
-        review.timeAgo   shouldBe "2 days ago"
-        review.userName  shouldBe "Swapna"
-        review.userImage shouldBe ""  // null profileImage → ""
-    }
-
-    // ✅ NEW — null userImage maps to empty string
-    // WHY? userImage = wrapper.review.user.profileImage ?: ""
-    test("getReviews: null userImage maps to empty string") {
-        coEvery { api.getReviews() } returns ReviewsResponse(
-            totalCount = 1,
-            reviews = listOf(
-                ReviewWrapper(ReviewDto(
-                    id = 1L, rating = 4, text = "Good", timeAgo = "1 day",
-                    user = ReviewUserDto(name = "User", profileImage = null)
-                ))
-            )
-        )
-
-        val review = createRepo().getReviews("r1").first().getOrNull()!!.first()
+        review.id shouldBe REVIEW_ID_1
+        review.rating shouldBe REVIEW_RATING_5
+        review.text shouldBe REVIEW_TEXT_AMAZING
+        review.timeAgo shouldBe REVIEW_TIME_2_DAYS
+        review.userName shouldBe REVIEW_USER_SWAPNA
         review.userImage shouldBe ""
     }
 
-    // ✅ NEW — non-null userImage maps correctly
-    test("getReviews: non-null userImage maps correctly") {
+    test("getReviews: null userImage maps to empty string") {
         coEvery { api.getReviews() } returns ReviewsResponse(
-            totalCount = 1,
+            totalCount = REVIEW_TOTAL_1,
             reviews = listOf(
-                ReviewWrapper(ReviewDto(
-                    id = 1L, rating = 4, text = "Good", timeAgo = "1 day",
-                    user = ReviewUserDto(name = "User", profileImage = "https://img.jpg")
-                ))
+                ReviewWrapper(
+                    ReviewDto(
+                        id = REVIEW_ID_1, rating = REVIEW_RATING_4,
+                        text = REVIEW_TEXT_GOOD, timeAgo = REVIEW_TIME_1_DAY,
+                        user = ReviewUserDto(name = REVIEW_USER_GENERIC, profileImage = null)
+                    )
+                )
             )
         )
 
-        val review = createRepo().getReviews("r1").first().getOrNull()!!.first()
-        review.userImage shouldBe "https://img.jpg"
+        val review = createRepo().getReviews(RESTAURANT_ID_1).first().getOrNull()!!.first()
+        review.userImage shouldBe ""
+    }
+
+    test("getReviews: non-null userImage maps correctly") {
+        coEvery { api.getReviews() } returns ReviewsResponse(
+            totalCount = REVIEW_TOTAL_1,
+            reviews = listOf(
+                ReviewWrapper(
+                    ReviewDto(
+                        id = REVIEW_ID_1, rating = REVIEW_RATING_4,
+                        text = REVIEW_TEXT_GOOD, timeAgo = REVIEW_TIME_1_DAY,
+                        user = ReviewUserDto(
+                            name = REVIEW_USER_GENERIC,
+                            profileImage = REVIEW_IMG_URL
+                        )
+                    )
+                )
+            )
+        )
+
+        val review = createRepo().getReviews(RESTAURANT_ID_1).first().getOrNull()!!.first()
+        review.userImage shouldBe REVIEW_IMG_URL
     }
 
     // ══════════════════════════════════════════════════════════
@@ -503,7 +617,7 @@ class RestaurantRepositorySpec : FunSpec({
     test("searchRestaurants: returns results from API") {
         every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
         coEvery { api.searchRestaurants() } returns fakeSearchResponse(
-            listOf("r1" to "Pizza Hut", "r2" to "Dominos")
+            listOf(RESTAURANT_ID_1 to RESTAURANT_PIZZA, RESTAURANT_ID_2 to RESTAURANT_DOMINOS)
         )
 
         val result = createRepo().searchRestaurants("pizza", SearchFilters()).first()
@@ -514,69 +628,60 @@ class RestaurantRepositorySpec : FunSpec({
 
     test("searchRestaurants: emits cached restaurants when API fails") {
         val entities = listOf(
-            fakeRestaurantEntity("r1", "Meghana Foods"),
-            fakeRestaurantEntity("r2", "Empire"),
+            fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA),
+            fakeRestaurantEntity(RESTAURANT_ID_2, RESTAURANT_EMPIRE),
         )
         every { restaurantDao.getAllRestaurants() } returns flowOf(entities)
-        coEvery { api.searchRestaurants() } throws IOException("No internet")
+        coEvery { api.searchRestaurants() } throws IOException(ERR_NO_INTERNET)
 
         val results = mutableListOf<Result<List<*>>>()
-        createRepo().searchRestaurants("Meghana", SearchFilters())
+        createRepo().searchRestaurants(RESTAURANT_MEGHANA, SearchFilters())
             .collect { results.add(it) }
 
         results.isNotEmpty() shouldBe true
         results.first().isSuccess shouldBe true
     }
 
-    // ✅ NEW — empty cache + API failure = failure emitted
-    // WHY? impl: if (cached.isEmpty()) emit(Result.failure(e))
-    // Without this test — that branch never exercised
     test("searchRestaurants: emits failure when cache empty and API fails") {
         every { restaurantDao.getAllRestaurants() } returns flowOf(emptyList())
-        coEvery { api.searchRestaurants() } throws Exception("Server error")
+        coEvery { api.searchRestaurants() } throws Exception(ERR_SERVER)
 
         val result = createRepo().searchRestaurants("pizza", SearchFilters()).first()
 
         result.isFailure shouldBe true
     }
 
-    // ✅ NEW — blank query skips cache filter
-    // WHY? impl: if (cached.isNotEmpty() && query.isNotBlank())
-    // Blank query must not apply cache filter — go straight to API
     test("searchRestaurants: blank query skips cache filter and hits API") {
-        val entities = listOf(fakeRestaurantEntity("r1", "Meghana Foods"))
+        val entities = listOf(fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA))
         every { restaurantDao.getAllRestaurants() } returns flowOf(entities)
         coEvery { api.searchRestaurants() } returns fakeSearchResponse(
-            listOf("r1" to "Meghana Foods")
+            listOf(RESTAURANT_ID_1 to RESTAURANT_MEGHANA)
         )
 
         val results = mutableListOf<Result<List<*>>>()
         createRepo().searchRestaurants("", SearchFilters()).collect { results.add(it) }
 
-        // Only API result — no cache emission for blank query
         results.size shouldBe 1
     }
 
-    // ✅ NEW — cache filter by name
     test("searchRestaurants: cached results filtered by query name") {
         val entities = listOf(
-            fakeRestaurantEntity("r1", "Meghana Foods"),
-            fakeRestaurantEntity("r2", "Pizza Hut"),
+            fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA),
+            fakeRestaurantEntity(RESTAURANT_ID_2, RESTAURANT_PIZZA),
         )
         every { restaurantDao.getAllRestaurants() } returns flowOf(entities)
-        coEvery { api.searchRestaurants() } throws IOException("No internet")
+        coEvery { api.searchRestaurants() } throws IOException(ERR_NO_INTERNET)
 
         val result = createRepo()
             .searchRestaurants("meghana", SearchFilters()).first()
 
         result.isSuccess shouldBe true
         result.getOrNull()!!.size shouldBe 1
-        result.getOrNull()!!.first().name shouldBe "Meghana Foods"
+        result.getOrNull()!!.first().name shouldBe RESTAURANT_MEGHANA
     }
 
     // ══════════════════════════════════════════════════════════
     // getCuisines
-    // ✅ NEW — completely missing in original
     // ══════════════════════════════════════════════════════════
 
     test("getCuisines: returns mapped cuisines from API") {
@@ -586,11 +691,11 @@ class RestaurantRepositorySpec : FunSpec({
 
         result.isSuccess shouldBe true
         result.getOrNull()!! shouldHaveSize 3
-        result.getOrNull()!![0].name shouldBe "Biryani"
+        result.getOrNull()!![0].name shouldBe CATEGORY_BIRYANI
     }
 
     test("getCuisines: returns empty list on API failure — non-critical") {
-        coEvery { api.getCuisines() } throws Exception("No internet")
+        coEvery { api.getCuisines() } throws Exception(ERR_NO_INTERNET)
 
         val result = createRepo().getCuisines().first()
 
@@ -600,99 +705,106 @@ class RestaurantRepositorySpec : FunSpec({
 
     test("getCuisines: maps cuisine id correctly") {
         coEvery { api.getCuisines() } returns CuisinesResponse(
-            cuisines = listOf(CuisineWrapper(CuisineDto(id = 42, name = "Thai")))
+            cuisines = listOf(
+                CuisineWrapper(
+                    CuisineDto(
+                        id = CUISINE_ID_42,
+                        name = CATEGORY_THAI
+                    )
+                )
+            )
         )
 
         val result = createRepo().getCuisines().first()
 
-        result.getOrNull()!!.first().id   shouldBe 42
-        result.getOrNull()!!.first().name shouldBe "Thai"
+        result.getOrNull()!!.first().id shouldBe CUISINE_ID_42
+        result.getOrNull()!!.first().name shouldBe CATEGORY_THAI
     }
 })
 
-// ── Test helper functions ─────────────────────────────────────
+// ── Test helpers ──────────────────────────────────────────────
 
 fun fakeRestaurantEntity(id: String, name: String) = RestaurantEntity(
-    id              = id,
-    name            = name,
-    imageUrl        = "",
-    thumbUrl        = "",
-    rating          = 4.2,
-    ratingText      = "Very Good",
-    ratingColor     = "5BA829",
-    totalVotes      = 100,
-    avgDeliveryTime = 30,
-    deliveryFee     = 30.0,
-    minOrder        = 0,
-    cuisinesJson    = """["Biryani"]""",
-    address         = "Bengaluru",
-    locality        = "Koramangala",
-    isOpen          = true,
-    hasDelivery     = true,
-    offersJson      = "[]",
-    avgCostForTwo   = 600,
-    distanceKm      = 0.0,
-    phoneNumber     = "",
-    openingHours    = "",
-    highlightsJson  = "[]",
-    knownFor        = "",
+    id = id,
+    name = name,
+    imageUrl = "",
+    thumbUrl = "",
+    rating = ENTITY_RATING,
+    ratingText = ENTITY_RATING_TEXT,
+    ratingColor = ENTITY_RATING_COLOR,
+    totalVotes = ENTITY_VOTES,
+    avgDeliveryTime = ENTITY_DELIVERY_TIME,
+    deliveryFee = ENTITY_DELIVERY_FEE,
+    minOrder = 0,
+    cuisinesJson = ENTITY_CUISINES_JSON,
+    address = ENTITY_ADDRESS,
+    locality = ENTITY_LOCALITY,
+    isOpen = true,
+    hasDelivery = true,
+    offersJson = "[]",
+    avgCostForTwo = ENTITY_COST_TWO,
+    distanceKm = 0.0,
+    phoneNumber = "",
+    openingHours = "",
+    highlightsJson = "[]",
+    knownFor = "",
 )
 
 fun fakeMenuItemEntity(
-    id:           String,
+    id: String,
     restaurantId: String,
-    name:         String,
-    category:     String,
+    name: String,
+    category: String,
 ) = MenuItemEntity(
-    id                 = id,
-    restaurantId       = restaurantId,
-    name               = name,
-    description        = "",
-    price              = 249.0,
-    imageUrl           = "",
-    category           = category,
-    isVeg              = false,
-    isRecommended      = false,
-    isBestseller       = false,
-    isAvailable        = true,
+    id = id,
+    restaurantId = restaurantId,
+    name = name,
+    description = "",
+    price = MENU_ENTITY_PRICE,
+    imageUrl = "",
+    category = category,
+    isVeg = false,
+    isRecommended = false,
+    isBestseller = false,
+    isAvailable = true,
     customisationsJson = "[]",
 )
 
 fun fakeRestaurantDto(id: String, name: String) = RestaurantDto(
-    id              = id,
-    name            = name,
-    featuredImage   = "",
-    thumb           = "",
-    location        = LocationDto(
-        "Bengaluru", "Koramangala", "Bengaluru", 4, "12.93", "77.62", "560095"
+    id = id,
+    name = name,
+    featuredImage = "",
+    thumb = "",
+    location = LocationDto(
+        ENTITY_ADDRESS, ENTITY_LOCALITY, ENTITY_ADDRESS,
+        ENTITY_CITY_ID, ENTITY_LAT, ENTITY_LNG, ENTITY_ZIPCODE
     ),
-    cuisines        = "Biryani, South Indian",
-    avgCostForTwo   = 600,
-    priceRange      = 2,
-    currency        = "Rs.",
-    rating          = RatingDto("4.2", "Very Good", "5BA829", "1000"),
-    hasDelivery     = 1,
+    cuisines = "$CATEGORY_BIRYANI, South Indian",
+    avgCostForTwo = ENTITY_COST_TWO,
+    priceRange = ENTITY_PRICE_RANGE,
+    currency = ENTITY_CURRENCY,
+    rating = RatingDto(
+        ENTITY_RATING.toString(), ENTITY_RATING_TEXT, ENTITY_RATING_COLOR, ENTITY_VOTES.toString()
+    ),
+    hasDelivery = 1,
     isDeliveringNow = 1,
-    deliveryTime    = 30,
-    minOrder        = 100,
+    deliveryTime = ENTITY_DELIVERY_TIME,
+    minOrder = 100,
 )
 
-fun fakeGeocodeResponse(
-    restaurants: List<Pair<String, String>>,
-) = GeocodeResponse(
+fun fakeGeocodeResponse(restaurants: List<Pair<String, String>>) = GeocodeResponse(
     location = LocationDto(
-        "Bengaluru", "Koramangala", "Bengaluru", 4, "12.93", "77.62", "560095"
+        ENTITY_ADDRESS, ENTITY_LOCALITY, ENTITY_ADDRESS,
+        ENTITY_CITY_ID, ENTITY_LAT, ENTITY_LNG, ENTITY_ZIPCODE
     ),
     nearbyRestaurants = restaurants.map { (id, name) ->
         RestaurantWrapper(fakeRestaurantDto(id, name))
     },
 )
 
-fun fakeSearchResponse(
-    restaurants: List<Pair<String, String>>,
-) = SearchResponse(
-    totalFound  = restaurants.size,
-    shown       = restaurants.size,
+fun fakeSearchResponse(restaurants: List<Pair<String, String>>) = SearchResponse(
+    totalFound = restaurants.size,
+    shown = restaurants.size,
     restaurants = restaurants.map { (id, name) ->
         RestaurantWrapper(fakeRestaurantDto(id, name))
     },
@@ -700,29 +812,27 @@ fun fakeSearchResponse(
 
 fun fakeCategoriesResponse() = CategoriesResponse(
     categories = listOf(
-        CategoryWrapper(CategoryDto(1, "Biryani")),
-        CategoryWrapper(CategoryDto(2, "Pizza")),
-        CategoryWrapper(CategoryDto(3, "Burger")),
+        CategoryWrapper(CategoryDto(CATEGORY_ID_1, CATEGORY_BIRYANI)),
+        CategoryWrapper(CategoryDto(CATEGORY_ID_2, CATEGORY_PIZZA)),
+        CategoryWrapper(CategoryDto(CATEGORY_ID_3, CATEGORY_BURGER)),
     )
 )
-
-// ✅ NEW helpers for missing tests
 
 fun fakeDailyMenuResponse() = DailyMenuResponse(
     dailyMenus = listOf(
         DailyMenuWrapper(
             menu = DailyMenuDto(
-                id     = "menu_1",
-                name   = "Biryani",
+                id = MENU_ITEM_ID,
+                name = CATEGORY_BIRYANI,
                 dishes = listOf(
                     DishWrapper(
                         dish = DishDto(
-                            id            = "m1",
-                            name          = "Chicken Biryani",
-                            price         = "249",
-                            description   = "Delicious",
-                            imageUrl      = null,
-                            isVeg         = 0,
+                            id = MENU_ID_1,
+                            name = MENU_ITEM_CHICK_BIR,
+                            price = MENU_ITEM_PRICE_STR,
+                            description = MENU_ITEM_DESC,
+                            imageUrl = null,
+                            isVeg = 0,
                             isRecommended = 1,
                             customisations = null,
                         )
@@ -734,29 +844,33 @@ fun fakeDailyMenuResponse() = DailyMenuResponse(
 )
 
 fun fakeReviewsResponse() = ReviewsResponse(
-    totalCount = 2,
+    totalCount = REVIEW_TOTAL_COUNT,
     reviews = listOf(
-        ReviewWrapper(ReviewDto(
-            id      = 1L,
-            rating  = 5,
-            text    = "Amazing food!",
-            timeAgo = "2 days ago",
-            user    = ReviewUserDto(name = "Swapna", profileImage = null),
-        )),
-        ReviewWrapper(ReviewDto(
-            id      = 2L,
-            rating  = 4,
-            text    = "Good biryani",
-            timeAgo = "1 week ago",
-            user    = ReviewUserDto(name = "Priya", profileImage = "https://img.jpg"),
-        )),
+        ReviewWrapper(
+            ReviewDto(
+                id = REVIEW_ID_1,
+                rating = REVIEW_RATING_5,
+                text = REVIEW_TEXT_AMAZING,
+                timeAgo = REVIEW_TIME_2_DAYS,
+                user = ReviewUserDto(name = REVIEW_USER_SWAPNA, profileImage = null),
+            )
+        ),
+        ReviewWrapper(
+            ReviewDto(
+                id = REVIEW_ID_2,
+                rating = REVIEW_RATING_4,
+                text = REVIEW_TEXT_GOOD_BIR,
+                timeAgo = REVIEW_TIME_1_WEEK,
+                user = ReviewUserDto(name = REVIEW_USER_PRIYA, profileImage = REVIEW_IMG_URL),
+            )
+        ),
     )
 )
 
 fun fakeCuisinesResponse() = CuisinesResponse(
     cuisines = listOf(
-        CuisineWrapper(CuisineDto(1, "Biryani")),
-        CuisineWrapper(CuisineDto(2, "Pizza")),
-        CuisineWrapper(CuisineDto(3, "Burger")),
+        CuisineWrapper(CuisineDto(CUISINE_ID_1, CATEGORY_BIRYANI)),
+        CuisineWrapper(CuisineDto(CUISINE_ID_2, CATEGORY_PIZZA)),
+        CuisineWrapper(CuisineDto(CUISINE_ID_3, CATEGORY_BURGER)),
     )
 )

@@ -5,6 +5,36 @@ import com.swapna.foodapp.domain.model.Address
 import com.swapna.foodapp.domain.model.Order
 import com.swapna.foodapp.domain.model.User
 import com.swapna.foodapp.domain.repository.UserRepository
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_FULL_1
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_ID_1
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_ID_2
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_LABEL_HOME
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_LABEL_WORK
+import com.swapna.foodapp.utils.TestConstants.ERR_COULD_NOT_LOAD_PROFILE
+import com.swapna.foodapp.utils.TestConstants.ERR_DELETE_FAILED
+import com.swapna.foodapp.utils.TestConstants.ERR_LOGOUT_FAILED_MSG
+import com.swapna.foodapp.utils.TestConstants.ERR_NAME_EMPTY_MSG
+import com.swapna.foodapp.utils.TestConstants.ERR_NETWORK
+import com.swapna.foodapp.utils.TestConstants.ERR_NO_USER_FOUND_MSG
+import com.swapna.foodapp.utils.TestConstants.MSG_ADDRESS_REMOVED
+import com.swapna.foodapp.utils.TestConstants.MSG_PROFILE_UPDATED_TICK
+import com.swapna.foodapp.utils.TestConstants.ORDER_COUNT_2
+import com.swapna.foodapp.utils.TestConstants.ORDER_ID_1
+import com.swapna.foodapp.utils.TestConstants.ORDER_ID_2
+import com.swapna.foodapp.utils.TestConstants.ORDER_STATUS_DELIVERED_CAP
+import com.swapna.foodapp.utils.TestConstants.ORDER_TIME_FRIENDLY
+import com.swapna.foodapp.utils.TestConstants.PRICE_249
+import com.swapna.foodapp.utils.TestConstants.PROFILE_FALLBACK_EMAIL
+import com.swapna.foodapp.utils.TestConstants.PROFILE_FALLBACK_NAME
+import com.swapna.foodapp.utils.TestConstants.PROFILE_SELECTED_LOC
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_ID_1
+import com.swapna.foodapp.utils.TestConstants.RESTAURANT_MEGHANA
+import com.swapna.foodapp.utils.TestConstants.USER_EMAIL_SWAPNA
+import com.swapna.foodapp.utils.TestConstants.USER_EMAIL_UPDATED
+import com.swapna.foodapp.utils.TestConstants.USER_ID_1
+import com.swapna.foodapp.utils.TestConstants.USER_NAME_SWAPNA
+import com.swapna.foodapp.utils.TestConstants.USER_NAME_UPDATED
+import com.swapna.foodapp.utils.TestConstants.USER_PHONE_VALID
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -27,31 +57,19 @@ import kotlinx.coroutines.test.setMain
 class ProfileViewModelSpec : BehaviorSpec({
 
     val dispatcher = UnconfinedTestDispatcher()
-
-    // ── MockK dependency ──────────────────────────────────────
     val userRepository = mockk<UserRepository>()
-
-    // ── Controllable user flow ────────────────────────────────
-    // WHY MutableStateFlow not flowOf()?
-    //   Some tests update the user mid-test (e.g. after saveProfile)
-    //   MutableStateFlow lets us emit new values from answers block
     val userFlow = MutableStateFlow<User?>(null)
 
-    fun createViewModel() = ProfileViewModel(
-        userRepository = userRepository,
-    )
+    fun createViewModel() = ProfileViewModel(userRepository = userRepository)
 
     beforeEach {
         clearAllMocks()
         Dispatchers.setMain(dispatcher)
-        userFlow.value = testUser()   // default: valid logged-in user
+        userFlow.value = testUser()
 
-        // Default stubs
         every { userRepository.getCurrentUser() } returns userFlow
-        every { userRepository.getRecentOrders() } returns
-                flowOf(emptyList())
-        coEvery { userRepository.updateUser(any()) } returns
-                Result.success(Unit)
+        every { userRepository.getRecentOrders() } returns flowOf(emptyList())
+        coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
         coEvery { userRepository.logout() } just runs
         coEvery { userRepository.deleteAddress(any()) } just runs
     }
@@ -72,7 +90,7 @@ class ProfileViewModelSpec : BehaviorSpec({
 
         `when`("user profile loads") {
             then("user name is Swapna") {
-                createViewModel().uiState.value.user?.name shouldBe "Swapna"
+                createViewModel().uiState.value.user?.name shouldBe USER_NAME_SWAPNA
             }
         }
 
@@ -90,28 +108,27 @@ class ProfileViewModelSpec : BehaviorSpec({
 
         `when`("user has name and email set") {
             then("displayName shows user name") {
-                createViewModel().uiState.value.displayName shouldBe "Swapna"
+                createViewModel().uiState.value.displayName shouldBe USER_NAME_SWAPNA
             }
         }
 
         `when`("user has name and email set") {
             then("displayEmail shows user email") {
-                createViewModel().uiState.value.displayEmail shouldBe
-                        "swapna@example.com"
+                createViewModel().uiState.value.displayEmail shouldBe USER_EMAIL_SWAPNA
             }
         }
 
         `when`("user has no name set") {
             then("displayName falls back to Add your name") {
                 userFlow.value = testUser(name = "")
-                createViewModel().uiState.value.displayName shouldBe "Add your name"
+                createViewModel().uiState.value.displayName shouldBe PROFILE_FALLBACK_NAME
             }
         }
 
         `when`("user has no email set") {
             then("displayEmail falls back to Add email address") {
                 userFlow.value = testUser(email = "")
-                createViewModel().uiState.value.displayEmail shouldBe "Add email address"
+                createViewModel().uiState.value.displayEmail shouldBe PROFILE_FALLBACK_EMAIL
             }
         }
 
@@ -121,22 +138,21 @@ class ProfileViewModelSpec : BehaviorSpec({
 
                 val vm = createViewModel()
 
-                vm.uiState.value.user      shouldBe null
-                vm.uiState.value.error     shouldBe "Could not load profile"
+                vm.uiState.value.user shouldBe null
+                vm.uiState.value.error shouldBe ERR_COULD_NOT_LOAD_PROFILE
                 vm.uiState.value.isLoggedIn shouldBe false
             }
         }
 
         `when`("editName and editEmail pre-filled on load") {
             then("editName matches user name") {
-                createViewModel().uiState.value.editName shouldBe "Swapna"
+                createViewModel().uiState.value.editName shouldBe USER_NAME_SWAPNA
             }
         }
 
         `when`("editName and editEmail pre-filled on load") {
             then("editEmail matches user email") {
-                createViewModel().uiState.value.editEmail shouldBe
-                        "swapna@example.com"
+                createViewModel().uiState.value.editEmail shouldBe USER_EMAIL_SWAPNA
             }
         }
     }
@@ -150,9 +166,9 @@ class ProfileViewModelSpec : BehaviorSpec({
         `when`("API returns 2 orders") {
             then("orders list has 2 items") {
                 every { userRepository.getRecentOrders() } returns
-                        flowOf(listOf(testOrder("o1"), testOrder("o2")))
+                        flowOf(listOf(testOrder(ORDER_ID_1), testOrder(ORDER_ID_2)))
 
-                createViewModel().uiState.value.orders.size shouldBe 2
+                createViewModel().uiState.value.orders.size shouldBe ORDER_COUNT_2
             }
         }
 
@@ -173,14 +189,14 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("addresses computed property returns both") {
                 userFlow.value = testUser(
                     addresses = listOf(
-                        testAddress("a1", "Home"),
-                        testAddress("a2", "Work"),
+                        testAddress(ADDRESS_ID_1, ADDRESS_LABEL_HOME),
+                        testAddress(ADDRESS_ID_2, ADDRESS_LABEL_WORK),
                     )
                 )
                 val vm = createViewModel()
 
                 vm.uiState.value.addresses.size shouldBe 2
-                vm.uiState.value.hasAddresses   shouldBe true
+                vm.uiState.value.hasAddresses shouldBe true
             }
         }
 
@@ -189,7 +205,7 @@ class ProfileViewModelSpec : BehaviorSpec({
                 userFlow.value = testUser(addresses = emptyList())
                 val vm = createViewModel()
 
-                vm.uiState.value.addresses    shouldBe emptyList()
+                vm.uiState.value.addresses shouldBe emptyList()
                 vm.uiState.value.hasAddresses shouldBe false
             }
         }
@@ -205,7 +221,6 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("isEditMode becomes true") {
                 val vm = createViewModel()
                 vm.onEditClicked()
-
                 vm.uiState.value.isEditMode shouldBe true
             }
         }
@@ -214,8 +229,7 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("editName pre-filled with current user name") {
                 val vm = createViewModel()
                 vm.onEditClicked()
-
-                vm.uiState.value.editName shouldBe "Swapna"
+                vm.uiState.value.editName shouldBe USER_NAME_SWAPNA
             }
         }
 
@@ -223,8 +237,7 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("editEmail pre-filled with current user email") {
                 val vm = createViewModel()
                 vm.onEditClicked()
-
-                vm.uiState.value.editEmail shouldBe "swapna@example.com"
+                vm.uiState.value.editEmail shouldBe USER_EMAIL_SWAPNA
             }
         }
 
@@ -232,9 +245,8 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("editName updates to new value") {
                 val vm = createViewModel()
                 vm.onEditClicked()
-                vm.onNameChanged("Swapna Reddy")
-
-                vm.uiState.value.editName shouldBe "Swapna Reddy"
+                vm.onNameChanged(USER_NAME_UPDATED)
+                vm.uiState.value.editName shouldBe USER_NAME_UPDATED
             }
         }
 
@@ -242,9 +254,8 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("editEmail updates to new value") {
                 val vm = createViewModel()
                 vm.onEditClicked()
-                vm.onEmailChanged("new@example.com")
-
-                vm.uiState.value.editEmail shouldBe "new@example.com"
+                vm.onEmailChanged(USER_EMAIL_UPDATED)
+                vm.uiState.value.editEmail shouldBe USER_EMAIL_UPDATED
             }
         }
 
@@ -254,7 +265,6 @@ class ProfileViewModelSpec : BehaviorSpec({
                 vm.onEditClicked()
                 vm.onNameChanged("Some Edit")
                 vm.onCancelEdit()
-
                 vm.uiState.value.isEditMode shouldBe false
             }
         }
@@ -265,9 +275,7 @@ class ProfileViewModelSpec : BehaviorSpec({
                 vm.onEditClicked()
                 vm.onNameChanged("Changed Name")
                 vm.onCancelEdit()
-
-                // Must revert to original — not keep the edit
-                vm.uiState.value.editName shouldBe "Swapna"
+                vm.uiState.value.editName shouldBe USER_NAME_SWAPNA
             }
         }
     }
@@ -282,15 +290,15 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("updateUser called with updated User object") {
                 val vm = createViewModel()
                 vm.onEditClicked()
-                vm.onNameChanged("Swapna Reddy")
-                vm.onEmailChanged("updated@example.com")
+                vm.onNameChanged(USER_NAME_UPDATED)
+                vm.onEmailChanged(USER_EMAIL_UPDATED)
                 vm.onSaveProfile()
 
                 coVerify {
                     userRepository.updateUser(
                         match {
-                            it.name  == "Swapna Reddy" &&
-                                    it.email == "updated@example.com"
+                            it.name == USER_NAME_UPDATED &&
+                                    it.email == USER_EMAIL_UPDATED
                         }
                     )
                 }
@@ -302,7 +310,6 @@ class ProfileViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.onEditClicked()
                 vm.onSaveProfile()
-
                 vm.uiState.value.isEditMode shouldBe false
             }
         }
@@ -314,9 +321,8 @@ class ProfileViewModelSpec : BehaviorSpec({
                     vm.onEditClicked()
                     vm.onSaveProfile()
 
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent
-                                .ShowSnackbar("Profile updated ✅")
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
+                        .ShowSnackbar(MSG_PROFILE_UPDATED_TICK)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -327,13 +333,12 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("ShowError emitted — Name cannot be empty") {
                 val vm = createViewModel()
                 vm.onEditClicked()
-                vm.onNameChanged("")  // blank name
+                vm.onNameChanged("")
                 vm.events.test {
                     vm.onSaveProfile()
 
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent
-                                .ShowError("Name cannot be empty")
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
+                        .ShowError(ERR_NAME_EMPTY_MSG)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -359,9 +364,8 @@ class ProfileViewModelSpec : BehaviorSpec({
                 vm.events.test {
                     vm.onSaveProfile()
 
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent
-                                .ShowError("No user found. Please login again.")
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
+                        .ShowError(ERR_NO_USER_FOUND_MSG)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -371,16 +375,15 @@ class ProfileViewModelSpec : BehaviorSpec({
         `when`("updateUser throws exception") {
             then("ShowError emitted with exception message") {
                 coEvery { userRepository.updateUser(any()) } returns
-                        Result.failure(Exception("Network error"))
+                        Result.failure(Exception(ERR_NETWORK))
 
                 val vm = createViewModel()
                 vm.onEditClicked()
                 vm.events.test {
                     vm.onSaveProfile()
 
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent
-                                .ShowError("Network error")
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
+                        .ShowError(ERR_NETWORK)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -397,9 +400,8 @@ class ProfileViewModelSpec : BehaviorSpec({
         `when`("deleteAddress succeeds") {
             then("deleteAddress called with correct addressId") {
                 val vm = createViewModel()
-                vm.onDeleteAddress("a1")
-
-                coVerify { userRepository.deleteAddress("a1") }
+                vm.onDeleteAddress(ADDRESS_ID_1)
+                coVerify { userRepository.deleteAddress(ADDRESS_ID_1) }
             }
         }
 
@@ -407,11 +409,10 @@ class ProfileViewModelSpec : BehaviorSpec({
             then("ShowSnackbar emitted with Address removed") {
                 val vm = createViewModel()
                 vm.events.test {
-                    vm.onDeleteAddress("a1")
+                    vm.onDeleteAddress(ADDRESS_ID_1)
 
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent
-                                .ShowSnackbar("Address removed")
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
+                        .ShowSnackbar(MSG_ADDRESS_REMOVED)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -421,15 +422,14 @@ class ProfileViewModelSpec : BehaviorSpec({
         `when`("deleteAddress throws exception") {
             then("ShowError emitted with error message") {
                 coEvery { userRepository.deleteAddress(any()) } throws
-                        Exception("Delete failed")
+                        Exception(ERR_DELETE_FAILED)
 
                 val vm = createViewModel()
                 vm.events.test {
-                    vm.onDeleteAddress("a1")
+                    vm.onDeleteAddress(ADDRESS_ID_1)
 
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent
-                                .ShowError("Delete failed")
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
+                        .ShowError(ERR_DELETE_FAILED)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -445,9 +445,7 @@ class ProfileViewModelSpec : BehaviorSpec({
 
         `when`("logout succeeds") {
             then("logout called on UserRepository") {
-                val vm = createViewModel()
-                vm.onLogout()
-
+                createViewModel().also { it.onLogout() }
                 coVerify { userRepository.logout() }
             }
         }
@@ -457,10 +455,7 @@ class ProfileViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onLogout()
-
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent.NavigateToLogin
-
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent.NavigateToLogin
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -469,15 +464,14 @@ class ProfileViewModelSpec : BehaviorSpec({
         `when`("logout throws exception") {
             then("ShowError emitted with error message") {
                 coEvery { userRepository.logout() } throws
-                        Exception("Logout failed. Please try again.")
+                        Exception(ERR_LOGOUT_FAILED_MSG)
 
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onLogout()
 
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent
-                                .ShowError("Logout failed. Please try again.")
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
+                        .ShowError(ERR_LOGOUT_FAILED_MSG)
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -496,10 +490,7 @@ class ProfileViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onBackPressed()
-
-                    awaitItem() shouldBe
-                            ProfileViewModel.ProfileEvent.NavigateBack
-
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent.NavigateBack
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -508,7 +499,6 @@ class ProfileViewModelSpec : BehaviorSpec({
 
     // ══════════════════════════════════════════════════════════
     // GROUP 9 — Reactive Profile Updates
-    // Tests that Flow emissions drive UI updates automatically
     // ══════════════════════════════════════════════════════════
 
     given("user profile changes after screen opens") {
@@ -516,12 +506,11 @@ class ProfileViewModelSpec : BehaviorSpec({
         `when`("getCurrentUser emits updated user name") {
             then("uiState reflects new name immediately") {
                 val vm = createViewModel()
-                vm.uiState.value.user?.name shouldBe "Swapna"
+                vm.uiState.value.user?.name shouldBe USER_NAME_SWAPNA
 
-                // Emit updated user — simulates Room emitting after updateUser()
-                userFlow.value = testUser(name = "Swapna Reddy")
+                userFlow.value = testUser(name = USER_NAME_UPDATED)
 
-                vm.uiState.value.user?.name shouldBe "Swapna Reddy"
+                vm.uiState.value.user?.name shouldBe USER_NAME_UPDATED
             }
         }
 
@@ -533,52 +522,50 @@ class ProfileViewModelSpec : BehaviorSpec({
                 userFlow.value = null
 
                 vm.uiState.value.isLoggedIn shouldBe false
-                vm.uiState.value.error      shouldNotBe null
+                vm.uiState.value.error shouldNotBe null
             }
         }
     }
 })
 
-// ── Local test data helpers ───────────────────────────────────────────────
-
 private fun testUser(
-    id:        String        = "u1",
-    name:      String        = "Swapna",
-    email:     String        = "swapna@example.com",
-    phone:     String        = "+919876543210",
+    id: String = USER_ID_1,
+    name: String = USER_NAME_SWAPNA,
+    email: String = USER_EMAIL_SWAPNA,
+    phone: String = USER_PHONE_VALID,
     addresses: List<Address> = emptyList(),
 ) = User(
-    id               = id,
-    name             = name,
-    email            = email,
-    phone            = phone,
-    profileImage     = "",
-    addresses        = addresses,
-    selectedLocation = "Koramangala",
+    id = id,
+    name = name,
+    email = email,
+    phone = phone,
+    profileImage = "",
+    addresses = addresses,
+    selectedLocation = PROFILE_SELECTED_LOC,
 )
 
 private fun testAddress(
-    id:    String = "a1",
-    label: String = "Home",
+    id: String = ADDRESS_ID_1,
+    label: String = ADDRESS_LABEL_HOME,
 ) = Address(
-    id          = id,
-    label       = label,
-    fullAddress = "123 Test Street, Koramangala, Bengaluru",
-    landmark    = "",
-    latitude    = 0.0,
-    longitude   = 0.0,
+    id = id,
+    label = label,
+    fullAddress = ADDRESS_FULL_1,
+    landmark = "",
+    latitude = 0.0,
+    longitude = 0.0,
 )
 
 private fun testOrder(
-    id: String = "o1",
+    id: String = ORDER_ID_1,
 ) = Order(
-    id             = id,
-    restaurantId   = "r1",
-    restaurantName = "Meghana Foods",
+    id = id,
+    restaurantId = RESTAURANT_ID_1,
+    restaurantName = RESTAURANT_MEGHANA,
     restaurantImage = "",
-    status         = "Delivered",
-    timeFriendly   = "Today, 12:00 PM",
-    totalAmount    = 249.0,
-    items          = emptyList(),
-    canReorder     = true,
+    status = ORDER_STATUS_DELIVERED_CAP,
+    timeFriendly = ORDER_TIME_FRIENDLY,
+    totalAmount = PRICE_249,
+    items = emptyList(),
+    canReorder = true,
 )

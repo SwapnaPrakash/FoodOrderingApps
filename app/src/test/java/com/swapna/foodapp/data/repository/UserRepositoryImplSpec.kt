@@ -10,6 +10,35 @@ import com.swapna.foodapp.data.mapper.EntityMapper
 import com.swapna.foodapp.data.mapper.UserMapper
 import com.swapna.foodapp.data.remote.api.FoodApi
 import com.swapna.foodapp.domain.model.Address
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_FULL_1
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_FULL_2
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_FULL_3
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_ID_1
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_ID_2
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_LABEL_HOME
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_LABEL_WORK
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_LOC_HSR
+import com.swapna.foodapp.utils.TestConstants.ADDRESS_LOC_KORAMANGALA
+import com.swapna.foodapp.utils.TestConstants.ERR_BACKGROUND_MSG
+import com.swapna.foodapp.utils.TestConstants.ERR_DB
+import com.swapna.foodapp.utils.TestConstants.ERR_FIREBASE
+import com.swapna.foodapp.utils.TestConstants.ERR_NETWORK
+import com.swapna.foodapp.utils.TestConstants.ERR_RATE_LIMIT
+import com.swapna.foodapp.utils.TestConstants.ERR_TIMEOUT
+import com.swapna.foodapp.utils.TestConstants.ERR_WRONG_OTP_MSG
+import com.swapna.foodapp.utils.TestConstants.ORDER_COUNT_1
+import com.swapna.foodapp.utils.TestConstants.ORDER_ID_1
+import com.swapna.foodapp.utils.TestConstants.USER_EMAIL_FIREBASE
+import com.swapna.foodapp.utils.TestConstants.USER_EMAIL_SWAPNA
+import com.swapna.foodapp.utils.TestConstants.USER_ID_1
+import com.swapna.foodapp.utils.TestConstants.USER_ID_API
+import com.swapna.foodapp.utils.TestConstants.USER_ID_FIREBASE
+import com.swapna.foodapp.utils.TestConstants.USER_ID_GUEST
+import com.swapna.foodapp.utils.TestConstants.USER_ID_UID
+import com.swapna.foodapp.utils.TestConstants.USER_NAME_FIREBASE
+import com.swapna.foodapp.utils.TestConstants.USER_NAME_SWAPNA
+import com.swapna.foodapp.utils.TestConstants.USER_PHONE_VALID
+import com.swapna.foodapp.utils.TestConstants.VALID_OTP
 import com.swapna.foodapp.utils.fakeOrdersResponse
 import com.swapna.foodapp.utils.fakeUser
 import com.swapna.foodapp.utils.fakeUserEntity
@@ -33,62 +62,53 @@ import kotlinx.coroutines.test.setMain
 @OptIn(ExperimentalCoroutinesApi::class)
 class UserRepositoryImplSpec : FunSpec({
 
-    val api                 = mockk<FoodApi>()
-    val userDao             = mockk<UserDao>()
+    val api = mockk<FoodApi>()
+    val userDao = mockk<UserDao>()
     val firebaseAuthManager = mockk<FirebaseAuthManager>()
-    val firebaseAuth        = mockk<FirebaseAuth>()
-    val activityProvider    = mockk<ActivityProvider>()
-
-    val userMapper   = UserMapper()
+    val firebaseAuth = mockk<FirebaseAuth>()
+    val activityProvider = mockk<ActivityProvider>()
+    val userMapper = UserMapper()
     val entityMapper = EntityMapper()
 
     fun createRepo() = UserRepositoryImpl(
-        api                 = api,
-        userDao             = userDao,
+        api = api,
+        userDao = userDao,
         firebaseAuthManager = firebaseAuthManager,
-        firebaseAuth        = firebaseAuth,
-        activityProvider    = activityProvider,
-        userMapper          = userMapper,
-        entityMapper        = entityMapper,
-        ioDispatcher        = UnconfinedTestDispatcher(),
+        firebaseAuth = firebaseAuth,
+        activityProvider = activityProvider,
+        userMapper = userMapper,
+        entityMapper = entityMapper,
+        ioDispatcher = UnconfinedTestDispatcher(),
     )
 
     beforeEach {
         clearAllMocks()
         Dispatchers.setMain(UnconfinedTestDispatcher())
 
-        every { activityProvider.getActivity() }                    returns null
-        every { userDao.getCurrentUser() }                          returns flowOf(null)
-        every { firebaseAuth.currentUser }                          returns null
-        coEvery { userDao.getCurrentUserOnce() }                    returns null
-        coEvery { userDao.getUser() }                               returns null
-        coEvery { userDao.insertUser(any()) }                       just runs
-        coEvery { userDao.clearUser() }                             just runs
+        every { activityProvider.getActivity() } returns null
+        every { userDao.getCurrentUser() } returns flowOf(null)
+        every { firebaseAuth.currentUser } returns null
+        coEvery { userDao.getCurrentUserOnce() } returns null
+        coEvery { userDao.getUser() } returns null
+        coEvery { userDao.insertUser(any()) } just runs
+        coEvery { userDao.clearUser() } just runs
         coEvery { userDao.updateNameAndEmail(any(), any(), any()) } just runs
-        coEvery { userDao.updateSelectedLocation(any(), any()) }    just runs
-        coEvery { userDao.updateAddresses(any(), any()) }           just runs
-        coEvery { firebaseAuthManager.signOut() }                   just runs
+        coEvery { userDao.updateSelectedLocation(any(), any()) } just runs
+        coEvery { userDao.updateAddresses(any(), any()) } just runs
+        coEvery { firebaseAuthManager.signOut() } just runs
     }
 
     afterEach { Dispatchers.resetMain() }
 
     // ══════════════════════════════════════════════════════════
     // sendOtp
-    // ✅ NEW — completely missing
-    // WHY? sendOtp has 2 branches:
-    //   1. activityProvider returns null → failure immediately
-    //   2. activityProvider returns activity → delegates to firebaseAuthManager
     // ══════════════════════════════════════════════════════════
 
     test("sendOtp: returns failure when activity is null — app in background") {
-        // activityProvider.getActivity() returns null in beforeEach
-        // WHY test this? App backgrounded during OTP flow
-        // Without this test — removing the null check would not be caught
-        val result = createRepo().sendOtp("+919876543210")
+        val result = createRepo().sendOtp(USER_PHONE_VALID)
 
         result.isFailure shouldBe true
-        result.exceptionOrNull()?.message shouldBe
-                "App is in background. Please reopen and try again."
+        result.exceptionOrNull()?.message shouldBe ERR_BACKGROUND_MSG
     }
 
     test("sendOtp: delegates to firebaseAuthManager when activity available") {
@@ -98,10 +118,10 @@ class UserRepositoryImplSpec : FunSpec({
             firebaseAuthManager.sendOtp(any(), any())
         } returns Result.success(Unit)
 
-        val result = createRepo().sendOtp("+919876543210")
+        val result = createRepo().sendOtp(USER_PHONE_VALID)
 
         result.isSuccess shouldBe true
-        coVerify { firebaseAuthManager.sendOtp("+919876543210", fakeActivity) }
+        coVerify { firebaseAuthManager.sendOtp(USER_PHONE_VALID, fakeActivity) }
     }
 
     test("sendOtp: returns failure when firebaseAuthManager throws") {
@@ -109,9 +129,9 @@ class UserRepositoryImplSpec : FunSpec({
         every { activityProvider.getActivity() } returns fakeActivity
         coEvery {
             firebaseAuthManager.sendOtp(any(), any())
-        } throws Exception("Firebase error")
+        } throws Exception(ERR_FIREBASE)
 
-        val result = createRepo().sendOtp("+919876543210")
+        val result = createRepo().sendOtp(USER_PHONE_VALID)
 
         result.isFailure shouldBe true
     }
@@ -121,28 +141,23 @@ class UserRepositoryImplSpec : FunSpec({
         every { activityProvider.getActivity() } returns fakeActivity
         coEvery {
             firebaseAuthManager.sendOtp(any(), any())
-        } throws Exception("Rate limit exceeded")
+        } throws Exception(ERR_RATE_LIMIT)
 
-        val result = createRepo().sendOtp("+919876543210")
+        val result = createRepo().sendOtp(USER_PHONE_VALID)
 
-        result.exceptionOrNull()?.message shouldBe "Rate limit exceeded"
+        result.exceptionOrNull()?.message shouldBe ERR_RATE_LIMIT
     }
 
     // ══════════════════════════════════════════════════════════
     // verifyOtp
-    // ✅ NEW — completely missing
-    // WHY? verifyOtp has 3 branches:
-    //   1. firebaseAuthManager.verifyOtp fails → return failure
-    //   2. api.getUser fails → catch → return failure
-    //   3. success → save user to Room → return user
     // ══════════════════════════════════════════════════════════
 
     test("verifyOtp: returns failure when firebaseAuthManager verifyOtp fails") {
         coEvery {
             firebaseAuthManager.verifyOtp(any())
-        } returns Result.failure(Exception("Wrong OTP"))
+        } returns Result.failure(Exception(ERR_WRONG_OTP_MSG))
 
-        val result = createRepo().verifyOtp("123456")
+        val result = createRepo().verifyOtp(VALID_OTP)
 
         result.isFailure shouldBe true
     }
@@ -150,10 +165,10 @@ class UserRepositoryImplSpec : FunSpec({
     test("verifyOtp: returns failure when API throws after OTP verified") {
         coEvery {
             firebaseAuthManager.verifyOtp(any())
-        } returns Result.success("uid_123")
-        coEvery { api.getUser() } throws Exception("Network error")
+        } returns Result.success(USER_ID_UID)
+        coEvery { api.getUser() } throws Exception(ERR_NETWORK)
 
-        val result = createRepo().verifyOtp("123456")
+        val result = createRepo().verifyOtp(VALID_OTP)
 
         result.isFailure shouldBe true
     }
@@ -162,10 +177,10 @@ class UserRepositoryImplSpec : FunSpec({
         val fakeUserResponse = fakeUserApiResponse()
         coEvery {
             firebaseAuthManager.verifyOtp(any())
-        } returns Result.success("uid_123")
+        } returns Result.success(USER_ID_UID)
         coEvery { api.getUser() } returns fakeUserResponse
 
-        createRepo().verifyOtp("123456")
+        createRepo().verifyOtp(VALID_OTP)
 
         coVerify { userDao.insertUser(any()) }
     }
@@ -174,15 +189,13 @@ class UserRepositoryImplSpec : FunSpec({
         val fakeUserResponse = fakeUserApiResponse()
         coEvery {
             firebaseAuthManager.verifyOtp(any())
-        } returns Result.success("uid_123")
+        } returns Result.success(USER_ID_UID)
         coEvery { api.getUser() } returns fakeUserResponse
 
-        val result = createRepo().verifyOtp("123456")
+        val result = createRepo().verifyOtp(VALID_OTP)
 
         result.isSuccess shouldBe true
-        // WHY check uid? verifyOtp does user.copy(id = uid)
-        // The user id must come from Firebase, not from API response
-        result.getOrNull()?.id shouldBe "uid_123"
+        result.getOrNull()?.id shouldBe USER_ID_UID
     }
 
     // ══════════════════════════════════════════════════════════
@@ -214,34 +227,35 @@ class UserRepositoryImplSpec : FunSpec({
     }
 
     test("getCurrentUser: emits mapped User when Room has entity") {
-        val entity = fakeUserEntity(id = "u1", name = "Swapna")
+        val entity = fakeUserEntity(id = USER_ID_1, name = USER_NAME_SWAPNA)
+
         every { userDao.getCurrentUser() } returns flowOf(entity)
 
         createRepo().getCurrentUser().test {
             val result = awaitItem()
             result shouldNotBe null
-            result?.id   shouldBe "u1"
-            result?.name shouldBe "Swapna"
+            result?.id shouldBe USER_ID_1
+            result?.name shouldBe USER_NAME_SWAPNA
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     test("getCurrentUser: email mapped correctly from entity") {
-        val entity = fakeUserEntity(id = "u1", name = "Swapna")
+        val entity = fakeUserEntity(id = USER_ID_1, name = USER_NAME_SWAPNA)
         every { userDao.getCurrentUser() } returns flowOf(entity)
 
         createRepo().getCurrentUser().test {
-            awaitItem()?.email shouldBe "swapna@example.com"
+            awaitItem()?.email shouldBe USER_EMAIL_SWAPNA
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     test("getCurrentUser: falls back to Firebase user when Room empty") {
         val fbUser = mockk<FirebaseUser> {
-            every { uid }         returns "fb_uid"
-            every { displayName } returns "Firebase User"
-            every { email }       returns "fb@example.com"
-            every { phoneNumber } returns "+919876543210"
+            every { uid } returns USER_ID_FIREBASE
+            every { displayName } returns USER_NAME_FIREBASE
+            every { email } returns USER_EMAIL_FIREBASE
+            every { phoneNumber } returns USER_PHONE_VALID
         }
         every { userDao.getCurrentUser() } returns flowOf(null)
         every { firebaseAuth.currentUser } returns fbUser
@@ -249,33 +263,33 @@ class UserRepositoryImplSpec : FunSpec({
         createRepo().getCurrentUser().test {
             val result = awaitItem()
             result shouldNotBe null
-            result?.id   shouldBe "fb_uid"
-            result?.name shouldBe "Firebase User"
+            result?.id shouldBe USER_ID_FIREBASE
+            result?.name shouldBe USER_NAME_FIREBASE
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     test("getCurrentUser: Firebase fallback phone set correctly") {
         val fbUser = mockk<FirebaseUser> {
-            every { uid }         returns "fb_uid"
+            every { uid } returns USER_ID_FIREBASE
             every { displayName } returns ""
-            every { email }       returns ""
-            every { phoneNumber } returns "+919876543210"
+            every { email } returns ""
+            every { phoneNumber } returns USER_PHONE_VALID
         }
         every { userDao.getCurrentUser() } returns flowOf(null)
         every { firebaseAuth.currentUser } returns fbUser
 
         createRepo().getCurrentUser().test {
-            awaitItem()?.phone shouldBe "+919876543210"
+            awaitItem()?.phone shouldBe USER_PHONE_VALID
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     test("getCurrentUser: Firebase fallback handles null displayName email phone") {
         val fbUser = mockk<FirebaseUser> {
-            every { uid }         returns "fb_uid"
+            every { uid } returns USER_ID_FIREBASE
             every { displayName } returns null
-            every { email }       returns null
+            every { email } returns null
             every { phoneNumber } returns null
         }
         every { userDao.getCurrentUser() } returns flowOf(null)
@@ -283,7 +297,7 @@ class UserRepositoryImplSpec : FunSpec({
 
         createRepo().getCurrentUser().test {
             val result = awaitItem()
-            result?.name  shouldBe ""
+            result?.name shouldBe ""
             result?.email shouldBe ""
             result?.phone shouldBe ""
             cancelAndIgnoreRemainingEvents()
@@ -291,24 +305,17 @@ class UserRepositoryImplSpec : FunSpec({
     }
 
     // ══════════════════════════════════════════════════════════
-    // getUser — one-shot
-    // ✅ NEW — completely missing
-    // WHY? getUser has 3 branches:
-    //   1. Room has cached user → return it
-    //   2. Room empty → fetch from API → save → return
-    //   3. Exception → return failure
+    // getUser
     // ══════════════════════════════════════════════════════════
 
     test("getUser: returns cached user from Room without API call") {
-        val entity = fakeUserEntity(id = "u1", name = "Swapna")
+        val entity = fakeUserEntity(id = USER_ID_1, name = USER_NAME_SWAPNA)
         coEvery { userDao.getUser() } returns entity
 
         val result = createRepo().getUser()
 
         result.isSuccess shouldBe true
-        result.getOrNull()?.name shouldBe "Swapna"
-        // WHY verify api NOT called?
-        // Cache hit = skip API = faster + works offline
+        result.getOrNull()?.name shouldBe USER_NAME_SWAPNA
         coVerify(exactly = 0) { api.getUser() }
     }
 
@@ -333,7 +340,7 @@ class UserRepositoryImplSpec : FunSpec({
 
     test("getUser: returns failure when API throws and no cache") {
         coEvery { userDao.getUser() } returns null
-        coEvery { api.getUser() } throws Exception("Network error")
+        coEvery { api.getUser() } throws Exception(ERR_NETWORK)
 
         val result = createRepo().getUser()
 
@@ -342,11 +349,11 @@ class UserRepositoryImplSpec : FunSpec({
 
     test("getUser: failure message preserved from exception") {
         coEvery { userDao.getUser() } returns null
-        coEvery { api.getUser() } throws Exception("Timeout")
+        coEvery { api.getUser() } throws Exception(ERR_TIMEOUT)
 
         val result = createRepo().getUser()
 
-        result.exceptionOrNull()?.message shouldBe "Timeout"
+        result.exceptionOrNull()?.message shouldBe ERR_TIMEOUT
     }
 
     // ══════════════════════════════════════════════════════════
@@ -368,15 +375,15 @@ class UserRepositoryImplSpec : FunSpec({
     // ══════════════════════════════════════════════════════════
 
     test("updateUser: calls userDao.updateNameAndEmail with correct params") {
-        val user = fakeUser(id = "u1", name = "Swapna", email = "s@example.com")
+        val user = fakeUser(id = USER_ID_1, name = USER_NAME_SWAPNA, email = USER_EMAIL_SWAPNA)
 
         createRepo().updateUser(user)
 
         coVerify {
             userDao.updateNameAndEmail(
-                id    = "u1",
-                name  = "Swapna",
-                email = "s@example.com",
+                id = USER_ID_1,
+                name = USER_NAME_SWAPNA,
+                email = USER_EMAIL_SWAPNA,
             )
         }
     }
@@ -388,7 +395,7 @@ class UserRepositoryImplSpec : FunSpec({
     test("updateUser: returns failure when dao throws") {
         coEvery {
             userDao.updateNameAndEmail(any(), any(), any())
-        } throws Exception("DB error")
+        } throws Exception(ERR_DB)
 
         createRepo().updateUser(fakeUser()).isFailure shouldBe true
     }
@@ -396,10 +403,10 @@ class UserRepositoryImplSpec : FunSpec({
     test("updateUser: failure message preserved from exception") {
         coEvery {
             userDao.updateNameAndEmail(any(), any(), any())
-        } throws Exception("DB error")
+        } throws Exception(ERR_DB)
 
         createRepo().updateUser(fakeUser())
-            .exceptionOrNull()?.message shouldBe "DB error"
+            .exceptionOrNull()?.message shouldBe ERR_DB
     }
 
     // ══════════════════════════════════════════════════════════
@@ -407,46 +414,42 @@ class UserRepositoryImplSpec : FunSpec({
     // ══════════════════════════════════════════════════════════
 
     test("saveSelectedLocation: updates existing user location in Room") {
-        val entity = fakeUserEntity("u1", "Swapna")
+        val entity = fakeUserEntity(USER_ID_1, USER_NAME_SWAPNA)
         coEvery { userDao.getCurrentUserOnce() } returns entity
 
-        createRepo().saveSelectedLocation("Koramangala")
+        createRepo().saveSelectedLocation(ADDRESS_LOC_KORAMANGALA)
 
         coVerify {
-            userDao.updateSelectedLocation(id = "u1", location = "Koramangala")
+            userDao.updateSelectedLocation(
+                id = USER_ID_1,
+                location = ADDRESS_LOC_KORAMANGALA,
+            )
         }
     }
 
     test("saveSelectedLocation: inserts guest user when no user in Room") {
         coEvery { userDao.getCurrentUserOnce() } returns null
 
-        createRepo().saveSelectedLocation("Koramangala")
+        createRepo().saveSelectedLocation(ADDRESS_LOC_KORAMANGALA)
 
-        coVerify { userDao.insertUser(match { it.id == "guest" }) }
+        coVerify { userDao.insertUser(match { it.id == USER_ID_GUEST }) }
     }
 
     test("saveSelectedLocation: guest entry has correct location") {
         coEvery { userDao.getCurrentUserOnce() } returns null
 
-        createRepo().saveSelectedLocation("HSR Layout")
+        createRepo().saveSelectedLocation(ADDRESS_LOC_HSR)
 
         coVerify {
-            userDao.insertUser(match { it.selectedLocation == "HSR Layout" })
+            userDao.insertUser(match { it.selectedLocation == ADDRESS_LOC_HSR })
         }
     }
 
     // ══════════════════════════════════════════════════════════
     // addAddress
-    // ✅ NEW — completely missing
-    // WHY? addAddress has 2 branches:
-    //   1. No user in Room → early return (nothing called)
-    //   2. User exists → parse JSON → add → save back
     // ══════════════════════════════════════════════════════════
 
     test("addAddress: does nothing when no user in Room") {
-        // WHY test early return?
-        // getCurrentUserOnce() = null → return@withContext
-        // Without this test — removing that guard would not be caught
         coEvery { userDao.getCurrentUserOnce() } returns null
 
         createRepo().addAddress(fakeAddress())
@@ -455,45 +458,43 @@ class UserRepositoryImplSpec : FunSpec({
     }
 
     test("addAddress: calls updateAddresses when user exists") {
-        val entity = fakeUserEntity(id = "u1", addressesJson = "[]")
+        val entity = fakeUserEntity(id = USER_ID_1, addressesJson = "[]")
         coEvery { userDao.getCurrentUserOnce() } returns entity
 
-        createRepo().addAddress(fakeAddress(id = "a1", label = "Home"))
+        createRepo().addAddress(fakeAddress(id = ADDRESS_ID_1, label = ADDRESS_LABEL_HOME))
 
-        coVerify { userDao.updateAddresses(id = "u1", addressesJson = any()) }
+        coVerify { userDao.updateAddresses(id = USER_ID_1, addressesJson = any()) }
     }
 
     test("addAddress: new address appears in updated JSON") {
-        val entity = fakeUserEntity(id = "u1", addressesJson = "[]")
+        val entity = fakeUserEntity(id = USER_ID_1, addressesJson = "[]")
         coEvery { userDao.getCurrentUserOnce() } returns entity
 
-        createRepo().addAddress(fakeAddress(id = "a1", label = "Home"))
+        createRepo().addAddress(fakeAddress(id = ADDRESS_ID_1, label = ADDRESS_LABEL_HOME))
 
         coVerify {
             userDao.updateAddresses(
-                id            = "u1",
-                // WHY match contains "Home"?
-                // Gson serialises Address → JSON
-                // "Home" must appear in the updated JSON string
-                addressesJson = match { it.contains("Home") },
+                id = USER_ID_1,
+                addressesJson = match { it.contains(ADDRESS_LABEL_HOME) },
             )
         }
     }
 
     test("addAddress: adds to existing addresses — preserves old ones") {
-        // User already has one address — adding second must keep first
-        val existing = """[{"id":"a1","label":"Home","fullAddress":"123 St","landmark":"","latitude":0.0,"longitude":0.0}]"""
-        val entity   = fakeUserEntity(id = "u1", addressesJson = existing)
+        val existing = """[{"id":"$ADDRESS_ID_1",
+            |"label":"$ADDRESS_LABEL_HOME",
+            |"fullAddress":"$ADDRESS_FULL_2",
+            |"landmark":"","latitude":0.0,"longitude":0.0}]""".trimMargin()
+        val entity = fakeUserEntity(id = USER_ID_1, addressesJson = existing)
         coEvery { userDao.getCurrentUserOnce() } returns entity
 
-        createRepo().addAddress(fakeAddress(id = "a2", label = "Work"))
+        createRepo().addAddress(fakeAddress(id = ADDRESS_ID_2, label = ADDRESS_LABEL_WORK))
 
         coVerify {
             userDao.updateAddresses(
-                id            = "u1",
-                // Both addresses must be in the updated JSON
+                id = USER_ID_1,
                 addressesJson = match {
-                    it.contains("Home") && it.contains("Work")
+                    it.contains(ADDRESS_LABEL_HOME) && it.contains(ADDRESS_LABEL_WORK)
                 },
             )
         }
@@ -506,69 +507,62 @@ class UserRepositoryImplSpec : FunSpec({
     test("deleteAddress: does nothing when no user in Room") {
         coEvery { userDao.getCurrentUserOnce() } returns null
 
-        createRepo().deleteAddress("a1")
+        createRepo().deleteAddress(ADDRESS_ID_1)
 
         coVerify(exactly = 0) { userDao.updateAddresses(any(), any()) }
     }
 
     test("deleteAddress: updates addresses JSON after removal") {
         val entity = fakeUserEntity(
-            id            = "u1",
-            addressesJson = """[{"id":"a1","label":"Home","fullAddress":"123 St","landmark":"","latitude":0.0,"longitude":0.0}]"""
+            id = USER_ID_1,
+            addressesJson = """[{"id":"$ADDRESS_ID_1",
+                |"label":"$ADDRESS_LABEL_HOME","fullAddress":"$ADDRESS_FULL_2",
+                |"landmark":"","latitude":0.0,"longitude":0.0}]""".trimMargin()
         )
         coEvery { userDao.getCurrentUserOnce() } returns entity
 
-        createRepo().deleteAddress("a1")
+        createRepo().deleteAddress(ADDRESS_ID_1)
 
         coVerify {
-            userDao.updateAddresses(id = "u1", addressesJson = "[]")
+            userDao.updateAddresses(id = USER_ID_1, addressesJson = "[]")
         }
     }
 
-    // ✅ NEW — delete keeps OTHER addresses intact
-    // WHY? addresses.removeAll { it.id == addressId }
-    // Must only remove matching id — not clear all addresses
     test("deleteAddress: keeps other addresses when deleting one") {
         val existing = """
             [
-              {"id":"a1","label":"Home","fullAddress":"123 St","landmark":"","latitude":0.0,"longitude":0.0},
-              {"id":"a2","label":"Work","fullAddress":"456 Office","landmark":"","latitude":0.0,"longitude":0.0}
+              {"id":"$ADDRESS_ID_1","label":"$ADDRESS_LABEL_HOME","fullAddress":"$ADDRESS_FULL_2","landmark":"","latitude":0.0,"longitude":0.0},
+              {"id":"$ADDRESS_ID_2","label":"$ADDRESS_LABEL_WORK","fullAddress":"$ADDRESS_FULL_3","landmark":"","latitude":0.0,"longitude":0.0}
             ]
         """.trimIndent()
-        val entity = fakeUserEntity(id = "u1", addressesJson = existing)
+        val entity = fakeUserEntity(id = USER_ID_1, addressesJson = existing)
         coEvery { userDao.getCurrentUserOnce() } returns entity
 
-        createRepo().deleteAddress("a1") // delete Home only
+        createRepo().deleteAddress(ADDRESS_ID_1)
 
         coVerify {
             userDao.updateAddresses(
-                id            = "u1",
-                // Work must remain — Home must be gone
+                id = USER_ID_1,
                 addressesJson = match {
-                    it.contains("Work") && !it.contains("a1")
+                    it.contains(ADDRESS_LABEL_WORK) && !it.contains(ADDRESS_ID_1)
                 },
             )
         }
     }
 
-    // ✅ NEW — delete non-existent id — no crash, empty result same
-    // WHY? removeAll { it.id == "nonexistent" } removes nothing
-    // addresses list unchanged — updateAddresses still called
     test("deleteAddress: deleting non-existent id does not crash") {
         val entity = fakeUserEntity(
-            id            = "u1",
-            addressesJson = """[{"id":"a1","label":"Home","fullAddress":"123 St","landmark":"","latitude":0.0,"longitude":0.0}]"""
+            id = USER_ID_1,
+            addressesJson = """[{"id":"$ADDRESS_ID_1","label":"$ADDRESS_LABEL_HOME","fullAddress":"$ADDRESS_FULL_2","landmark":"","latitude":0.0,"longitude":0.0}]"""
         )
         coEvery { userDao.getCurrentUserOnce() } returns entity
 
-        // This must not throw
         createRepo().deleteAddress("nonexistent_id")
 
-        // updateAddresses still called — address list unchanged
         coVerify {
             userDao.updateAddresses(
-                id            = "u1",
-                addressesJson = match { it.contains("Home") },
+                id = USER_ID_1,
+                addressesJson = match { it.contains(ADDRESS_LABEL_HOME) },
             )
         }
     }
@@ -578,7 +572,7 @@ class UserRepositoryImplSpec : FunSpec({
     // ══════════════════════════════════════════════════════════
 
     test("getRecentOrders: emits empty list when API throws") {
-        coEvery { api.getOrders() } throws Exception("Network error")
+        coEvery { api.getOrders() } throws Exception(ERR_NETWORK)
 
         createRepo().getRecentOrders().test {
             awaitItem().isEmpty() shouldBe true
@@ -592,17 +586,16 @@ class UserRepositoryImplSpec : FunSpec({
         createRepo().getRecentOrders().test {
             val orders = awaitItem()
             orders.isNotEmpty() shouldBe true
-            orders.first().id shouldBe "o1"
+            orders.first().id shouldBe ORDER_ID_1
             cancelAndIgnoreRemainingEvents()
         }
     }
 
-    // ✅ NEW — order count correct
     test("getRecentOrders: emits correct number of orders") {
         coEvery { api.getOrders() } returns fakeOrdersResponse()
 
         createRepo().getRecentOrders().test {
-            awaitItem().size shouldBe 1
+            awaitItem().size shouldBe ORDER_COUNT_1
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -611,28 +604,25 @@ class UserRepositoryImplSpec : FunSpec({
 // ── Local helpers ─────────────────────────────────────────────
 
 private fun fakeAddress(
-    id:          String = "a1",
-    label:       String = "Home",
-    fullAddress: String = "123 Main Street",
+    id: String = ADDRESS_ID_1,
+    label: String = ADDRESS_LABEL_HOME,
+    fullAddress: String = ADDRESS_FULL_1,
 ) = Address(
-    id          = id,
-    label       = label,
+    id = id,
+    label = label,
     fullAddress = fullAddress,
-    landmark    = "",
-    latitude    = 0.0,
-    longitude   = 0.0,
+    landmark = "",
+    latitude = 0.0,
+    longitude = 0.0,
 )
 
-// WHY fakeUserApiResponse here not in TestFunctions?
-// Only UserRepositoryImplSpec needs UserResponse + UserDto
-// Keeping it local avoids polluting shared test helpers
 private fun fakeUserApiResponse() = com.swapna.foodapp.data.remote.dto.UserResponse(
     user = com.swapna.foodapp.data.remote.dto.UserDto(
-        id           = "api_user_1",
-        name         = "Swapna",
-        email        = "swapna@example.com",
-        phone        = "+919876543210",
+        id = USER_ID_API,
+        name = USER_NAME_SWAPNA,
+        email = USER_EMAIL_SWAPNA,
+        phone = USER_PHONE_VALID,
         profileImage = null,
-        addresses    = null,
+        addresses = null,
     )
 )

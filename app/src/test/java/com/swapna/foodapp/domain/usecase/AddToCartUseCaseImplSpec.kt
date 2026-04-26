@@ -1,10 +1,24 @@
 package com.swapna.foodapp.domain.usecase
 
 import com.swapna.foodapp.domain.model.CartItem
-import com.swapna.foodapp.domain.model.CustomisationOption
 import com.swapna.foodapp.domain.repository.CartRepository
 import com.swapna.foodapp.domain.usecase.cart.AddToCartUseCaseImpl
 import com.swapna.foodapp.utils.AppConstants
+import com.swapna.foodapp.utils.TestConstants.BASE_PRICE_199
+import com.swapna.foodapp.utils.TestConstants.BASE_PRICE_249
+import com.swapna.foodapp.utils.TestConstants.CART_QTY_1
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISATION_HOT
+import com.swapna.foodapp.utils.TestConstants.CUSTOMISATION_LARGE
+import com.swapna.foodapp.utils.TestConstants.EXTRA_PRICE_LARGE
+import com.swapna.foodapp.utils.TestConstants.EXTRA_PRICE_ZERO
+import com.swapna.foodapp.utils.TestConstants.QTY_2
+import com.swapna.foodapp.utils.TestConstants.QTY_3
+import com.swapna.foodapp.utils.TestConstants.QTY_5
+import com.swapna.foodapp.utils.TestConstants.QTY_9
+import com.swapna.foodapp.utils.TestConstants.QTY_NEGATIVE
+import com.swapna.foodapp.utils.TestConstants.QTY_ZERO
+import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_598
+import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_747
 import com.swapna.foodapp.utils.fakeCustomisationOption
 import com.swapna.foodapp.utils.fakeMenuItem
 import io.kotest.assertions.throwables.shouldThrow
@@ -23,7 +37,7 @@ import io.mockk.slot
 class AddToCartUseCaseImplSpec : DescribeSpec({
 
     val cartRepository = mockk<CartRepository>()
-    val useCase        = AddToCartUseCaseImpl(cartRepository)
+    val useCase = AddToCartUseCaseImpl(cartRepository)
 
     beforeEach {
         clearAllMocks()
@@ -48,7 +62,7 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
 
                 useCase(item, 1)
 
-                slot.captured.menuItem.id   shouldBe item.id
+                slot.captured.menuItem.id shouldBe item.id
                 slot.captured.menuItem.name shouldBe item.name
             }
 
@@ -101,8 +115,8 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
         context("item with customisations — Large (+₹50) + Hot (+₹0)") {
             val item = fakeMenuItem()
             val customisations = listOf(
-                fakeCustomisationOption(id = "large", extraPrice = 50.0),
-                fakeCustomisationOption(id = "hot",   extraPrice = 0.0),
+                fakeCustomisationOption(id = CUSTOMISATION_LARGE, extraPrice = EXTRA_PRICE_LARGE),
+                fakeCustomisationOption(id = CUSTOMISATION_HOT, extraPrice = EXTRA_PRICE_ZERO),
             )
 
             it("CartItem carries all selected customisations") {
@@ -113,9 +127,9 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
 
                 slot.captured.selectedCustomisations.size shouldBe 2
                 slot.captured.selectedCustomisations
-                    .any { it.id == "large" } shouldBe true
+                    .any { it.id == CUSTOMISATION_LARGE } shouldBe true
                 slot.captured.selectedCustomisations
-                    .any { it.id == "hot"   } shouldBe true
+                    .any { it.id == CUSTOMISATION_HOT } shouldBe true
             }
 
             it("customisation extraPrices are preserved") {
@@ -125,7 +139,7 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
                 useCase(item, 1, customisations)
 
                 val large = slot.captured.selectedCustomisations
-                    .find { it.id == "large" }
+                    .find { it.id == CUSTOMISATION_LARGE }
                 large?.extraPrice shouldBe 50.0
             }
         }
@@ -152,19 +166,19 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
 
             it("quantity 0 throws IllegalArgumentException") {
                 shouldThrow<IllegalArgumentException> {
-                    useCase(fakeMenuItem(), 0)
+                    useCase(fakeMenuItem(), QTY_ZERO)
                 }
             }
 
             it("negative quantity throws IllegalArgumentException") {
                 shouldThrow<IllegalArgumentException> {
-                    useCase(fakeMenuItem(), -1)
+                    useCase(fakeMenuItem(), QTY_NEGATIVE)
                 }
             }
 
             it("cartRepository NOT called when quantity below MIN") {
-                runCatching { useCase(fakeMenuItem(), 0) }
-                coVerify(exactly = 0) { cartRepository.addItem(any()) }
+                runCatching { useCase(fakeMenuItem(), QTY_ZERO) }
+                coVerify(exactly = QTY_ZERO) { cartRepository.addItem(any()) }
             }
 
             it("error message contains MIN_CART_QUANTITY value") {
@@ -217,7 +231,10 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
 
         context("various valid quantities between MIN and MAX") {
 
-            listOf(1, 2, 5, 9, AppConstants.MAX_CART_QUANTITY).forEach { qty ->
+            listOf(
+                CART_QTY_1, QTY_2, QTY_5, QTY_9,
+                AppConstants.MAX_CART_QUANTITY
+            ).forEach { qty ->
                 it("quantity $qty is valid — addItem called once") {
                     useCase(fakeMenuItem(), qty)
                     coVerify(exactly = 1) { cartRepository.addItem(any()) }
@@ -234,39 +251,36 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
             it("totalPrice = (basePrice + extras) × qty") {
                 // base = 249.0, extra = 50.0, qty = 2
                 // total = (249 + 50) × 2 = 598.0
-                val item = fakeMenuItem(price = 249.0)
+                val item = fakeMenuItem(price = BASE_PRICE_249)
                 val customisations = listOf(
-                    fakeCustomisationOption(extraPrice = 50.0)
+                    fakeCustomisationOption(extraPrice = EXTRA_PRICE_LARGE)
                 )
                 val slot = slot<CartItem>()
                 coEvery { cartRepository.addItem(capture(slot)) } just runs
 
-                useCase(item, 2, customisations)
+                useCase(item, QTY_2, customisations)
 
-                // WHY verify totalPrice?
-                // CartItem.totalPrice drives cart total calculation
-                // Wrong totalPrice → wrong bill shown to user
-                slot.captured.totalPrice shouldBe 598.0
+                slot.captured.totalPrice shouldBe TOTAL_PRICE_598
             }
 
             it("totalPrice with no customisations = basePrice × qty") {
-                val item = fakeMenuItem(price = 249.0)
+                val item = fakeMenuItem(price = BASE_PRICE_249)
                 val slot = slot<CartItem>()
                 coEvery { cartRepository.addItem(capture(slot)) } just runs
 
-                useCase(item, 3)
+                useCase(item, QTY_3)
 
-                slot.captured.totalPrice shouldBe 747.0
+                slot.captured.totalPrice shouldBe TOTAL_PRICE_747
             }
 
             it("totalPrice with qty 1 and no extras = basePrice") {
-                val item = fakeMenuItem(price = 199.0)
+                val item = fakeMenuItem(price = BASE_PRICE_199)
                 val slot = slot<CartItem>()
                 coEvery { cartRepository.addItem(capture(slot)) } just runs
 
                 useCase(item, 1)
 
-                slot.captured.totalPrice shouldBe 199.0
+                slot.captured.totalPrice shouldBe BASE_PRICE_199
             }
         }
 
@@ -279,7 +293,7 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
                         Exception("Database error")
 
                 shouldThrow<Exception> {
-                    useCase(fakeMenuItem(), 1)
+                    useCase(fakeMenuItem(), CART_QTY_1)
                 }
             }
 
@@ -288,7 +302,7 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
                         Exception("Database error")
 
                 val ex = shouldThrow<Exception> {
-                    useCase(fakeMenuItem(), 1)
+                    useCase(fakeMenuItem(), CART_QTY_1)
                 }
                 ex.message shouldBe "Database error"
             }

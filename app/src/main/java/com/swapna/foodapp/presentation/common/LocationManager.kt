@@ -14,16 +14,16 @@ import javax.inject.Singleton
 import kotlin.coroutines.resume
 
 data class CurrentLocationResult(
-    val displayAddress: String,  // "Work, RMZ Ecospace, Bellandur"
-    val latitude:       Double,
-    val longitude:      Double,
+    val displayAddress: String,
+    val latitude: Double,
+    val longitude: Double,
 )
 
 sealed class LocationError {
-    object PermissionDenied    : LocationError()
-    object GpsDisabled         : LocationError()
+    object PermissionDenied : LocationError()
+    object GpsDisabled : LocationError()
     object LocationUnavailable : LocationError()
-    object GeocodeFailed       : LocationError()
+    object GeocodeFailed : LocationError()
 }
 
 @Singleton
@@ -34,11 +34,6 @@ class LocationManager @Inject constructor(
     private val fusedClient =
         LocationServices.getFusedLocationProviderClient(context)
 
-    // ── Get current GPS location + reverse geocode ────────────────────
-    // WHY suspendCancellableCoroutine?
-    // FusedLocationProviderClient uses callbacks
-    // suspendCancellableCoroutine bridges callback → suspend fun
-    // Cancels the location request if coroutine is cancelled
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Result<CurrentLocationResult> {
         return suspendCancellableCoroutine { continuation ->
@@ -59,7 +54,6 @@ class LocationManager @Inject constructor(
                         return@addOnSuccessListener
                     }
 
-                    // Reverse geocode lat/lng → human address
                     val address = reverseGeocode(
                         lat = location.latitude,
                         lng = location.longitude,
@@ -76,8 +70,8 @@ class LocationManager @Inject constructor(
                             Result.success(
                                 CurrentLocationResult(
                                     displayAddress = address,
-                                    latitude       = location.latitude,
-                                    longitude      = location.longitude,
+                                    latitude = location.latitude,
+                                    longitude = location.longitude,
                                 )
                             )
                         )
@@ -87,18 +81,12 @@ class LocationManager @Inject constructor(
                     continuation.resume(Result.failure(e))
                 }
 
-            // Cancel location request if coroutine cancelled
             continuation.invokeOnCancellation {
                 fusedClient.flushLocations()
             }
         }
     }
 
-    // ── Reverse geocode lat/lng → display string ──────────────────────
-    // Returns "Koramangala 5th Block, Bengaluru" style string
-    // WHY nullable return?
-    // Geocoder can fail if no internet or location out of range
-    // Caller handles null = graceful degradation
     private fun reverseGeocode(lat: Double, lng: Double): String? {
         return try {
             val geocoder = Geocoder(context, Locale.getDefault())
@@ -113,8 +101,6 @@ class LocationManager @Inject constructor(
                     result = formatAddress(addresses.firstOrNull())
                     latch.countDown()
                 }
-
-                // Wait max 3 seconds for geocoder callback
                 latch.await(3, java.util.concurrent.TimeUnit.SECONDS)
                 result
             } else {
@@ -127,29 +113,19 @@ class LocationManager @Inject constructor(
         }
     }
 
-    // ── Format android.location.Address → display string ─────────────
-    // Input:  android.location.Address object
-    // Output: "Koramangala 5th Block, Bengaluru" or "HSR Layout, Bengaluru"
-    //
-    // WHY this specific format?
-    // subLocality  = neighbourhood e.g. "Koramangala 5th Block"
-    // locality     = city           e.g. "Bengaluru"
-    // Together they match your screenshot style
     private fun formatAddress(address: android.location.Address?): String? {
         if (address == null) return null
 
-        // Build parts in priority order
         val parts = listOfNotNull(
-            address.subLocality,   // "Koramangala 5th Block"
-            address.locality,      // "Bengaluru"
+            address.subLocality,
+            address.locality,
         ).filter { it.isNotEmpty() }
 
         return if (parts.isNotEmpty()) {
-            parts.joinToString(", ")   // "Koramangala 5th Block, Bengaluru"
+            parts.joinToString(", ")
         } else {
-            // Fallback: use thoroughfare + locality
             listOfNotNull(
-                address.thoroughfare,  // "80 Feet Road"
+                address.thoroughfare,
                 address.locality,
             ).joinToString(", ").ifEmpty { null }
         }

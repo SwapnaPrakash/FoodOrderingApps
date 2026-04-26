@@ -20,167 +20,149 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import com.swapna.foodapp.presentation.ui.theme.AppGray
+import com.swapna.foodapp.presentation.ui.theme.AppWhiteSurface
 import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.presentation.ui.theme.Dimens.EditProfileSheetElevation
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SaveLoadingIndicatorHeight
 import com.swapna.foodapp.presentation.ui.theme.ErrorRed
+import com.swapna.foodapp.presentation.ui.theme.FieldBorderUnfocused
+import com.swapna.foodapp.presentation.ui.theme.SaveDisabledColor
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
-
-// WHY ModalBottomSheet for edit profile?
-// Stays in context of profile screen
-// User doesn't navigate away
-// Easy to cancel by swiping down
-// Standard Material3 pattern
+import com.swapna.foodapp.utils.AppConstants.EDIT_PROFILE
+import com.swapna.foodapp.utils.AppConstants.EMAIL
+import com.swapna.foodapp.utils.AppConstants.NAME
+import com.swapna.foodapp.utils.AppConstants.SAVE_CHANGES
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileSheet(
-    name:        String,
-    email:       String,
-    nameError:   String?,
-    emailError:  String?,
-    isSaving:    Boolean,
-    onNameChange:  (String) -> Unit,
+    name: String,
+    email: String,
+    nameError: String?,
+    emailError: String?,
+    isSaving: Boolean,
+    onNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
-    onSave:        () -> Unit,
-    onDismiss:     () -> Unit,
+    onSave: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
-    // skipPartiallyExpanded = true
-    // Sheet goes straight to full height
-    // No awkward half-open state
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
     )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState       = sheetState,
-        // Pure white — no gray tint
-        containerColor   = Color.White,
-        tonalElevation   = 0.dp,
+        sheetState = sheetState,
+        containerColor = AppWhiteSurface,
+        tonalElevation = EditProfileSheetElevation,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Dimens.SpaceL)
-                // navigationBarsPadding = respect system nav bar
-                // Without this → Save button hidden behind nav
                 .navigationBarsPadding(),
         ) {
 
-            // ── Sheet title ───────────────────────────────────
             Text(
-                text       = "Edit Profile",
-                style      = MaterialTheme.typography.titleLarge,
+                text = EDIT_PROFILE,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
 
             Spacer(Modifier.height(Dimens.SpaceXL))
 
-            // ── Name field ────────────────────────────────────
             Text(
-                text  = "Name",
+                text = NAME,
                 style = MaterialTheme.typography.labelLarge,
-                color = Color.Gray,
+                color = AppGray,
             )
 
             Spacer(Modifier.height(Dimens.SpaceXS))
 
             OutlinedTextField(
-                value         = name,
+                value = name,
                 onValueChange = onNameChange,
-                // isError = true → red border + error text
-                isError       = nameError != null,
-                singleLine    = true,
-                // supportingText = shown below field
-                // Shows validation error
+                isError = nameError != null,
+                singleLine = true,
                 supportingText = nameError?.let {
                     {
                         Text(
-                            text  = it,
+                            text = it,
                             color = ErrorRed,
-                            style = MaterialTheme.typography
-                                .bodySmall,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor   = ZomatoRed,
-                    unfocusedBorderColor = Color.LightGray,
-                    errorBorderColor     = ErrorRed,
+                    focusedBorderColor = ZomatoRed,
+                    unfocusedBorderColor = FieldBorderUnfocused,
+                    errorBorderColor = ErrorRed,
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(Modifier.height(Dimens.SpaceM))
 
-            // ── Email field ───────────────────────────────────
             Text(
-                text  = "Email",
+                text = EMAIL,
                 style = MaterialTheme.typography.labelLarge,
-                color = Color.Gray,
+                color = AppGray,
             )
 
             Spacer(Modifier.height(Dimens.SpaceXS))
 
             OutlinedTextField(
-                value         = email,
+                value = email,
                 onValueChange = onEmailChange,
-                isError       = emailError != null,
-                singleLine    = true,
+                isError = emailError != null,
+                singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    // Email keyboard = shows @ and . easily
                     keyboardType = KeyboardType.Email,
                 ),
                 supportingText = emailError?.let {
                     {
                         Text(
-                            text  = it,
+                            text = it,
                             color = ErrorRed,
-                            style = MaterialTheme.typography
-                                .bodySmall,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor   = ZomatoRed,
-                    unfocusedBorderColor = Color.LightGray,
-                    errorBorderColor     = ErrorRed,
+                    focusedBorderColor = ZomatoRed,
+                    unfocusedBorderColor = FieldBorderUnfocused,
+                    errorBorderColor = ErrorRed,
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(Modifier.height(Dimens.SpaceXL))
-
-            // ── Save Button ───────────────────────────────────
             Button(
-                onClick  = onSave,
-                // Disabled while saving — prevent double-tap
-                enabled  = !isSaving,
+                onClick = onSave,
+                enabled = !isSaving,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(Dimens.ButtonHeight),
-                colors   = ButtonDefaults.buttonColors(
-                    containerColor         = ZomatoRed,
-                    disabledContainerColor = Color.LightGray,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ZomatoRed,
+                    disabledContainerColor = SaveDisabledColor,
                 ),
-                shape    = RoundedCornerShape(Dimens.RadiusM),
+                shape = RoundedCornerShape(Dimens.RadiusM),
             ) {
                 if (isSaving) {
-                    // Show spinner while saving
                     CircularProgressIndicator(
-                        color    = Color.White,
-                        modifier = Modifier.height(20.dp),
+                        color = AppWhiteSurface,
+                        modifier = Modifier.height(SaveLoadingIndicatorHeight),
                     )
                 } else {
                     Text(
-                        text       = "Save Changes",
-                        color      = Color.White,
+                        text = SAVE_CHANGES,
+                        color = AppWhiteSurface,
                         fontWeight = FontWeight.Bold,
-                        style      = MaterialTheme.typography
-                            .titleMedium,
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
             }

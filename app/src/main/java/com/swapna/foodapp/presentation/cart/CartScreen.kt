@@ -33,9 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -44,8 +42,20 @@ import com.swapna.foodapp.presentation.common.CartItemRow
 import com.swapna.foodapp.presentation.common.EmptyCartView
 import com.swapna.foodapp.presentation.navigation.AppRoutes
 import com.swapna.foodapp.presentation.ui.theme.AppGray
+import com.swapna.foodapp.presentation.ui.theme.AppWhiteSurface
+import com.swapna.foodapp.presentation.ui.theme.CartScaffoldBg
 import com.swapna.foodapp.presentation.ui.theme.Dimens
+import com.swapna.foodapp.presentation.ui.theme.Dimens.CartBottomSpace
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.BACK
+import com.swapna.foodapp.utils.AppConstants.CART_BILL_KEY
+import com.swapna.foodapp.utils.AppConstants.CART_BOTTOM_SPACE_KEY
+import com.swapna.foodapp.utils.AppConstants.CART_RESTAURANT_NAME_KEY
+import com.swapna.foodapp.utils.AppConstants.CART_SPACER_KEY
+import com.swapna.foodapp.utils.AppConstants.ITEMS
+import com.swapna.foodapp.utils.AppConstants.MY_CART
+import com.swapna.foodapp.utils.AppConstants.ORDER_PLACED_SUCCESS
+import com.swapna.foodapp.utils.AppConstants.PLACE_ORDER_PREFIX
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +66,6 @@ fun CartScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHost = remember { SnackbarHostState() }
 
-    // ── Handle one-time events ────────────────────────────────
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -65,22 +74,14 @@ fun CartScreen(
 
                 is CartViewModel.CartEvent.NavigateToHome ->
                     navController.navigate(AppRoutes.HOME) {
-                        popUpTo(AppRoutes.HOME) {
-                            inclusive = false
-                        }
+                        popUpTo(AppRoutes.HOME) { inclusive = false }
                     }
 
                 is CartViewModel.CartEvent.OrderPlaced -> {
-                    // Navigate to order confirmation
-                    // Day 22+ — for now go home
                     navController.navigate(AppRoutes.HOME) {
-                        popUpTo(AppRoutes.HOME) {
-                            inclusive = false
-                        }
+                        popUpTo(AppRoutes.HOME) { inclusive = false }
                     }
-                    snackbarHost.showSnackbar(
-                        "Order placed successfully! 🎉"
-                    )
+                    snackbarHost.showSnackbar(ORDER_PLACED_SUCCESS)
                 }
 
                 is CartViewModel.CartEvent.ShowSnackbar ->
@@ -94,55 +95,46 @@ fun CartScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHost) },
-        containerColor = Color(0xFFF8F8F8),
+        containerColor = CartScaffoldBg,
 
-        // ── Top App Bar ───────────────────────────────────────
         topBar = {
             TopAppBar(
                 title = {
                     Column {
                         Text(
-                            text = "My Cart",
+                            text = MY_CART,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                         )
                         if (uiState.items.isNotEmpty()) {
                             Text(
-                                text = "${
-                                    uiState.items
-                                        .sumOf { it.quantity }
-                                } items",
-                                style = MaterialTheme.typography
-                                    .bodySmall,
+                                text = "${uiState.items.sumOf { it.quantity }}$ITEMS",
+                                style = MaterialTheme.typography.bodySmall,
                                 color = AppGray,
                             )
                         }
                     }
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = viewModel::onBackPressed
-                    ) {
+                    IconButton(onClick = viewModel::onBackPressed) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = BACK,
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
+                    containerColor = AppWhiteSurface,
                 ),
             )
         },
 
-        // ── Place Order Bottom Bar ────────────────────────────
-        // Only shown when cart has items
         bottomBar = {
             if (uiState.items.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(AppWhiteSurface)
                         .padding(Dimens.SpaceM)
                         .navigationBarsPadding(),
                 ) {
@@ -154,26 +146,22 @@ fun CartScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = ZomatoRed,
                         ),
-                        shape = RoundedCornerShape(
-                            Dimens.RadiusM
-                        ),
+                        shape = RoundedCornerShape(Dimens.RadiusM),
                     ) {
                         Text(
-                            text = "Place Order  •  " +
-                                    "₹${uiState.breakdown.total.toInt()}",
-                            color = Color.White,
+                            text = "$PLACE_ORDER_PREFIX${uiState.breakdown.total.toInt()}",
+                            color = AppWhiteSurface,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography
-                                .titleMedium,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                 }
             }
         },
-    ) { paddingValues ->
+
+        ) { paddingValues ->
 
         when {
-            // ── Loading ───────────────────────────────────────
             uiState.isLoading -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -183,20 +171,16 @@ fun CartScreen(
                 }
             }
 
-            // ── Empty cart ────────────────────────────────────
             uiState.isEmpty -> {
                 EmptyCartView(
                     onBrowseFood = {
                         navController.navigate(AppRoutes.HOME) {
-                            popUpTo(AppRoutes.HOME) {
-                                inclusive = false
-                            }
+                            popUpTo(AppRoutes.HOME) { inclusive = false }
                         }
                     },
                 )
             }
 
-            // ── Cart with items ───────────────────────────────
             else -> {
                 LazyColumn(
                     modifier = Modifier
@@ -204,22 +188,18 @@ fun CartScreen(
                         .padding(paddingValues),
                 ) {
 
-                    // ── Restaurant name header ─────────────────
-                    item(key = "restaurant_name") {
+                    item(key = CART_RESTAURANT_NAME_KEY) {
                         Text(
                             text = uiState.restaurantName,
-                            style = MaterialTheme.typography
-                                .titleMedium,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color.White)
+                                .background(AppWhiteSurface)
                                 .padding(Dimens.SpaceL),
                         )
                     }
 
-                    // ── Cart items ─────────────────────────────
-                    // key = item.id → stable keys for Compose
                     items(
                         items = uiState.items,
                         key = { it.id },
@@ -231,22 +211,16 @@ fun CartScreen(
                         )
                     }
 
-                    // ── Spacer between items + bill ────────────
-                    item(key = "spacer") {
+                    item(key = CART_SPACER_KEY) {
                         Spacer(Modifier.height(Dimens.SpaceM))
                     }
 
-                    // ── Bill Details ───────────────────────────
-                    // Shows subtotal + delivery + GST + total
-                    item(key = "bill_details") {
-                        BillDetails(
-                            breakdown = uiState.breakdown,
-                        )
+                    item(key = CART_BILL_KEY) {
+                        BillDetails(breakdown = uiState.breakdown)
                     }
 
-                    // ── Bottom space for button ────────────────
-                    item(key = "bottom_space") {
-                        Spacer(Modifier.height(80.dp))
+                    item(key = CART_BOTTOM_SPACE_KEY) {
+                        Spacer(Modifier.height(CartBottomSpace))
                     }
                 }
             }

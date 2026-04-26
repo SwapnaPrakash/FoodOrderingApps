@@ -54,7 +54,7 @@ fun RatingBadge(
             tint = Color.White,
             modifier = Modifier.size(Dimens.RatingIconSize),
         )
-        Spacer(Modifier.width(3.dp))
+        Spacer(Modifier.width(Dimens.RatingBadge))
         Text(
             text = String.format("%.1f", rating),
             color = Color.White,

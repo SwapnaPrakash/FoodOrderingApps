@@ -25,15 +25,31 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.swapna.foodapp.presentation.navigation.AppRoutes
 import com.swapna.foodapp.presentation.ui.theme.AppWhite
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashAppNameSize
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashDotSize
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashDotsRowHeight
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashDotsSpacing
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashLetterSpacing
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashLogoEmojiSize
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashLogoSize
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashNameSpacing
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashTaglineSize
+import com.swapna.foodapp.presentation.ui.theme.Dimens.SplashTaglineSpacing
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.ALPHA_SPLASH_DOTS
+import com.swapna.foodapp.utils.AppConstants.ALPHA_SPLASH_DOT_MIN
+import com.swapna.foodapp.utils.AppConstants.ALPHA_SPLASH_LOGO_BG
+import com.swapna.foodapp.utils.AppConstants.ALPHA_SPLASH_TAGLINE
 import com.swapna.foodapp.utils.AppConstants.APP_NAME
+import com.swapna.foodapp.utils.AppConstants.EMOJI_BURGER
+import com.swapna.foodapp.utils.AppConstants.SPLASH_DOT_ANIM_MS
+import com.swapna.foodapp.utils.AppConstants.SPLASH_FADE_ANIM_MS
+import com.swapna.foodapp.utils.AppConstants.SPLASH_LOGO_ANIM_MS
 import com.swapna.foodapp.utils.AppConstants.TAG_NAME
 
 @Composable
@@ -43,35 +59,30 @@ fun SplashScreen(
 ) {
     val destination by viewModel.navigateTo.collectAsStateWithLifecycle()
 
-    val logoScale = remember { Animatable(0.3f) }
+    val logoScale = remember { Animatable(ALPHA_SPLASH_DOT_MIN) }
     val contentAlpha = remember { Animatable(0f) }
 
-    // Logo bounce
     LaunchedEffect(Unit) {
         logoScale.animateTo(
             targetValue = 1.0f,
-            animationSpec = tween(500, easing = FastOutSlowInEasing),
+            animationSpec = tween(SPLASH_LOGO_ANIM_MS, easing = FastOutSlowInEasing),
         )
     }
 
-    // Fade in
     LaunchedEffect(Unit) {
         contentAlpha.animateTo(
             targetValue = 1f,
-            animationSpec = tween(600, easing = FastOutSlowInEasing),
+            animationSpec = tween(SPLASH_FADE_ANIM_MS, easing = FastOutSlowInEasing),
         )
     }
 
-    // LaunchedEffect(destination) fires ONLY when destination changes from null → non-null
     LaunchedEffect(destination) {
-        destination ?: return@LaunchedEffect // null = still loading
-
+        destination ?: return@LaunchedEffect
         val route = when (destination) {
             SplashViewModel.SplashDestination.Home -> AppRoutes.HOME
             SplashViewModel.SplashDestination.Login -> AppRoutes.LOGIN
             null -> return@LaunchedEffect
         }
-
         navController.navigate(route) {
             popUpTo(AppRoutes.SPLASH) { inclusive = true }
         }
@@ -90,74 +101,74 @@ fun SplashScreen(
         ) {
             Box(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(SplashLogoSize)
                     .scale(logoScale.value)
                     .background(
-                        color = Color.White.copy(alpha = 0.15f),
+                        color = AppWhite.copy(alpha = ALPHA_SPLASH_LOGO_BG),
                         shape = CircleShape,
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = "🍔", fontSize = 56.sp)
+                Text(
+                    text = EMOJI_BURGER,
+                    fontSize = SplashLogoEmojiSize,
+                )
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(SplashNameSpacing))
 
             Text(
                 text = APP_NAME,
                 color = AppWhite,
-                fontSize = 32.sp,
+                fontSize = SplashAppNameSize,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                letterSpacing = 1.sp,
+                letterSpacing = SplashLetterSpacing,
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(SplashTaglineSpacing))
 
             Text(
                 text = TAG_NAME,
-                color = AppWhite.copy(alpha = 0.8f),
-                fontSize = 14.sp,
+                color = AppWhite.copy(alpha = ALPHA_SPLASH_TAGLINE),
+                fontSize = SplashTaglineSize,
                 textAlign = TextAlign.Center,
             )
         }
 
-        LoadingDots(
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
+        LoadingDots(modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
-// Animated loading dots
 @Composable
 private fun LoadingDots(
     modifier: Modifier = Modifier,
-    color: Color = Color.White.copy(alpha = 0.6f),
+    color: Color = AppWhite.copy(alpha = ALPHA_SPLASH_DOTS),
 ) {
-    val dot1 = remember { Animatable(0.3f) }
-    val dot2 = remember { Animatable(0.3f) }
-    val dot3 = remember { Animatable(0.3f) }
+    val dot1 = remember { Animatable(ALPHA_SPLASH_DOT_MIN) }
+    val dot2 = remember { Animatable(ALPHA_SPLASH_DOT_MIN) }
+    val dot3 = remember { Animatable(ALPHA_SPLASH_DOT_MIN) }
 
     LaunchedEffect(Unit) {
         while (true) {
-            dot1.animateTo(1f, tween(300))
-            dot1.animateTo(0.3f, tween(300))
-            dot2.animateTo(1f, tween(300))
-            dot2.animateTo(0.3f, tween(300))
-            dot3.animateTo(1f, tween(300))
-            dot3.animateTo(0.3f, tween(300))
+            dot1.animateTo(1f, tween(SPLASH_DOT_ANIM_MS))
+            dot1.animateTo(ALPHA_SPLASH_DOT_MIN, tween(SPLASH_DOT_ANIM_MS))
+            dot2.animateTo(1f, tween(SPLASH_DOT_ANIM_MS))
+            dot2.animateTo(ALPHA_SPLASH_DOT_MIN, tween(SPLASH_DOT_ANIM_MS))
+            dot3.animateTo(1f, tween(SPLASH_DOT_ANIM_MS))
+            dot3.animateTo(ALPHA_SPLASH_DOT_MIN, tween(SPLASH_DOT_ANIM_MS))
         }
     }
 
     Row(
-        modifier = modifier.height(48.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.height(SplashDotsRowHeight),
+        horizontalArrangement = Arrangement.spacedBy(SplashDotsSpacing),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         listOf(dot1, dot2, dot3).forEach { dot ->
             Box(
                 modifier = Modifier
-                    .size(6.dp)
+                    .size(SplashDotSize)
                     .alpha(dot.value)
                     .background(color, CircleShape),
             )

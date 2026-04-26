@@ -38,55 +38,58 @@ import androidx.navigation.NavController
 import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.presentation.common.ErrorScreen
 import com.swapna.foodapp.presentation.common.NotServiceableSection
-import com.swapna.foodapp.presentation.home.components.CategoryChip
-import com.swapna.foodapp.presentation.home.components.HomeShimmer
-import com.swapna.foodapp.presentation.home.components.HomeTopBar
-import com.swapna.foodapp.presentation.home.components.LocationPickerSheet
-import com.swapna.foodapp.presentation.home.components.OfferCard
-import com.swapna.foodapp.presentation.home.components.OfflineBanner
-import com.swapna.foodapp.presentation.home.components.RestaurantCard
+import com.swapna.foodapp.presentation.common.SectionTitle
+import com.swapna.foodapp.presentation.common.CategoryChip
+import com.swapna.foodapp.presentation.common.HomeShimmer
+import com.swapna.foodapp.presentation.common.HomeTopBar
+import com.swapna.foodapp.presentation.common.LocationPickerSheet
+import com.swapna.foodapp.presentation.common.OfferCard
+import com.swapna.foodapp.presentation.common.OfflineBanner
+import com.swapna.foodapp.presentation.common.RestaurantCard
 import com.swapna.foodapp.presentation.navigation.AppRoutes
 import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppConstants.ALPHA_NAV_INDICATOR
+import com.swapna.foodapp.utils.AppConstants.CATEGORIES_TITLE
 import com.swapna.foodapp.utils.AppConstants.DELIVERY
 import com.swapna.foodapp.utils.AppConstants.DINING
+import com.swapna.foodapp.utils.AppConstants.KEY_CATEGORIES_ROW
+import com.swapna.foodapp.utils.AppConstants.KEY_CATEGORIES_TITLE
+import com.swapna.foodapp.utils.AppConstants.KEY_NOT_SERVICEABLE
+import com.swapna.foodapp.utils.AppConstants.KEY_NO_RESTAURANTS
+import com.swapna.foodapp.utils.AppConstants.KEY_OFFERS_ROW
+import com.swapna.foodapp.utils.AppConstants.KEY_OFFERS_TITLE
+import com.swapna.foodapp.utils.AppConstants.KEY_STORES_TITLE
+import com.swapna.foodapp.utils.AppConstants.NO_RESTAURANTS_FOUND
+import com.swapna.foodapp.utils.AppConstants.OFFERS_TITLE
 import com.swapna.foodapp.utils.AppConstants.PROFILE
-import com.swapna.foodapp.presentation.common.SectionTitle
+import com.swapna.foodapp.utils.AppConstants.RESTAURANTS_NEAR_YOU
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel:     HomeViewModel = hiltViewModel(),
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    val state        by viewModel.uiState.collectAsStateWithLifecycle()
-    val bottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-    )
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-
-        if (granted) {
-            // Permission just granted → fetch location immediately
-            viewModel.onUseCurrentLocationTapped()
-        } else {
-            // User denied → ViewModel shows error message in sheet
-            viewModel.onLocationPermissionDenied()
-        }
+        if (granted) viewModel.onUseCurrentLocationTapped()
+        else viewModel.onLocationPermissionDenied()
     }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is HomeViewModel.HomeEvent.NavigateToRestaurant ->
-                    navController.navigate(
-                        AppRoutes.restaurant(event.id)
-                    )
+                    navController.navigate(AppRoutes.restaurant(event.id))
+
                 is HomeViewModel.HomeEvent.NavigateToSearch -> {
                     if (event.query.isNotEmpty()) {
                         navController.navigate(
@@ -96,8 +99,10 @@ fun HomeScreen(
                         navController.navigate(AppRoutes.SEARCH)
                     }
                 }
+
                 HomeViewModel.HomeEvent.NavigateToCart ->
                     navController.navigate(AppRoutes.CART)
+
                 HomeViewModel.HomeEvent.NavigateToProfile ->
                     navController.navigate(AppRoutes.PROFILE)
             }
@@ -106,16 +111,12 @@ fun HomeScreen(
 
     if (state.showLocationPicker) {
         LocationPickerSheet(
-            savedAddresses          = state.savedAddresses,
-            onLocationSelected      = viewModel::onLocationSelected,
-            onDismiss               = viewModel::onLocationDismissed,
-            locationFetchState  = state.locationFetchState,
-            locationErrorMsg    = state.locationErrorMsg,
+            savedAddresses = state.savedAddresses,
+            onLocationSelected = viewModel::onLocationSelected,
+            onDismiss = viewModel::onLocationDismissed,
+            locationFetchState = state.locationFetchState,
+            locationErrorMsg = state.locationErrorMsg,
             onUseCurrentLocation = {
-                // Request permission first, then fetch
-                // WHY request here not in ViewModel?
-                // Permission dialog needs Activity/Composable context
-                // ViewModel has no Activity context (correct by design)
                 locationPermissionLauncher.launch(
                     arrayOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -123,17 +124,17 @@ fun HomeScreen(
                     )
                 )
             },
-                    )
+        )
     }
 
     Scaffold(
         topBar = {
             HomeTopBar(
-                location        = state.selectedLocation,
-                cartItemCount   = state.cartItemCount,
+                location = state.selectedLocation,
+                cartItemCount = state.cartItemCount,
                 onLocationClick = viewModel::onLocationBarClicked,
-                onCartClick     = viewModel::onCartClicked,
-                onSearchClick   = { viewModel.onSearchClicked() },
+                onCartClick = viewModel::onCartClicked,
+                onSearchClick = { viewModel.onSearchClicked() },
             )
         },
         bottomBar = {
@@ -145,31 +146,21 @@ fun HomeScreen(
     ) { paddingValues ->
 
         Column(modifier = Modifier.fillMaxSize()) {
-
             OfflineBanner(isVisible = state.isOffline)
 
             when {
-                // ── Loading ───────────────────────────────────
-                state.isLoading ->
-                    HomeShimmer(paddingValues)
+                state.isLoading -> HomeShimmer(paddingValues)
+                state.error != null -> ErrorScreen(
+                    message = state.error!!,
+                    onRetry = viewModel::retry,
+                )
 
-                // ── Network error ─────────────────────────────
-                state.error != null ->
-                    ErrorScreen(
-                        message = state.error!!,
-                        onRetry = viewModel::retry,
-                    )
-
-                // ✅ Not serviceable location (Jakkur etc.)
-                // Shows ABOVE content — not instead of everything
-                // Offers + Categories still visible
-                // Only restaurant section replaced with message
                 else -> HomeContent(
-                    state             = state,
-                    paddingValues     = paddingValues,
+                    state = state,
+                    paddingValues = paddingValues,
                     onRestaurantClick = viewModel::onRestaurantClicked,
-                    onCategoryClick   = viewModel::onCategoryClicked,
-                    onChangeLocation  = viewModel::onLocationBarClicked,
+                    onCategoryClick = viewModel::onCategoryClicked,
+                    onChangeLocation = viewModel::onLocationBarClicked,
                 )
             }
         }
@@ -178,106 +169,76 @@ fun HomeScreen(
 
 @Composable
 private fun HomeContent(
-    state:             HomeViewModel.HomeUiState,
-    paddingValues:     PaddingValues,
+    state: HomeViewModel.HomeUiState,
+    paddingValues: PaddingValues,
     onRestaurantClick: (String) -> Unit,
-    onCategoryClick:   (String) -> Unit,
-    onChangeLocation:  () -> Unit,
+    onCategoryClick: (String) -> Unit,
+    onChangeLocation: () -> Unit,
 ) {
     LazyColumn(
-        modifier       = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = paddingValues,
     ) {
 
-        // ── Offers — always shown ─────────────────────────────
         if (state.collections.isNotEmpty()) {
-            item(key = "offers_title") {
-                SectionTitle("Exciting Offers 🔥")
+            item(key = KEY_OFFERS_TITLE) {
+                SectionTitle(OFFERS_TITLE)
             }
-            item(key = "offers_row") {
+            item(key = KEY_OFFERS_ROW) {
                 LazyRow(
-                    contentPadding        = PaddingValues(
-                        horizontal = Dimens.SpaceL,
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        Dimens.SpaceM,
-                    ),
+                    contentPadding = PaddingValues(horizontal = Dimens.SpaceL),
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceM),
                 ) {
-                    items(
-                        items = state.collections,
-                        key   = { it.id },
-                    ) { collection ->
+                    items(items = state.collections, key = { it.id }) { collection ->
                         OfferCard(collection = collection)
                     }
                 }
             }
         }
 
-        // ── Categories — always shown ─────────────────────────
         if (state.categories.isNotEmpty()) {
-            item(key = "categories_title") {
-                SectionTitle("What's on your mind?")
+            item(key = KEY_CATEGORIES_TITLE) {
+                SectionTitle(CATEGORIES_TITLE)
             }
-            item(key = "categories_row") {
+            item(key = KEY_CATEGORIES_ROW) {
                 LazyRow(
-                    contentPadding        = PaddingValues(
-                        horizontal = Dimens.SpaceL,
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        Dimens.SpaceS,
-                    ),
+                    contentPadding = PaddingValues(horizontal = Dimens.SpaceL),
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceS),
                 ) {
-                    items(
-                        items = state.categories,
-                        key   = { it.id },
-                    ) { category ->
+                    items(items = state.categories, key = { it.id }) { category ->
                         CategoryChip(
                             category = category,
-                            onClick  = {
-                                onCategoryClick(category.name)
-                            },
+                            onClick = { onCategoryClick(category.name) },
                         )
                     }
                 }
             }
         }
 
-        // ── Restaurants section ───────────────────────────────
-
         when (state.filterStatus) {
-
-            // ── Not serviceable (Jakkur, Yelahanka etc.) ─────
             FilterStatus.NOT_SERVICEABLE -> {
-                item(key = "not_serviceable") {
+                item(key = KEY_NOT_SERVICEABLE) {
                     NotServiceableSection(
-                        requestedArea    = state.requestedArea,
-                        availableAreas   = state.availableAreas,
+                        requestedArea = state.requestedArea,
+                        availableAreas = state.availableAreas,
                         onChangeLocation = onChangeLocation,
                     )
                 }
             }
 
-            // ── Found or No filter → show restaurants ────────
             else -> {
-                item(key = "stores_title") {
-                    SectionTitle("Restaurants Near You")
+                item(key = KEY_STORES_TITLE) {
+                    SectionTitle(RESTAURANTS_NEAR_YOU)
                 }
-
                 if (state.restaurants.isEmpty()) {
-                    item(key = "no_restaurants") {
+                    item(key = KEY_NO_RESTAURANTS) {
                         EmptyRestaurantsCard()
                     }
                 } else {
-                    items(
-                        items = state.restaurants,
-                        key   = { it.id },
-                    ) { restaurant ->
-                        val restaurantId = restaurant.id
+                    items(items = state.restaurants, key = { it.id }) { restaurant ->
                         RestaurantCard(
                             restaurant = restaurant,
-                            onClick    = {
-                                onRestaurantClick(restaurantId)
-                            },
+                            onClick = { onRestaurantClick(restaurant.id) },
                         )
                     }
                 }
@@ -286,8 +247,6 @@ private fun HomeContent(
     }
 }
 
-// ── Empty restaurants card ────────────────────────────────────
-// Shows when filter returns empty but not NOT_SERVICEABLE
 @Composable
 private fun EmptyRestaurantsCard() {
     Box(
@@ -297,7 +256,7 @@ private fun EmptyRestaurantsCard() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "No restaurants found\nfor this area",
+            text = NO_RESTAURANTS_FOUND,
             style = MaterialTheme.typography.bodyLarge,
             color = AppGray,
             textAlign = TextAlign.Center,
@@ -305,7 +264,6 @@ private fun EmptyRestaurantsCard() {
     }
 }
 
-// Bottom Nav Bar
 @Composable
 fun HomeBottomBar(
     selectedTab: HomeViewModel.DeliveryTab,
@@ -318,7 +276,7 @@ fun HomeBottomBar(
             icon = { Icon(Icons.Default.DeliveryDining, DELIVERY) },
             label = { Text(DELIVERY) },
             colors = NavigationBarItemDefaults.colors(
-                indicatorColor = ZomatoRed.copy(alpha = 0.1f),
+                indicatorColor = ZomatoRed.copy(alpha = ALPHA_NAV_INDICATOR),
                 selectedIconColor = ZomatoRed,
                 selectedTextColor = ZomatoRed,
             ),
@@ -329,19 +287,18 @@ fun HomeBottomBar(
             icon = { Icon(Icons.Default.Restaurant, DINING) },
             label = { Text(DINING) },
             colors = NavigationBarItemDefaults.colors(
-                indicatorColor = ZomatoRed.copy(alpha = 0.1f),
+                indicatorColor = ZomatoRed.copy(alpha = ALPHA_NAV_INDICATOR),
                 selectedIconColor = ZomatoRed,
                 selectedTextColor = ZomatoRed,
             ),
         )
         NavigationBarItem(
-            selected = selectedTab ==
-                    HomeViewModel.DeliveryTab.PROFILE,
-            onClick  = { onTabSelect(HomeViewModel.DeliveryTab.PROFILE) },
-            icon = { Icon(Icons.Default.Person, contentDescription = PROFILE,) },
-            label  = { Text(PROFILE) },
+            selected = selectedTab == HomeViewModel.DeliveryTab.PROFILE,
+            onClick = { onTabSelect(HomeViewModel.DeliveryTab.PROFILE) },
+            icon = { Icon(Icons.Default.Person, contentDescription = PROFILE) },
+            label = { Text(PROFILE) },
             colors = NavigationBarItemDefaults.colors(
-                indicatorColor    = ZomatoRed.copy(alpha = 0.1f),
+                indicatorColor = ZomatoRed.copy(alpha = ALPHA_NAV_INDICATOR),
                 selectedIconColor = ZomatoRed,
                 selectedTextColor = ZomatoRed,
             ),
