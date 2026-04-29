@@ -22,6 +22,7 @@ import com.swapna.foodapp.fakes.FakeConnectivityObserver
 import com.swapna.foodapp.fakes.FakeLocationManager
 import com.swapna.foodapp.fakes.FakeRestaurantRepository
 import com.swapna.foodapp.fakes.FakeUserRepository
+import com.swapna.foodapp.utils.AndroidTestConstants
 import com.swapna.foodapp.utils.AndroidTestConstants.ASSERT_EXPECTED_DELIVERY_BACK
 import com.swapna.foodapp.utils.AndroidTestConstants.ASSERT_EXPECTED_DELIVERY_TAB
 import com.swapna.foodapp.utils.AndroidTestConstants.ASSERT_EXPECTED_DINING_TAB
@@ -32,26 +33,18 @@ import com.swapna.foodapp.utils.AndroidTestConstants.CART_COUNT_ONE
 import com.swapna.foodapp.utils.AndroidTestConstants.CART_COUNT_THREE
 import com.swapna.foodapp.utils.AndroidTestConstants.ERR_NETWORK_ERROR
 import com.swapna.foodapp.utils.AndroidTestConstants.ERR_NO_INTERNET_CONNECTION
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ADDRESS_FULL
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ADDRESS_ID
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ADDRESS_LABEL_HOME
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ADDRESS_LANDMARK
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ADDRESS_LAT
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ADDRESS_LNG
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_CATEGORY_BIRYANI
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_CATEGORY_ID_1
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_CHANGE_DELIVERY_LOCATION
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_CLOSE_ICON_DESC
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_COLL_DISCOUNT
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_COLL_ID_1
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_COLL_RESTAURANT_COUNT
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_COLL_TRENDING
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_COLL_TRENDING_NOW
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_DELIVERING_TO
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_DELIVERY_LOCATION_SUBTITLE
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_DELIVERY_LOCATION_TITLE
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ERROR_NOT_IN_SUBSTR
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_ERROR_TITLE_WRONG
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_GO_TO_CART_DESC
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_LOCATION_ICON_DESC
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_NO_RESTAURANTS_FOUND
@@ -59,36 +52,18 @@ import com.swapna.foodapp.utils.AndroidTestConstants.HOME_NO_SAVED_ADDRESSES
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_OFFLINE_SUBSTR
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_POPULAR_LOCATION
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_ADDRESS
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_COST_FOR_TWO
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_CUISINE_BIRYANI
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_CUISINE_SOUTH_IND
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_DELIVERY_FEE
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_DELIVERY_TIME
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_DISTANCE_KM
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_LOCALITY
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_MEGHANA
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_MIN_ORDER
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_PIZZA_HUT
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_R1
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_R2
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_RATING
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_RATING_COLOR
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_RATING_TEXT
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_REST_TOTAL_VOTES
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_RETRY_BUTTON_TEXT
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_SEARCH_HINT
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_SECTION_CATEGORIES
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_SECTION_OFFERS
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_SECTION_RESTAURANTS
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_TAB_DELIVERY
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_TAB_DINING
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_TAB_PROFILE
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_USER_EMAIL
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_USER_ID
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_USER_NAME
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_USER_PHONE
-import com.swapna.foodapp.utils.AndroidTestConstants.HOME_USER_SELECTED_LOCATION
 import com.swapna.foodapp.utils.AndroidTestConstants.HOME_USE_CURRENT_LOCATION
+import com.swapna.foodapp.utils.AppConstants
+import com.swapna.foodapp.utils.AppConstants.TRY_AGAIN
+import com.swapna.foodapp.utils.AppConstants.WRONG
 import com.swapna.foodapp.utils.HomeData
 import io.mockk.every
 import io.mockk.mockk
@@ -104,12 +79,12 @@ class HomeScreenTest {
     @get:Rule(order = 0)
     val screenOnRule = object : org.junit.rules.ExternalResource() {
         override fun before() {
-            androidx.test.platform.app.InstrumentationRegistry
-                .getInstrumentation().uiAutomation
-                .executeShellCommand("input keyevent KEYCODE_WAKEUP")
-            androidx.test.platform.app.InstrumentationRegistry
-                .getInstrumentation().uiAutomation
-                .executeShellCommand("wm dismiss-keyguard")
+            val uiAutomation = androidx.test.platform.app.InstrumentationRegistry
+                .getInstrumentation()
+                .uiAutomation
+
+            uiAutomation.executeShellCommand(AndroidTestConstants.CMD_WAKEUP)
+            uiAutomation.executeShellCommand(AndroidTestConstants.CMD_DISMISS_KEYGUARD)
         }
     }
 
@@ -141,7 +116,9 @@ class HomeScreenTest {
 
     private fun buildViewModelWithError(message: String): HomeViewModel {
         val useCase = mockk<GetHomeDataUseCase>()
-        every { useCase(any()) } returns flowOf(Result.failure(Exception(message)))
+        every { useCase(any()) } returns flowOf(
+            Result.failure(Exception(message))
+        )
         return HomeViewModel(
             getHomeDataUseCase = useCase,
             cartRepository = fakeCartRepo,
@@ -165,9 +142,7 @@ class HomeScreenTest {
                         HomeData(
                             collections = emptyList(),
                             categories = emptyList(),
-                            restaurants = listOf(
-                                fakeRestaurant(HOME_REST_R1, HOME_REST_MEGHANA)
-                            ),
+                            restaurants = listOf(fakeRestaurant(HOME_REST_R1, HOME_REST_MEGHANA)),
                             filterStatus = FilterStatus.NO_FILTER,
                             requestedArea = "",
                             availableAreas = emptyList(),
@@ -177,13 +152,14 @@ class HomeScreenTest {
             }
         }
 
-        return HomeViewModel(
+        val vm = HomeViewModel(
             getHomeDataUseCase = useCase,
             cartRepository = fakeCartRepo,
             userRepository = fakeUserRepo,
             connectivityObserver = fakeConnectivity.mock,
             locationManager = fakeLocationMgr.mock,
-        ) to useCase
+        )
+        return vm to useCase
     }
 
     private fun setContent(vm: HomeViewModel = buildViewModel()) {
@@ -243,9 +219,7 @@ class HomeScreenTest {
     fun homeScreen_cartBadge_not_shown_when_cart_empty() {
         setContent()
         composeTestRule.waitForIdle()
-        composeTestRule
-            .onNodeWithText(CART_BADGE_ZERO)
-            .assertDoesNotExist()
+        composeTestRule.onNodeWithText(CART_BADGE_ZERO).assertDoesNotExist()
     }
 
     @Test
@@ -253,9 +227,7 @@ class HomeScreenTest {
         fakeCartRepo.setItemCount(CART_COUNT_THREE)
         setContent()
         composeTestRule.waitForIdle()
-        composeTestRule
-            .onNodeWithText(CART_COUNT_THREE.toString())
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(CART_COUNT_THREE.toString()).assertIsDisplayed()
     }
 
     @Test
@@ -263,9 +235,7 @@ class HomeScreenTest {
         fakeCartRepo.setItemCount(CART_COUNT_ONE)
         setContent()
         composeTestRule.waitForIdle()
-        composeTestRule
-            .onNodeWithText(CART_COUNT_ONE.toString())
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(CART_COUNT_ONE.toString()).assertIsDisplayed()
     }
 
     // GROUP 3 — Restaurants Section
@@ -288,9 +258,7 @@ class HomeScreenTest {
         setContent()
         composeTestRule.waitForIdle()
 
-        composeTestRule
-            .onNodeWithText(HOME_REST_MEGHANA)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(HOME_REST_MEGHANA).assertIsDisplayed()
     }
 
     @Test
@@ -330,8 +298,8 @@ class HomeScreenTest {
                 HomeData(
                     collections = emptyList(),
                     categories = emptyList(),
-                    restaurants = emptyList(),
-                    filterStatus = FilterStatus.NO_FILTER,
+                    restaurants = emptyList(),           // ← empty
+                    filterStatus = FilterStatus.NO_FILTER, // ← must be NO_FILTER
                     requestedArea = "",
                     availableAreas = emptyList(),
                 )
@@ -349,11 +317,9 @@ class HomeScreenTest {
         setContent(vm)
         composeTestRule.waitForIdle()
 
-        assert(!vm.uiState.value.isLoading) {
-            ASSERT_STILL_LOADING
-        }
+        assert(!vm.uiState.value.isLoading) { ASSERT_STILL_LOADING }
         assert(vm.uiState.value.filterStatus == FilterStatus.NO_FILTER) {
-            "$ASSERT_EXPECTED_NO_FILTER but got ${vm.uiState.value.filterStatus}"
+            "$ASSERT_EXPECTED_NO_FILTER ${vm.uiState.value.filterStatus}"
         }
 
         composeTestRule
@@ -365,7 +331,7 @@ class HomeScreenTest {
     @Test
     fun homeScreen_whatsOnYourMind_title_shown_when_categories_loaded() {
         fakeRestaurantRepo.categoriesResult =
-            Result.success(listOf(fakeCategory(HOME_CATEGORY_ID_1, HOME_CATEGORY_BIRYANI)))
+            Result.success(listOf(fakeCategory(CART_COUNT_ONE, HOME_CATEGORY_BIRYANI)))
         setContent()
         composeTestRule.waitForIdle()
 
@@ -377,13 +343,11 @@ class HomeScreenTest {
     @Test
     fun homeScreen_category_name_isDisplayed() {
         fakeRestaurantRepo.categoriesResult =
-            Result.success(listOf(fakeCategory(HOME_CATEGORY_ID_1, HOME_CATEGORY_BIRYANI)))
+            Result.success(listOf(fakeCategory(CART_COUNT_ONE, HOME_CATEGORY_BIRYANI)))
         setContent()
         composeTestRule.waitForIdle()
 
-        composeTestRule
-            .onNodeWithText(HOME_CATEGORY_BIRYANI)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(HOME_CATEGORY_BIRYANI).assertIsDisplayed()
     }
 
     @Test
@@ -401,7 +365,7 @@ class HomeScreenTest {
     @Test
     fun homeScreen_excitingOffers_title_shown_when_collections_loaded() {
         fakeRestaurantRepo.collectionsResult =
-            Result.success(listOf(fakeCollection(HOME_COLL_ID_1, HOME_COLL_TRENDING)))
+            Result.success(listOf(fakeCollection(HOME_CATEGORY_ID_1, HOME_COLL_TRENDING)))
         setContent()
         composeTestRule.waitForIdle()
 
@@ -428,9 +392,7 @@ class HomeScreenTest {
         setContent()
         composeTestRule.waitForIdle()
 
-        composeTestRule
-            .onNodeWithText(HOME_COLL_TRENDING_NOW)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(HOME_COLL_TRENDING_NOW).assertIsDisplayed()
     }
 
     // GROUP 6 — Error State
@@ -439,9 +401,8 @@ class HomeScreenTest {
         val vm = buildViewModelWithError(ERR_NO_INTERNET_CONNECTION)
         setContent(vm)
         composeTestRule.waitForIdle()
-
         composeTestRule
-            .onNodeWithText(HOME_ERROR_TITLE_WRONG, substring = true)
+            .onNodeWithText(WRONG, substring = true)
             .assertIsDisplayed()
     }
 
@@ -450,7 +411,6 @@ class HomeScreenTest {
         val vm = buildViewModelWithError(ERR_NO_INTERNET_CONNECTION)
         setContent(vm)
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithText(ERR_NO_INTERNET_CONNECTION, substring = true)
             .assertIsDisplayed()
@@ -461,10 +421,7 @@ class HomeScreenTest {
         val vm = buildViewModelWithError(ERR_NETWORK_ERROR)
         setContent(vm)
         composeTestRule.waitForIdle()
-
-        composeTestRule
-            .onNodeWithText(HOME_RETRY_BUTTON_TEXT)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(TRY_AGAIN).assertIsDisplayed()
     }
 
     @Test
@@ -473,14 +430,12 @@ class HomeScreenTest {
         setContent(vm)
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText(HOME_RETRY_BUTTON_TEXT).assertIsDisplayed()
+        composeTestRule.onNodeWithText(TRY_AGAIN).assertIsDisplayed()
 
-        composeTestRule.onNodeWithText(HOME_RETRY_BUTTON_TEXT).performClick()
+        composeTestRule.onNodeWithText(TRY_AGAIN).performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule
-            .onNodeWithText(HOME_REST_MEGHANA)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(HOME_REST_MEGHANA).assertIsDisplayed()
     }
 
     // GROUP 7 — Offline Banner
@@ -511,7 +466,7 @@ class HomeScreenTest {
     fun homeScreen_locationPicker_shown_on_locationBar_tap() {
         setContent()
         composeTestRule
-            .onNodeWithText(HOME_POPULAR_LOCATION)
+            .onNodeWithText(HOME_REST_ADDRESS)
             .performClick()
         composeTestRule.waitForIdle()
 
@@ -523,7 +478,9 @@ class HomeScreenTest {
     @Test
     fun homeScreen_locationPicker_subtitle_shown_on_open() {
         setContent()
-        composeTestRule.onNodeWithText(HOME_POPULAR_LOCATION).performClick()
+        composeTestRule
+            .onNodeWithText(HOME_REST_ADDRESS)
+            .performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule
@@ -534,7 +491,9 @@ class HomeScreenTest {
     @Test
     fun homeScreen_locationPicker_dismissed_on_close_tap() {
         setContent()
-        composeTestRule.onNodeWithText(HOME_POPULAR_LOCATION).performClick()
+        composeTestRule
+            .onNodeWithText(HOME_REST_ADDRESS)
+            .performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule
@@ -550,7 +509,9 @@ class HomeScreenTest {
     @Test
     fun homeScreen_locationPicker_popularLocations_shown() {
         setContent()
-        composeTestRule.onNodeWithText(HOME_POPULAR_LOCATION).performClick()
+        composeTestRule
+            .onNodeWithText(AppConstants.DEFAULT_LOCATION)
+            .performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule
@@ -561,11 +522,13 @@ class HomeScreenTest {
     @Test
     fun homeScreen_locationPicker_useCurrentLocation_shown() {
         setContent()
-        composeTestRule.onNodeWithText(HOME_POPULAR_LOCATION).performClick()
+        composeTestRule
+            .onNodeWithText(HOME_POPULAR_LOCATION)
+            .performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule
-            .onNodeWithText(HOME_USE_CURRENT_LOCATION)
+            .onNodeWithText(HOME_USE_CURRENT_LOCATION, ignoreCase = true)
             .assertIsDisplayed()
     }
 
@@ -573,7 +536,9 @@ class HomeScreenTest {
     fun homeScreen_locationPicker_noSavedAddresses_hint_shown() {
         fakeUserRepo.currentUser = null
         setContent()
-        composeTestRule.onNodeWithText(HOME_POPULAR_LOCATION).performClick()
+        composeTestRule
+            .onNodeWithText(AppConstants.DEFAULT_LOCATION)
+            .performClick()
         composeTestRule.waitForIdle()
 
         composeTestRule
@@ -586,14 +551,12 @@ class HomeScreenTest {
         fakeUserRepo.currentUser = fakeUserWithAddress()
         setContent()
         composeTestRule.waitForIdle()
-
         composeTestRule
-            .onNodeWithContentDescription(HOME_LOCATION_ICON_DESC)
+            .onNodeWithContentDescription(AppConstants.LOCATION_ICON_DESC)
             .performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule
-            .onNodeWithText(HOME_ADDRESS_LABEL_HOME)
+        composeTestRule.onNodeWithText(HOME_ADDRESS_LABEL_HOME, ignoreCase = true)
             .assertIsDisplayed()
     }
 
@@ -601,25 +564,19 @@ class HomeScreenTest {
     @Test
     fun homeScreen_bottomNav_delivery_tab_isDisplayed() {
         setContent()
-        composeTestRule
-            .onNodeWithText(HOME_TAB_DELIVERY)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppConstants.DELIVERY).assertIsDisplayed()
     }
 
     @Test
     fun homeScreen_bottomNav_dining_tab_isDisplayed() {
         setContent()
-        composeTestRule
-            .onNodeWithText(HOME_TAB_DINING)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppConstants.DINING).assertIsDisplayed()
     }
 
     @Test
     fun homeScreen_bottomNav_profile_tab_isDisplayed() {
         setContent()
-        composeTestRule
-            .onNodeWithText(HOME_TAB_PROFILE)
-            .assertIsDisplayed()
+        composeTestRule.onNodeWithText(AppConstants.PROFILE).assertIsDisplayed()
     }
 
     @Test
@@ -635,7 +592,7 @@ class HomeScreenTest {
     fun homeScreen_bottomNav_dining_click_updates_selectedTab() {
         val vm = buildViewModel()
         setContent(vm)
-        composeTestRule.onNodeWithText(HOME_TAB_DINING).performClick()
+        composeTestRule.onNodeWithText(AppConstants.DINING).performClick()
         composeTestRule.waitForIdle()
 
         assert(vm.uiState.value.selectedTab == HomeViewModel.DeliveryTab.DINING) {
@@ -647,9 +604,9 @@ class HomeScreenTest {
     fun homeScreen_bottomNav_switching_back_to_delivery_from_dining() {
         val vm = buildViewModel()
         setContent(vm)
-        composeTestRule.onNodeWithText(HOME_TAB_DINING).performClick()
+        composeTestRule.onNodeWithText(AppConstants.DINING).performClick()
         composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText(HOME_TAB_DELIVERY).performClick()
+        composeTestRule.onNodeWithText(AppConstants.DELIVERY).performClick()
         composeTestRule.waitForIdle()
 
         assert(vm.uiState.value.selectedTab == HomeViewModel.DeliveryTab.DELIVERY) {
@@ -658,32 +615,35 @@ class HomeScreenTest {
     }
 }
 
-// ── Local test data helpers
+// ── Local test data helpers ────────────────────────────────────
 private fun fakeRestaurant(
-    id: String = HOME_REST_R1,
-    name: String = HOME_REST_MEGHANA,
+    id: String = AndroidTestConstants.FAKE_REST_ID_R1,
+    name: String = AndroidTestConstants.FAKE_REST_MEGHANA,
 ) = Restaurant(
     id = id,
     name = name,
     imageUrl = "",
     thumbUrl = "",
-    rating = HOME_REST_RATING,
-    ratingText = HOME_REST_RATING_TEXT,
-    ratingColor = HOME_REST_RATING_COLOR,
-    totalVotes = HOME_REST_TOTAL_VOTES,
-    avgDeliveryTime = HOME_REST_DELIVERY_TIME,
-    deliveryFee = HOME_REST_DELIVERY_FEE,
-    minOrder = HOME_REST_MIN_ORDER,
-    cuisines = listOf(HOME_REST_CUISINE_BIRYANI, HOME_REST_CUISINE_SOUTH_IND),
-    address = HOME_REST_ADDRESS,
-    locality = HOME_REST_LOCALITY,
+    rating = AndroidTestConstants.FAKE_REST_RATING_4_6,
+    ratingText = AndroidTestConstants.FAKE_REST_RATING_TEXT_EX,
+    ratingColor = AndroidTestConstants.FAKE_REST_RATING_COLOR,
+    totalVotes = AndroidTestConstants.FAKE_REST_TOTAL_VOTES_12500,
+    avgDeliveryTime = AndroidTestConstants.FAKE_REST_DELIVERY_TIME_30,
+    deliveryFee = AndroidTestConstants.FAKE_REST_DELIVERY_FEE_FREE,
+    minOrder = AndroidTestConstants.FAKE_REST_MIN_ORDER_100,
+    cuisines = listOf(
+        AndroidTestConstants.FAKE_REST_CUISINE_BIRYANI,
+        AndroidTestConstants.FAKE_REST_CUISINE_SOUTH_IND
+    ),
+    address = AndroidTestConstants.FAKE_REST_ADDRESS_KORA,
+    locality = AndroidTestConstants.FAKE_REST_LOCALITY_KORA,
     isOpen = true,
     hasDelivery = true,
     offers = emptyList(),
-    avgCostForTwo = HOME_REST_COST_FOR_TWO,
-    distanceKm = HOME_REST_DISTANCE_KM,
+    avgCostForTwo = AndroidTestConstants.FAKE_REST_COST_FOR_TWO_400,
+    distanceKm = AndroidTestConstants.FAKE_REST_DISTANCE_KM_2_5,
     phoneNumber = "",
-    openingHours = "",
+    openingHours = AndroidTestConstants.FAKE_REST_OPENING_HOURS,
     highlights = emptyList(),
     knownFor = "",
 )
@@ -699,25 +659,25 @@ private fun fakeCollection(id: Int, title: String) = Collections(
     title = title,
     description = "",
     imageUrl = "",
-    restaurantCount = HOME_COLL_RESTAURANT_COUNT,
-    discount = HOME_COLL_DISCOUNT,
+    restaurantCount = AndroidTestConstants.HOME_COLL_RESTAURANT_COUNT,
+    discount = AndroidTestConstants.HOME_COLL_DISCOUNT,
 )
 
 private fun fakeUserWithAddress() = User(
-    id = HOME_USER_ID,
-    name = HOME_USER_NAME,
-    email = HOME_USER_EMAIL,
-    phone = HOME_USER_PHONE,
+    id = AndroidTestConstants.HOME_USER_ID,
+    name = AndroidTestConstants.HOME_USER_NAME,
+    email = AndroidTestConstants.HOME_USER_EMAIL,
+    phone = AndroidTestConstants.HOME_USER_PHONE,
     profileImage = "",
     addresses = listOf(
         Address(
-            id = HOME_ADDRESS_ID,
+            id = AndroidTestConstants.HOME_ADDRESS_ID,
             label = HOME_ADDRESS_LABEL_HOME,
-            fullAddress = HOME_ADDRESS_FULL,
-            landmark = HOME_ADDRESS_LANDMARK,
-            latitude = HOME_ADDRESS_LAT,
-            longitude = HOME_ADDRESS_LNG,
+            fullAddress = AndroidTestConstants.HOME_ADDRESS_FULL,
+            landmark = AndroidTestConstants.HOME_ADDRESS_LANDMARK,
+            latitude = AndroidTestConstants.HOME_ADDRESS_LAT,
+            longitude = AndroidTestConstants.HOME_ADDRESS_LNG,
         )
     ),
-    selectedLocation = HOME_USER_SELECTED_LOCATION,
+    selectedLocation = AndroidTestConstants.HOME_USER_SELECTED_LOCATION,
 )

@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import com.swapna.foodapp.presentation.ui.theme.AppLightGray
 import com.swapna.foodapp.presentation.ui.theme.AppWhite
@@ -24,7 +25,7 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     enabled: Boolean = true,
-    testTag: String = "",
+    testTag: String? = null,
 ) {
     Button(
         onClick = onClick,
@@ -32,11 +33,9 @@ fun PrimaryButton(
         modifier = modifier
             .fillMaxWidth()
             .height(Dimens.ButtonHeight)
-            .then(
-                if (testTag.isNotEmpty())
-                    Modifier.then(Modifier)
-                else Modifier
-            ),
+            .let {
+                testTag?.let { tag -> it.testTag(tag) } ?: it
+            },
         colors = ButtonDefaults.buttonColors(
             containerColor = ZomatoRed,
             disabledContainerColor = AppLightGray,

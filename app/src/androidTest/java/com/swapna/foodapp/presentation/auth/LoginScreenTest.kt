@@ -1,5 +1,6 @@
 package com.swapna.foodapp.presentation.auth
 
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
@@ -9,11 +10,13 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.swapna.foodapp.domain.model.User
 import com.swapna.foodapp.fakes.FakeUserRepository
+import com.swapna.foodapp.utils.AndroidTestConstants
 import com.swapna.foodapp.utils.AndroidTestConstants.ASSERT_LOGIN_NOT_CALLED
 import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_BTN_SEND_OTP
 import com.swapna.foodapp.utils.AndroidTestConstants.LOGIN_BTN_VERIFY_OTP
@@ -49,12 +52,12 @@ class LoginScreenTest {
     @get:Rule(order = 0)
     val screenOnRule = object : org.junit.rules.ExternalResource() {
         override fun before() {
-            androidx.test.platform.app.InstrumentationRegistry
-                .getInstrumentation().uiAutomation
-                .executeShellCommand("input keyevent KEYCODE_WAKEUP")
-            androidx.test.platform.app.InstrumentationRegistry
-                .getInstrumentation().uiAutomation
-                .executeShellCommand("wm dismiss-keyguard")
+            val uiAutomation = androidx.test.platform.app.InstrumentationRegistry
+                .getInstrumentation()
+                .uiAutomation
+
+            uiAutomation.executeShellCommand(AndroidTestConstants.CMD_WAKEUP)
+            uiAutomation.executeShellCommand(AndroidTestConstants.CMD_DISMISS_KEYGUARD)
         }
     }
 
@@ -68,6 +71,12 @@ class LoginScreenTest {
     fun setUp() {
         fakeRepo = FakeUserRepository()
         viewModel = AuthViewModel(fakeRepo)
+
+        composeTestRule.activityRule.scenario.onActivity { activity ->
+            activity.window.setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
+            )
+        }
     }
 
     private fun setContent(onLoginSuccess: () -> Unit = {}) {
@@ -79,6 +88,46 @@ class LoginScreenTest {
                 )
             }
         }
+        composeTestRule.waitForIdle()
+    }
+
+    private fun hideKeyboard() {
+        composeTestRule.runOnUiThread {
+            val imm = composeTestRule.activity.getSystemService(
+                android.content.Context.INPUT_METHOD_SERVICE
+            ) as android.view.inputmethod.InputMethodManager
+            imm.hideSoftInputFromWindow(
+                composeTestRule.activity.currentFocus?.windowToken
+                    ?: composeTestRule.activity.window.decorView.windowToken,
+                android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS,
+            )
+        }
+        Thread.sleep(300)
+        composeTestRule.waitForIdle()
+    }
+
+    private fun sendOtp(phone: String = LOGIN_VALID_PHONE) {
+        composeTestRule
+            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
+            .performTextInput(phone)
+        hideKeyboard()
+        composeTestRule
+            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
+            .performClick()
+        composeTestRule.waitForIdle()
+    }
+
+    private fun verifyOtp(otp: String) {
+        composeTestRule
+            .onNodeWithTag(LoginTestTags.OTP_FIELD)
+            .performTextInput(otp)
+        hideKeyboard()
+        composeTestRule
+            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
+            .performClick()
+        composeTestRule.waitForIdle()
     }
 
     // GROUP 1 — Initial UI State
@@ -174,11 +223,12 @@ class LoginScreenTest {
     @Test
     fun loginScreen_emptyPhone_showsError_onSendOtp() {
         setContent()
+        hideKeyboard()
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithText(LOGIN_PHONE_ERROR_MSG)
             .assertIsDisplayed()
@@ -187,11 +237,12 @@ class LoginScreenTest {
     @Test
     fun loginScreen_emptyPhone_showsErrorCard() {
         setContent()
+        hideKeyboard()
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
             .assertIsDisplayed()
@@ -203,11 +254,12 @@ class LoginScreenTest {
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
             .performTextInput(LOGIN_SHORT_PHONE)
+        hideKeyboard()
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithText(LOGIN_PHONE_ERROR_MSG)
             .assertIsDisplayed()
@@ -216,7 +268,6 @@ class LoginScreenTest {
     @Test
     fun loginScreen_phoneField_capped_at_10_digits() {
         setContent()
-
         LOGIN_VALID_PHONE_10.forEach { digit ->
             composeTestRule
                 .onNodeWithTag(LoginTestTags.PHONE_FIELD)
@@ -226,7 +277,6 @@ class LoginScreenTest {
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
             .performTextInput(LOGIN_OTP_SINGLE_CHAR)
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithText(LOGIN_VALID_PHONE_10)
             .assertIsDisplayed()
@@ -235,12 +285,12 @@ class LoginScreenTest {
     @Test
     fun loginScreen_typing_validPhone_clearsErrorCard() {
         setContent()
-
+        hideKeyboard()
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
             .assertIsDisplayed()
@@ -249,7 +299,6 @@ class LoginScreenTest {
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
             .performTextInput(LOGIN_VALID_PHONE)
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
             .assertDoesNotExist()
@@ -260,15 +309,7 @@ class LoginScreenTest {
     fun loginScreen_validPhone_sendOtp_showsOtpField() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
             .assertIsDisplayed()
@@ -278,15 +319,7 @@ class LoginScreenTest {
     fun loginScreen_afterOtpSent_buttonText_changesTo_verifyOtp() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithText(LOGIN_BTN_VERIFY_OTP)
             .assertIsDisplayed()
@@ -299,15 +332,7 @@ class LoginScreenTest {
     fun loginScreen_afterOtpSent_phoneField_isDisabled() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
             .assertIsNotEnabled()
@@ -317,15 +342,7 @@ class LoginScreenTest {
     fun loginScreen_afterOtpSent_successCard_isDisplayed() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.SUCCESS_CARD)
             .assertIsDisplayed()
@@ -335,15 +352,7 @@ class LoginScreenTest {
     fun loginScreen_afterOtpSent_successCard_showsPhoneNumber() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.SUCCESS_CARD)
             .assertIsDisplayed()
@@ -353,15 +362,7 @@ class LoginScreenTest {
     fun loginScreen_afterOtpSent_resendButton_isDisplayed() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.RESEND_BUTTON)
             .assertIsDisplayed()
@@ -372,23 +373,17 @@ class LoginScreenTest {
     fun loginScreen_shortOtp_showsOtpErrorCard() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
+        sendOtp()
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
             .performTextInput(LOGIN_SHORT_OTP)
+        hideKeyboard()
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
             .assertIsDisplayed()
@@ -398,14 +393,7 @@ class LoginScreenTest {
     fun loginScreen_otpField_capped_at_6_digits() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
+        sendOtp()
 
         LOGIN_VALID_OTP.forEach { digit ->
             composeTestRule
@@ -418,7 +406,6 @@ class LoginScreenTest {
                 .performTextInput(digit.toString())
         }
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithText(LOGIN_VALID_OTP)
             .assertIsDisplayed()
@@ -429,32 +416,27 @@ class LoginScreenTest {
         fakeRepo.sendOtpResult = Result.success(Unit)
         fakeRepo.verifyOtpResult = Result.failure(Exception(LOGIN_WRONG_OTP_MSG))
         setContent()
+        sendOtp()
 
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        // Step 2: submit wrong OTP
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
             .performTextInput(LOGIN_WRONG_OTP)
+        hideKeyboard()
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
             .assertIsDisplayed()
 
+        // Step 3: replace OTP → triggers onChange → resetState() → clears error
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
             .performTextReplacement(LOGIN_OTP_SINGLE_CHAR)
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
             .assertDoesNotExist()
@@ -476,25 +458,10 @@ class LoginScreenTest {
         var loginSuccessCalled = false
         setContent(onLoginSuccess = { loginSuccessCalled = true })
 
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
+        sendOtp()
+        verifyOtp(LOGIN_VALID_OTP)
 
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.OTP_FIELD)
-            .performTextInput(LOGIN_VALID_OTP)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
-        assert(loginSuccessCalled) {
-            ASSERT_LOGIN_NOT_CALLED
-        }
+        assert(loginSuccessCalled) { ASSERT_LOGIN_NOT_CALLED }
     }
 
     // GROUP 6 — Error States
@@ -502,15 +469,7 @@ class LoginScreenTest {
     fun loginScreen_sendOtp_networkError_showsErrorCard() {
         fakeRepo.sendOtpResult = Result.failure(Exception(LOGIN_NETWORK_UNAVAILABLE))
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
             .assertIsDisplayed()
@@ -523,15 +482,7 @@ class LoginScreenTest {
     fun loginScreen_sendOtp_error_button_remainsEnabled() {
         fakeRepo.sendOtpResult = Result.failure(Exception(LOGIN_GENERIC_ERROR))
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .assertIsEnabled()
@@ -540,27 +491,10 @@ class LoginScreenTest {
     @Test
     fun loginScreen_wrongOtp_showsCorrectErrorMessage() {
         fakeRepo.sendOtpResult = Result.success(Unit)
-        fakeRepo.verifyOtpResult = Result.failure(
-            Exception(LOGIN_WRONG_OTP_FULL_MSG)
-        )
+        fakeRepo.verifyOtpResult = Result.failure(Exception(LOGIN_WRONG_OTP_FULL_MSG))
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.OTP_FIELD)
-            .performTextInput(LOGIN_WRONG_OTP)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
+        verifyOtp(LOGIN_WRONG_OTP)
         composeTestRule
             .onNodeWithText(LOGIN_WRONG_OTP_FULL_MSG)
             .assertIsDisplayed()
@@ -574,23 +508,16 @@ class LoginScreenTest {
     fun loginScreen_resendOtp_clearsOtpField() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
+        sendOtp()
 
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_FIELD)
             .performTextInput(LOGIN_SHORT_OTP)
+        composeTestRule.waitForIdle()
         composeTestRule
             .onNodeWithTag(LoginTestTags.RESEND_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithText(LOGIN_SHORT_OTP)
             .assertDoesNotExist()
@@ -600,24 +527,14 @@ class LoginScreenTest {
     fun loginScreen_resendOtp_keepsSamePhoneNumber() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.RESEND_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_FIELD)
             .assertIsDisplayed()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.SUCCESS_CARD)
             .assertIsDisplayed()
@@ -627,20 +544,11 @@ class LoginScreenTest {
     fun loginScreen_resendOtp_successCard_stillDisplayed() {
         fakeRepo.sendOtpResult = Result.success(Unit)
         setContent()
-
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.PHONE_FIELD)
-            .performTextInput(LOGIN_VALID_PHONE)
-        composeTestRule
-            .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
-            .performClick()
-        composeTestRule.waitForIdle()
-
+        sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.RESEND_BUTTON)
             .performClick()
         composeTestRule.waitForIdle()
-
         composeTestRule
             .onNodeWithTag(LoginTestTags.SUCCESS_CARD)
             .assertIsDisplayed()
