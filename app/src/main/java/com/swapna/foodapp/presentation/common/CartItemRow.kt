@@ -19,11 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.AsyncImage
 import com.swapna.foodapp.domain.model.CartItem
-import com.swapna.foodapp.presentation.common.QuantitySelector
 import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.Dimens.CartItemCustomisationSpacing
@@ -39,6 +40,10 @@ import com.swapna.foodapp.presentation.ui.theme.VegGreen
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
 import com.swapna.foodapp.utils.AppConstants.CURRENCY_SYMBOL
 import com.swapna.foodapp.utils.AppConstants.CUSTOMISATIONS_SEPARATOR
+import com.swapna.foodapp.utils.AppConstants.NON_VEG
+import com.swapna.foodapp.utils.AppConstants.TEXT_MAX_LINES_1
+import com.swapna.foodapp.utils.AppConstants.TEXT_MAX_LINES_2
+import com.swapna.foodapp.utils.AppConstants.VEG
 
 @Composable
 fun CartItemRow(
@@ -72,7 +77,7 @@ fun CartItemRow(
                     text = item.name,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
+                    maxLines = TEXT_MAX_LINES_2,
                     overflow = TextOverflow.Ellipsis,
                 )
 
@@ -83,7 +88,7 @@ fun CartItemRow(
                             .joinToString(CUSTOMISATIONS_SEPARATOR) { it.label },
                         style = MaterialTheme.typography.bodySmall,
                         color = AppGray,
-                        maxLines = 1,
+                        maxLines = TEXT_MAX_LINES_1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -128,9 +133,11 @@ fun CartItemRow(
 
 @Composable
 private fun VegDot(isVeg: Boolean) {
+    val label = if (isVeg) VEG else NON_VEG
     Box(
         modifier = Modifier
             .size(VegDotSize)
+            .semantics { contentDescription = label }
             .border(
                 width = VegDotBorderWidth,
                 color = if (isVeg) VegGreen else ZomatoRed,

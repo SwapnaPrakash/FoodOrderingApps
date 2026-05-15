@@ -63,6 +63,39 @@ object Dimens {
     val CartItemThumb = 60.dp
     val ProfileImageSize = 80.dp
     val RatingBadge = 3.dp
+    val LetterSpacingNone = 0.sp
+
+    val FontSize10 = 10.sp
+    val FontSize12 = 12.sp
+    val FontSize13 = 13.sp
+    val FontSize14 = 14.sp
+    val FontSize15 = 15.sp
+    val FontSize16 = 16.sp
+    val FontSize17 = 17.sp
+    val FontSize18 = 18.sp
+    val FontSize20 = 20.sp
+    val FontSize22 = 22.sp
+    val FontSize24 = 24.sp
+    val FontSize28 = 28.sp
+    val FontSize32 = 32.sp
+
+    // Type Scale — Line Heights
+    val LineHeight14 = 14.sp
+    val LineHeight16 = 16.sp
+    val LineHeight20 = 20.sp
+    val LineHeight22 = 22.sp
+    val LineHeight24 = 24.sp
+    val LineHeight28 = 28.sp
+    val LineHeight32 = 32.sp
+    val LineHeight36 = 36.sp
+    val LineHeight40 = 40.sp
+
+    // Type Scale — Letter Spacings
+    val LetterSpacingNeg = (-0.5).sp   // display large
+    val LetterSpacingXS = 0.1.sp      // title medium / small, label large
+    val LetterSpacingS = 0.25.sp     // body medium
+    val LetterSpacingM = 0.4.sp      // body small
+    val LetterSpacingL = 0.5.sp
     val SadEmojiSize = 64.sp   // not serviceable sad emoji
     val NotServiceableButtonHeight = 52.dp  // change location button
     val NotServiceableCardElevation = 2.dp  // available areas card
@@ -73,8 +106,6 @@ object Dimens {
     val MenuItemIconSize = 24.dp   // left icon in menu row
     val MenuItemChevronSize = 20.dp
 
-    // right chevron arrow
-    // ── ProductDetailScreen ───────────────────────────────────
     val ProductHeroHeight = 280.dp   // hero image height
     val ProductBottomSpace = 160.dp   // space below content (clears bottom bar)
     val ProductShadowElevation = 8.dp     // bottom bar shadow
@@ -84,7 +115,6 @@ object Dimens {
     val RatingStarSize = 12.dp    // star icon in rating badge
     val RatingStarSpacing = 2.dp     // space between star and rating text
 
-    // ── SplashScreen ──────────────────────────────────────────
     val SplashLogoSize = 120.dp   // logo circle container
     val SplashLogoEmojiSize = 56.sp    // burger emoji inside logo
     val SplashAppNameSize = 32.sp    // app name text
@@ -96,14 +126,12 @@ object Dimens {
     val SplashDotSize = 6.dp     // individual loading dot
     val SplashDotsSpacing = 8.dp     // spacing between dots
 
-    // ── ProfileScreen ─────────────────────────────────────────
     val OrderStatusFontSize = 11.sp    // order status badge text
     val OrderStatusBadgeRadius = 4.dp     // order status badge corner radius
     val OrderStatusBadgePaddingH = 6.dp     // order status badge horizontal padding
     val OrderStatusBadgePaddingV = 2.dp     // order status badge vertical padding
     val ProfileLogoutBorder = 1.dp     // logout button border width
 
-    // ── HomeShimmer ───────────────────────────────────────────
     val ShimmerOffersTitleWidth = 160.dp  // "Exciting Offers" title placeholder
     val ShimmerCategoriesTitleWidth = 200.dp  // "What's on your mind?" title placeholder
     val ShimmerRestaurantsTitleWidth = 180.dp // "Restaurants Near You" title placeholder
@@ -117,19 +145,10 @@ object Dimens {
     val ShimmerBoxDefaultWidth = 100.dp  // ShimmerBox default width
     val ShimmerBoxDefaultHeight = 20.dp   // ShimmerBox default height
     val Zero = 0.dp
-    // ── FilterButton ──────────────────────────────────────────
-    val FilterIconSize        = 18.dp   // filter icon + active count badge
-    val FilterBadgeSize       = 18.dp   // active count circle badge
-    val FilterBadgeTextSize   = 10.sp   // active count number text size
-    // ── FilterBottomSheet ─────────────────────────────────────
-    val SortOptionCheckSize   = 20.dp   // check icon in sort option row
-
-    // ── FilterChipsRow ratings ────────────────────────────────
-    val RatingChip35          = 3.5     // min rating chip values — not Dp
-    val RatingChip40          = 4.0     // kept as Double constants
-    val RatingChip45          = 4.5
-
-    // ── LocationPickerSheet ───────────────────────────────────
+    val FilterIconSize = 18.dp   // filter icon + active count badge
+    val FilterBadgeSize = 18.dp   // active count circle badge
+    val FilterBadgeTextSize = 10.sp   // active count number text size
+    val SortOptionCheckSize = 20.dp   // check icon in sort option row
     val LocationSheetRadius = 20.dp   // sheet top corners
     val LocationDragHandleWidth = 40.dp   // drag handle pill width
     val LocationDragHandleHeight = 4.dp    // drag handle pill height
@@ -162,64 +181,50 @@ object Dimens {
     val LocationSectionSpacing = 6.dp    // spacing between icon and text
     val LocationSectionLetterSp = 0.8.sp  // section label letter spacing
     val LocationRowPadding = 4.dp    // vertical padding on rows
-
-    // ── HomeTopBar ────────────────────────────────────────────
     val TopBarDeliveryTextSize = 11.sp   // "Delivering to" small label
     val TopBarBadgeTextSize = 10.sp   // cart badge count text
-
-    // ── OfferCard ─────────────────────────────────────────────
     val OfferCardElevation = 2.dp    // card shadow elevation
-
-    // ── OfflineBanner ─────────────────────────────────────────
-    val OfflineBannerIconSize = 16.dp   // wifi-off icon in banner
-
-    // ── EmptyAddressHint ─────────────────────────────────────
-    val EmptyAddressEmojiSize = 24.sp   // house emoji in empty state
-    // ── CartBottomBar ─────────────────────────────────────────
-    val CartBarShadowElevation  = 8.dp    // shadow on cart bottom bar
-    val CartBarRadius           = 12.dp   // bar rounded corners
-    val CartBadgeBgRadius       = 6.dp    // item count badge corners
-    val CartBadgePaddingH       = 8.dp    // item count badge horizontal padding
-    val CartBadgePaddingV       = 2.dp    // item count badge vertical padding
-    val CartArrowPaddingStart   = 4.dp    // arrow icon start padding
-
-    // ── AddButton ─────────────────────────────────────────────
-    val AddButtonRadius         = 8.dp    // ADD button corner radius
-    val AddButtonBorderWidth    = 1.dp    // ADD button border width
-    val AddButtonPaddingH       = 24.dp   // ADD button horizontal padding
-    val AddButtonPaddingV       = 6.dp    // ADD button vertical padding
+    val OfflineBannerIconSize = 16.dp
+    val EmptyAddressEmojiSize = 24.sp
+    val CartBarShadowElevation = 8.dp    // shadow on cart bottom bar
+    val CartBarRadius = 12.dp   // bar rounded corners
+    val CartBadgeBgRadius = 6.dp    // item count badge corners
+    val CartBadgePaddingH = 8.dp    // item count badge horizontal padding
+    val CartBadgePaddingV = 2.dp    // item count badge vertical padding
+    val CartArrowPaddingStart = 4.dp
+    val AddButtonRadius = 8.dp    // ADD button corner radius
+    val AddButtonBorderWidth = 1.dp    // ADD button border width
+    val AddButtonPaddingH = 24.dp   // ADD button horizontal padding
+    val AddButtonPaddingV = 6.dp    // ADD button vertical padding
 
     // ── MenuItemRow ───────────────────────────────────────────
-    val VegIndicatorSize        = 16.dp   // veg indicator outer box
-    val VegIndicatorInner       = 8.dp    // veg indicator inner dot
-    val VegIndicatorBorder      = 1.5.dp  // veg indicator border width
-    val VegIndicatorRadius      = 2.dp    // veg indicator corner radius
+    val VegIndicatorSize = 16.dp   // veg indicator outer box
+    val VegIndicatorInner = 8.dp    // veg indicator inner dot
+    val VegIndicatorBorder = 1.5.dp  // veg indicator border width
+    val VegIndicatorRadius = 2.dp    // veg indicator corner radius
     val VegIndicatorInnerRadius = 50.dp   // veg indicator inner dot radius
-    val VegIndicatorPadding     = 3.dp    // veg indicator inner padding
-    val MenuItemTextSpacing     = 4.dp    // spacing between text elements
+    val VegIndicatorPadding = 3.dp    // veg indicator inner padding
+    val MenuItemTextSpacing = 4.dp    // spacing between text elements
 
     // ── QuantitySelector ──────────────────────────────────────
-    val QtyButtonSize           = 32.dp   // +/- button tap target
-    val QtyButtonIconSize       = 16.dp   // +/- icon inside button
-    val QtyNumberWidth          = 28.dp   // qty number text width
-    val QtyNumberPaddingH       = 4.dp    // qty number horizontal padding
-    val QtySelectorRadius       = 8.dp    // selector border radius
-    val QtySelectorBorderWidth  = 1.dp    // selector border width
+    val QtyButtonSize = 32.dp   // +/- button tap target
+    val QtyButtonIconSize = 16.dp   // +/- icon inside button
+    val QtyNumberWidth = 28.dp   // qty number text width
+    val QtyNumberPaddingH = 4.dp    // qty number horizontal padding
+    val QtySelectorRadius = 8.dp    // selector border radius
+    val QtySelectorBorderWidth = 1.dp    // selector border width
 
     // ── RecommendedSection ────────────────────────────────────
-    val RecommendedImageHeight  = 120.dp  // recommended card image height
+    val RecommendedImageHeight = 120.dp  // recommended card image height
     val RecommendedFallbackSeed = "picsum.photos"  // not a Dp — keep in constants
 
     // ── RestaurantInfoHeader ──────────────────────────────────
-    val HeroGradientStop1  = 0.0f   // gradient start — transparent
-    val HeroGradientStop2  = 0.5f   // gradient middle
-    val HeroGradientStop3  = 1.0f   // gradient end — darkest
+    val HeroGradientStop1 = 0.0f   // gradient start — transparent
+    val HeroGradientStop2 = 0.5f   // gradient middle
+    val HeroGradientStop3 = 1.0f   // gradient end — darkest
 
     // ── RestaurantTopBar ──────────────────────────────────────
-    val TopBarCircleSize   = 40.dp  // WHY? MinTouchTarget already exists — reuse it
-
-// ── RestaurantShimmer ─────────────────────────────────────
-// Uses existing Dimens — no new values needed
+    val TopBarCircleSize = 40.dp  // WHY? MinTouchTarget already exists — reuse it
 
     val IconXXS = 12.dp
     val IconXS = 16.dp

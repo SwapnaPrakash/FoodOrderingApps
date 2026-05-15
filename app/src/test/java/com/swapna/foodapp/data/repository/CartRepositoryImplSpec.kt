@@ -3,6 +3,8 @@ package com.swapna.foodapp.data.repository
 import app.cash.turbine.test
 import com.swapna.foodapp.data.local.dao.CartDao
 import com.swapna.foodapp.data.mapper.EntityMapper
+import com.swapna.foodapp.presentation.common.fakes.fakeCartItem
+import com.swapna.foodapp.presentation.common.fakes.fakeCartItemEntity
 import com.swapna.foodapp.utils.AppBusinessRules
 import com.swapna.foodapp.utils.TestConstants.CART_ID_1
 import com.swapna.foodapp.utils.TestConstants.CART_ID_2
@@ -15,8 +17,6 @@ import com.swapna.foodapp.utils.TestConstants.MENU_ID_2
 import com.swapna.foodapp.utils.TestConstants.PRICE_100
 import com.swapna.foodapp.utils.TestConstants.PRICE_249
 import com.swapna.foodapp.utils.TestConstants.PRICE_50
-import com.swapna.foodapp.utils.fakeCartItem
-import com.swapna.foodapp.utils.fakeCartItemEntity
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize

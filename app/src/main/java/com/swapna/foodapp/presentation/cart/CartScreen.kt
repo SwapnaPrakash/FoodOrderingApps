@@ -50,7 +50,6 @@ import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
 import com.swapna.foodapp.utils.AppConstants.BACK
 import com.swapna.foodapp.utils.AppConstants.CART_BILL_KEY
 import com.swapna.foodapp.utils.AppConstants.CART_BOTTOM_SPACE_KEY
-import com.swapna.foodapp.utils.AppConstants.CART_RESTAURANT_NAME_KEY
 import com.swapna.foodapp.utils.AppConstants.CART_SPACER_KEY
 import com.swapna.foodapp.utils.AppConstants.ITEMS
 import com.swapna.foodapp.utils.AppConstants.MY_CART
@@ -188,7 +187,7 @@ fun CartScreen(
                         .padding(paddingValues),
                 ) {
 
-                    item(key = CART_RESTAURANT_NAME_KEY) {
+                    /*item(key = CART_RESTAURANT_NAME_KEY) {
                         Text(
                             text = uiState.restaurantName,
                             style = MaterialTheme.typography.titleMedium,
@@ -198,7 +197,7 @@ fun CartScreen(
                                 .background(AppWhiteSurface)
                                 .padding(Dimens.SpaceL),
                         )
-                    }
+                    }*/
 
                     items(
                         items = uiState.items,

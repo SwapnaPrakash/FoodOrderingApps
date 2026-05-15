@@ -5,6 +5,7 @@ import com.swapna.foodapp.domain.model.Order
 import com.swapna.foodapp.domain.model.User
 import com.swapna.foodapp.domain.repository.UserRepository
 import com.swapna.foodapp.utils.TestConstants
+import com.swapna.foodapp.utils.TestConstants.ERR_USER_NOT_FOUND
 import com.swapna.foodapp.utils.TestConstants.FAKE_USER_EMAIL
 import com.swapna.foodapp.utils.TestConstants.FAKE_USER_ID
 import com.swapna.foodapp.utils.TestConstants.FAKE_USER_NAME
@@ -55,7 +56,7 @@ class FakeUserRepository : UserRepository {
     override suspend fun getUser(): Result<User> {
         val user = _userFlow.value
         return if (user != null) Result.success(user)
-        else Result.failure(Exception("User not found"))
+        else Result.failure(Exception(ERR_USER_NOT_FOUND))
     }
 
     override suspend fun updateUser(user: User): Result<Unit> {
@@ -161,4 +162,13 @@ class FakeUserRepository : UserRepository {
             landmark = TestConstants.ADDRESS_NEAR_ORR,
         )
     }
+
+
+    private val _orders = MutableStateFlow<List<Order>>(emptyList())
+
+    // New helper
+    fun setOrders(orders: List<Order>) {
+        _orders.value = orders
+    }
+
 }

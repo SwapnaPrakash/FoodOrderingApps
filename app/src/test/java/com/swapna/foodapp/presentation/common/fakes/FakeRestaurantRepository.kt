@@ -12,6 +12,7 @@ import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.utils.TestConstants
 import com.swapna.foodapp.utils.TestConstants.ERROR_MESSAGE
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_DESC_PREFIX
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -129,7 +130,7 @@ class FakeRestaurantRepository : RestaurantRepository {
             id = id,
             restaurantId = restaurantId,
             name = name,
-            description = "Delicious $name",
+            description = "$MENU_ITEM_DESC_PREFIX $name",
             price = price,
             imageUrl = TestConstants.FOOD_IMAGE,
             category = category,

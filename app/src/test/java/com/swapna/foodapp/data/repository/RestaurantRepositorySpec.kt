@@ -79,6 +79,7 @@ import com.swapna.foodapp.utils.TestConstants.ENTITY_VOTES
 import com.swapna.foodapp.utils.TestConstants.ENTITY_ZIPCODE
 import com.swapna.foodapp.utils.TestConstants.ERR_NO_INTERNET
 import com.swapna.foodapp.utils.TestConstants.ERR_SERVER
+import com.swapna.foodapp.utils.TestConstants.HOME_SOUTH_INDIAN
 import com.swapna.foodapp.utils.TestConstants.MENU_ENTITY_PRICE
 import com.swapna.foodapp.utils.TestConstants.MENU_ID_1
 import com.swapna.foodapp.utils.TestConstants.MENU_ID_2
@@ -172,10 +173,7 @@ class RestaurantRepositorySpec : FunSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // getNearbyRestaurants
-    // ══════════════════════════════════════════════════════════
-
     test("getNearbyRestaurants: emits cached data when Room has restaurants") {
         val entity = fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA)
         every { restaurantDao.getAllRestaurants() } returns flowOf(listOf(entity))
@@ -259,10 +257,7 @@ class RestaurantRepositorySpec : FunSpec({
         result.getOrNull()!! shouldHaveSize 3
     }
 
-    // ══════════════════════════════════════════════════════════
     // getCollections
-    // ══════════════════════════════════════════════════════════
-
     test("getCollections: returns mapped collections from API") {
         coEvery { api.getCollections() } returns CollectionsResponse(
             collections = listOf(
@@ -328,10 +323,7 @@ class RestaurantRepositorySpec : FunSpec({
         result.getOrNull()!!.first().restaurantCount shouldBe COLLECTION_COUNT_15
     }
 
-    // ══════════════════════════════════════════════════════════
     // getCategories
-    // ══════════════════════════════════════════════════════════
-
     test("getCategories: returns mapped categories from API") {
         coEvery { api.getCategories() } returns fakeCategoriesResponse()
 
@@ -361,10 +353,7 @@ class RestaurantRepositorySpec : FunSpec({
         result.getOrNull()!!.first().id shouldBe CATEGORY_ID_99
     }
 
-    // ══════════════════════════════════════════════════════════
     // getRestaurantDetail
-    // ══════════════════════════════════════════════════════════
-
     test("getRestaurantDetail: serves cached restaurant first") {
         val entity = fakeRestaurantEntity(RESTAURANT_ID_1, RESTAURANT_MEGHANA)
         coEvery { restaurantDao.getById(RESTAURANT_ID_1) } returns entity
@@ -432,10 +421,8 @@ class RestaurantRepositorySpec : FunSpec({
         result.getOrNull()?.id shouldBe RESTAURANT_ID_1
     }
 
-    // ══════════════════════════════════════════════════════════
-    // getMenuItems
-    // ══════════════════════════════════════════════════════════
 
+    // getMenuItems
     test("getMenuItems: serves cached menu when Room has items") {
         val entity = fakeMenuItemEntity(
             MENU_ID_1,
@@ -779,7 +766,7 @@ fun fakeRestaurantDto(id: String, name: String) = RestaurantDto(
         ENTITY_ADDRESS, ENTITY_LOCALITY, ENTITY_ADDRESS,
         ENTITY_CITY_ID, ENTITY_LAT, ENTITY_LNG, ENTITY_ZIPCODE
     ),
-    cuisines = "$CATEGORY_BIRYANI, South Indian",
+    cuisines = "$CATEGORY_BIRYANI, $HOME_SOUTH_INDIAN",
     avgCostForTwo = ENTITY_COST_TWO,
     priceRange = ENTITY_PRICE_RANGE,
     currency = ENTITY_CURRENCY,

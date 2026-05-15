@@ -2,11 +2,12 @@ package com.swapna.foodapp.data.repository
 
 import com.swapna.foodapp.data.local.dao.CartDao
 import com.swapna.foodapp.data.mapper.EntityMapper
+import com.swapna.foodapp.di.IoDispatcher
 import com.swapna.foodapp.domain.model.AppBusinessRules
 import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.CartPriceBreakdown
 import com.swapna.foodapp.domain.repository.CartRepository
-import com.swapna.foodapp.di.IoDispatcher
+import com.swapna.foodapp.utils.AppBusinessRules.FREE_DELIVERY_FEE
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -37,10 +38,10 @@ class CartRepositoryImpl @Inject constructor(
 
                 val delivery = when {
                     subtotal <= 0.0 ->
-                        0.0
+                        FREE_DELIVERY_FEE
 
                     subtotal >= AppBusinessRules.FREE_DELIVERY_ABOVE ->
-                        0.0
+                        FREE_DELIVERY_FEE
 
                     else ->
                         AppBusinessRules.DEFAULT_DELIVERY_FEE

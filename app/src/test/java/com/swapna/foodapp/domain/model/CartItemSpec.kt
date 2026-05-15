@@ -1,5 +1,7 @@
 package com.swapna.foodapp.domain.model
 
+import com.swapna.foodapp.presentation.common.fakes.fakeCartItem
+import com.swapna.foodapp.presentation.common.fakes.fakeCustomisationOption
 import com.swapna.foodapp.utils.TestConstants.BREAKDOWN_TAXES_249
 import com.swapna.foodapp.utils.TestConstants.BREAKDOWN_TAXES_698
 import com.swapna.foodapp.utils.TestConstants.BREAKDOWN_TOTAL_249
@@ -31,8 +33,6 @@ import com.swapna.foodapp.utils.TestConstants.SUBTOTAL_TWO_ITEMS
 import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_299
 import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_498
 import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_598
-import com.swapna.foodapp.utils.fakeCartItem
-import com.swapna.foodapp.utils.fakeCustomisationOption
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

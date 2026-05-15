@@ -18,6 +18,7 @@ import com.swapna.foodapp.domain.model.CustomisationOption
 import com.swapna.foodapp.presentation.ui.theme.AppGray
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ZomatoRed
+import com.swapna.foodapp.utils.AppBusinessRules.FREE_DELIVERY_FEE
 import com.swapna.foodapp.utils.AppConstants.INCLUDED
 
 @Composable
@@ -60,12 +61,12 @@ fun CustomisationOptionRow(
 
         Text(
             text = when {
-                option.extraPrice == 0.0 -> INCLUDED
+                option.extraPrice == FREE_DELIVERY_FEE -> INCLUDED
                 else -> "+₹${option.extraPrice.toInt()}"
             },
             style = MaterialTheme.typography.bodySmall,
             color = when {
-                option.extraPrice == 0.0 -> AppGray
+                option.extraPrice == FREE_DELIVERY_FEE -> AppGray
                 isSelected -> ZomatoRed
                 else -> AppGray
             },

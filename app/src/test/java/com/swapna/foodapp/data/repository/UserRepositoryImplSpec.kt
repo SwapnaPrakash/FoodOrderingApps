@@ -10,6 +10,9 @@ import com.swapna.foodapp.data.mapper.EntityMapper
 import com.swapna.foodapp.data.mapper.UserMapper
 import com.swapna.foodapp.data.remote.api.FoodApi
 import com.swapna.foodapp.domain.model.Address
+import com.swapna.foodapp.presentation.common.fakes.fakeOrdersResponse
+import com.swapna.foodapp.presentation.common.fakes.fakeUser
+import com.swapna.foodapp.presentation.common.fakes.fakeUserEntity
 import com.swapna.foodapp.utils.TestConstants.ADDRESS_FULL_1
 import com.swapna.foodapp.utils.TestConstants.ADDRESS_FULL_2
 import com.swapna.foodapp.utils.TestConstants.ADDRESS_FULL_3
@@ -39,9 +42,6 @@ import com.swapna.foodapp.utils.TestConstants.USER_NAME_FIREBASE
 import com.swapna.foodapp.utils.TestConstants.USER_NAME_SWAPNA
 import com.swapna.foodapp.utils.TestConstants.USER_PHONE_VALID
 import com.swapna.foodapp.utils.TestConstants.VALID_OTP
-import com.swapna.foodapp.utils.fakeOrdersResponse
-import com.swapna.foodapp.utils.fakeUser
-import com.swapna.foodapp.utils.fakeUserEntity
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -100,10 +100,7 @@ class UserRepositoryImplSpec : FunSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // sendOtp
-    // ══════════════════════════════════════════════════════════
-
     test("sendOtp: returns failure when activity is null — app in background") {
         val result = createRepo().sendOtp(USER_PHONE_VALID)
 

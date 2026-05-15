@@ -66,7 +66,6 @@ class MenuMapperSpec : DescribeSpec({
 
     val mapper = MenuMapper()
 
-    // ── Local helper — reduces DailyMenuWrapper boilerplate ───
     fun singleItemResponse(
         category: String = HOME_CATEGORY_BIRYANI,
         id: String = MENU_ID_1,

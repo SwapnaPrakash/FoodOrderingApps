@@ -24,6 +24,7 @@ import com.swapna.foodapp.presentation.ui.theme.Dimens.BillShadowElevation
 import com.swapna.foodapp.presentation.ui.theme.Dimens.DividerThickness
 import com.swapna.foodapp.presentation.ui.theme.DividerColor
 import com.swapna.foodapp.presentation.ui.theme.FreeDeliveryGreen
+import com.swapna.foodapp.utils.AppBusinessRules
 import com.swapna.foodapp.utils.AppConstants.BILL_DETAILS
 import com.swapna.foodapp.utils.AppConstants.CURRENCY_SYMBOL
 import com.swapna.foodapp.utils.AppConstants.DELIVERY_FEE
@@ -65,12 +66,12 @@ fun BillDetails(
 
             BillRow(
                 label      = DELIVERY_FEE,
-                value      = if (breakdown.deliveryFee == 0.0) {
+                value      = if (breakdown.deliveryFee == AppBusinessRules.FREE_DELIVERY_FEE) {
                     FREE
                 } else {
                     "$CURRENCY_SYMBOL${breakdown.deliveryFee.toInt()}"
                 },
-                valueColor = if (breakdown.deliveryFee == 0.0) {
+                valueColor = if (breakdown.deliveryFee == AppBusinessRules.FREE_DELIVERY_FEE) {
                     FreeDeliveryGreen
                 } else {
                     BillTextColor

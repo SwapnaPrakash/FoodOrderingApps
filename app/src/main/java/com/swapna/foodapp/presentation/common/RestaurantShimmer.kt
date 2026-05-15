@@ -26,10 +26,12 @@ import com.swapna.foodapp.presentation.ui.theme.AppAnimations
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.ShimmerBase
 import com.swapna.foodapp.presentation.ui.theme.ShimmerHighlight
+import com.swapna.foodapp.utils.AppConstants.SHIMMER
+import com.swapna.foodapp.utils.AppConstants.SHIMMER_X
 
 @Composable
 fun RestaurantShimmer() {
-    val transition = rememberInfiniteTransition(label = "shimmer")
+    val transition = rememberInfiniteTransition(label = SHIMMER)
     val translateX by transition.animateFloat(
         initialValue  = 0f,
         targetValue   = 1000f,
@@ -37,7 +39,7 @@ fun RestaurantShimmer() {
             animation  = tween(AppAnimations.SHIMMER_DURATION_MS),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "shimmer_x",
+        label = SHIMMER_X,
     )
     val shimmerBrush = Brush.linearGradient(
         colors = listOf(ShimmerBase, ShimmerHighlight, ShimmerBase),
@@ -46,7 +48,6 @@ fun RestaurantShimmer() {
     )
 
     Column {
-        // Hero image placeholder
         Box(
             modifier = Modifier
                 .fillMaxWidth()

@@ -1,10 +1,11 @@
 package com.swapna.foodapp.presentation.search
 
-import com.swapna.foodapp.domain.model.Cuisine
 import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.model.SortOption
 import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.usecase.search.SearchRestaurantsUseCase
+import com.swapna.foodapp.presentation.common.fakes.fakeCuisines
+import com.swapna.foodapp.presentation.common.fakes.fakeResults
 import com.swapna.foodapp.utils.AppConstants
 import com.swapna.foodapp.utils.TestConstants.CUISINE_BIRYANI
 import com.swapna.foodapp.utils.TestConstants.CUISINE_BURGER
@@ -23,16 +24,7 @@ import com.swapna.foodapp.utils.TestConstants.RATING_FILTER_40
 import com.swapna.foodapp.utils.TestConstants.SEARCH_RESULT_COUNT_1
 import com.swapna.foodapp.utils.TestConstants.SEARCH_RESULT_COUNT_3
 import com.swapna.foodapp.utils.TestConstants.SEARCH_RESULT_COUNT_4
-import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_BURGER_KING
-import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_MEGHANA
 import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_PIZZA_HUT
-import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_R1
-import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_R2
-import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_R3
-import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_RATING_1
-import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_RATING_2
-import com.swapna.foodapp.utils.TestConstants.SEARCH_VM_RATING_3
-import com.swapna.foodapp.utils.fakeRestaurant
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -57,20 +49,8 @@ import kotlinx.coroutines.test.setMain
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelSpec : BehaviorSpec({
 
-    val searchUseCase        = mockk<SearchRestaurantsUseCase>()
+    val searchUseCase = mockk<SearchRestaurantsUseCase>()
     val restaurantRepository = mockk<RestaurantRepository>()
-
-    val fakeCuisines = listOf(
-        Cuisine(CUISINE_ID_1, CUISINE_BIRYANI),
-        Cuisine(2,            CUISINE_PIZZA),
-        Cuisine(3,            CUISINE_BURGER),
-        Cuisine(4,            CUISINE_CHINESE),
-    )
-    val fakeResults = listOf(
-        fakeRestaurant(SEARCH_VM_R1, SEARCH_VM_MEGHANA,     rating = SEARCH_VM_RATING_1),
-        fakeRestaurant(SEARCH_VM_R2, SEARCH_VM_PIZZA_HUT,   rating = SEARCH_VM_RATING_2),
-        fakeRestaurant(SEARCH_VM_R3, SEARCH_VM_BURGER_KING, rating = SEARCH_VM_RATING_3),
-    )
 
     fun createViewModel() = SearchViewModel(searchUseCase, restaurantRepository)
 
@@ -83,10 +63,7 @@ class SearchViewModelSpec : BehaviorSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Initial State
-    // ══════════════════════════════════════════════════════════
-
     given("ViewModel is just created") {
 
         `when`("no query entered") {
@@ -183,7 +160,7 @@ class SearchViewModelSpec : BehaviorSpec({
                 runTest(StandardTestDispatcher()) {
                     Dispatchers.setMain(UnconfinedTestDispatcher())
                     val belowMin = QUERY_P.repeat(AppConstants.SEARCH_MIN_CHARS - 1)
-                    val vm       = createViewModel()
+                    val vm = createViewModel()
 
                     vm.onQueryChange(belowMin)
                     advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
@@ -221,10 +198,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 4 — Valid query
-    // ══════════════════════════════════════════════════════════
-
     given("user types 'pizza' — valid query above minimum") {
 
         `when`("API returns matching restaurants") {
@@ -233,7 +207,8 @@ class SearchViewModelSpec : BehaviorSpec({
                 runTest(StandardTestDispatcher()) {
                     Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
-                            flowOf(Result.success(
+                            flowOf(
+                                Result.success(
                                 fakeResults.filter {
                                     it.name.contains(QUERY_PIZZA, ignoreCase = true) ||
                                             it.cuisines.any { c ->
@@ -247,7 +222,7 @@ class SearchViewModelSpec : BehaviorSpec({
                     advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
                     advanceUntilIdle()
 
-                    vm.uiState.value.results.size         shouldBe SEARCH_RESULT_COUNT_1
+                    vm.uiState.value.results.size shouldBe SEARCH_RESULT_COUNT_1
                     vm.uiState.value.results.first().name shouldBe SEARCH_VM_PIZZA_HUT
                 }
             }
@@ -348,7 +323,7 @@ class SearchViewModelSpec : BehaviorSpec({
                     advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
                     advanceUntilIdle()
 
-                    loadingDuringSearch        shouldBe true
+                    loadingDuringSearch shouldBe true
                     vm.uiState.value.isLoading shouldBe false
                 }
             }
@@ -421,7 +396,7 @@ class SearchViewModelSpec : BehaviorSpec({
                 runTest(StandardTestDispatcher()) {
                     Dispatchers.setMain(UnconfinedTestDispatcher())
 
-                    every { searchUseCase(QUERY_PIZZA,       any()) } returns
+                    every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
                     every { searchUseCase(QUERY_BURGER_FULL, any()) } returns
                             flowOf(Result.success(fakeResults))
@@ -463,10 +438,7 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Debounce behavior
-    // ══════════════════════════════════════════════════════════
-
     given("user types rapidly within debounce window") {
 
         `when`("multiple chars typed before debounce expires") {
@@ -493,10 +465,10 @@ class SearchViewModelSpec : BehaviorSpec({
                     advanceUntilIdle()
 
                     verify(exactly = 1) { searchUseCase(QUERY_BURGER_FULL, any()) }
-                    verify(exactly = 0) { searchUseCase(QUERY_B,           any()) }
-                    verify(exactly = 0) { searchUseCase("bu",              any()) }
-                    verify(exactly = 0) { searchUseCase("bur",             any()) }
-                    verify(exactly = 0) { searchUseCase("burg",            any()) }
+                    verify(exactly = 0) { searchUseCase(QUERY_B, any()) }
+                    verify(exactly = 0) { searchUseCase("bu", any()) }
+                    verify(exactly = 0) { searchUseCase("bur", any()) }
+                    verify(exactly = 0) { searchUseCase("burg", any()) }
                 }
             }
         }
@@ -505,7 +477,7 @@ class SearchViewModelSpec : BehaviorSpec({
             then("searchUseCase called once per paused query") {
                 runTest(StandardTestDispatcher()) {
                     Dispatchers.setMain(UnconfinedTestDispatcher())
-                    every { searchUseCase(QUERY_PIZZA,       any()) } returns
+                    every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
                     every { searchUseCase(QUERY_BURGER_FULL, any()) } returns
                             flowOf(Result.success(fakeResults))
@@ -520,7 +492,7 @@ class SearchViewModelSpec : BehaviorSpec({
                     advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
                     advanceUntilIdle()
 
-                    verify(exactly = 1) { searchUseCase(QUERY_PIZZA,       any()) }
+                    verify(exactly = 1) { searchUseCase(QUERY_PIZZA, any()) }
                     verify(exactly = 1) { searchUseCase(QUERY_BURGER_FULL, any()) }
                 }
             }
@@ -572,10 +544,10 @@ class SearchViewModelSpec : BehaviorSpec({
                     vm.clearSearch()
                     advanceUntilIdle()
 
-                    vm.uiState.value.query         shouldBe ""
+                    vm.uiState.value.query shouldBe ""
                     vm.uiState.value.results.shouldBeEmpty()
-                    vm.uiState.value.hasSearched   shouldBe false
-                    vm.uiState.value.error         shouldBe null
+                    vm.uiState.value.hasSearched shouldBe false
+                    vm.uiState.value.error shouldBe null
                 }
             }
         }
@@ -585,10 +557,10 @@ class SearchViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.clearSearch()
 
-                vm.uiState.value.query         shouldBe ""
+                vm.uiState.value.query shouldBe ""
                 vm.uiState.value.results.shouldBeEmpty()
-                vm.uiState.value.hasSearched   shouldBe false
-                vm.uiState.value.error         shouldBe null
+                vm.uiState.value.hasSearched shouldBe false
+                vm.uiState.value.error shouldBe null
             }
         }
 
@@ -634,7 +606,7 @@ class SearchViewModelSpec : BehaviorSpec({
                     advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
                     advanceUntilIdle()
 
-                    vm.uiState.value.results     shouldHaveSize SEARCH_RESULT_COUNT_3
+                    vm.uiState.value.results shouldHaveSize SEARCH_RESULT_COUNT_3
                     vm.uiState.value.hasSearched shouldBe true
                 }
             }
@@ -920,7 +892,9 @@ class SearchViewModelSpec : BehaviorSpec({
                     advanceUntilIdle()
 
                     verify {
-                        searchUseCase(QUERY_PIZZA, match { it.maxDeliveryTime == DELIVERY_FILTER_30 })
+                        searchUseCase(
+                            QUERY_PIZZA,
+                            match { it.maxDeliveryTime == DELIVERY_FILTER_30 })
                     }
                 }
             }
@@ -942,7 +916,7 @@ class SearchViewModelSpec : BehaviorSpec({
 
                 vm.uiState.value.filters.isVegOnly shouldBe true
                 vm.uiState.value.filters.minRating shouldBe RATING_FILTER_40
-                vm.uiState.value.filters.sortBy    shouldBe SortOption.RATING
+                vm.uiState.value.filters.sortBy shouldBe SortOption.RATING
             }
         }
 
@@ -955,10 +929,10 @@ class SearchViewModelSpec : BehaviorSpec({
                 vm.onCuisineSelected(CUISINE_ID_2)
                 vm.onDeliveryTimeSelected(DELIVERY_FILTER_30)
 
-                vm.uiState.value.filters.isVegOnly      shouldBe true
-                vm.uiState.value.filters.minRating       shouldBe RATING_FILTER_40
-                vm.uiState.value.filters.sortBy          shouldBe SortOption.RATING
-                vm.uiState.value.filters.cuisineId       shouldBe CUISINE_ID_2
+                vm.uiState.value.filters.isVegOnly shouldBe true
+                vm.uiState.value.filters.minRating shouldBe RATING_FILTER_40
+                vm.uiState.value.filters.sortBy shouldBe SortOption.RATING
+                vm.uiState.value.filters.cuisineId shouldBe CUISINE_ID_2
                 vm.uiState.value.filters.maxDeliveryTime shouldBe DELIVERY_FILTER_30
             }
         }
@@ -1058,10 +1032,10 @@ class SearchViewModelSpec : BehaviorSpec({
                         searchUseCase(
                             QUERY_PIZZA,
                             match {
-                                it.isVegOnly       == true                 &&
-                                        it.minRating       == RATING_FILTER_40    &&
-                                        it.sortBy          == SortOption.RATING   &&
-                                        it.cuisineId       == CUISINE_ID_2        &&
+                                it.isVegOnly == true &&
+                                        it.minRating == RATING_FILTER_40 &&
+                                        it.sortBy == SortOption.RATING &&
+                                        it.cuisineId == CUISINE_ID_2 &&
                                         it.maxDeliveryTime == DELIVERY_FILTER_30
                             },
                         )
@@ -1091,7 +1065,7 @@ class SearchViewModelSpec : BehaviorSpec({
                         flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
 
                 val vm = createViewModel()
-                vm.uiState.value.query     shouldBe ""
+                vm.uiState.value.query shouldBe ""
                 vm.uiState.value.isLoading shouldBe false
             }
 
@@ -1108,7 +1082,7 @@ class SearchViewModelSpec : BehaviorSpec({
                     advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
                     advanceUntilIdle()
 
-                    vm.uiState.value.results  shouldHaveSize SEARCH_RESULT_COUNT_3
+                    vm.uiState.value.results shouldHaveSize SEARCH_RESULT_COUNT_3
                     vm.uiState.value.cuisines.shouldBeEmpty()
                 }
             }

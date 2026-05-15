@@ -16,4 +16,5 @@ object AppBusinessRules {
 
     // Minimum order to checkout
     const val MIN_ORDER_VALUE = 100.0       // ₹100
+    const val FREE_DELIVERY_FEE = 0.0
 }
