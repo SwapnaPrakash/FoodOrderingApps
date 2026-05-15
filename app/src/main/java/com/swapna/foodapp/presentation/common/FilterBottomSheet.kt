@@ -45,6 +45,9 @@ import com.swapna.foodapp.utils.AppConstants.ALPHA_FILTER_CHIP_SELECTED
 import com.swapna.foodapp.utils.AppConstants.ALPHA_VEG_SWITCH_TRACK
 import com.swapna.foodapp.utils.AppConstants.APPLY
 import com.swapna.foodapp.utils.AppConstants.CLEAR_ALL
+import com.swapna.foodapp.utils.AppConstants.DELIVERY_MINUTES_20
+import com.swapna.foodapp.utils.AppConstants.DELIVERY_MINUTES_30
+import com.swapna.foodapp.utils.AppConstants.DELIVERY_MINUTES_45
 import com.swapna.foodapp.utils.AppConstants.DELIVERY_UNDER_20
 import com.swapna.foodapp.utils.AppConstants.DELIVERY_UNDER_30
 import com.swapna.foodapp.utils.AppConstants.DELIVERY_UNDER_45
@@ -55,6 +58,9 @@ import com.swapna.foodapp.utils.AppConstants.FILTER_DELIVERY_TIME
 import com.swapna.foodapp.utils.AppConstants.FILTER_DIETARY
 import com.swapna.foodapp.utils.AppConstants.FILTER_MIN_RATING
 import com.swapna.foodapp.utils.AppConstants.FILTER_SORT_BY
+import com.swapna.foodapp.utils.AppConstants.RATING_EXCELLENT
+import com.swapna.foodapp.utils.AppConstants.RATING_GOOD
+import com.swapna.foodapp.utils.AppConstants.RATING_VERY_GOOD
 import com.swapna.foodapp.utils.AppConstants.SELECTED
 import com.swapna.foodapp.utils.AppConstants.VEG_ONLY
 
@@ -137,7 +143,7 @@ fun FilterBottomSheet(
                         Dimens.SpaceS
                     )
                 ) {
-                    listOf(3.5, 4.0, 4.5).forEach { rating ->
+                    listOf(RATING_GOOD, RATING_VERY_GOOD, RATING_EXCELLENT).forEach { rating ->
                         FilterChip(
                             selected = filters.minRating == rating,
                             onClick = {
@@ -169,9 +175,9 @@ fun FilterBottomSheet(
                     )
                 ) {
                     listOf(
-                        20 to DELIVERY_UNDER_20,
-                        30 to DELIVERY_UNDER_30,
-                        45 to DELIVERY_UNDER_45,
+                        DELIVERY_MINUTES_20 to DELIVERY_UNDER_20,
+                        DELIVERY_MINUTES_30 to DELIVERY_UNDER_30,
+                        DELIVERY_MINUTES_45 to DELIVERY_UNDER_45,
                     ).forEach { (minutes, label) ->
                         FilterChip(
                             selected = filters.maxDeliveryTime == minutes,

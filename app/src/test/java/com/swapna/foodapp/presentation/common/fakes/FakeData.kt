@@ -1,4 +1,4 @@
-package com.swapna.foodapp.utils
+package com.swapna.foodapp.presentation.common.fakes
 
 import com.swapna.foodapp.data.local.entity.CartItemEntity
 import com.swapna.foodapp.data.local.entity.UserEntity
@@ -20,12 +20,17 @@ import com.swapna.foodapp.domain.model.Order
 import com.swapna.foodapp.domain.model.OrderItem
 import com.swapna.foodapp.domain.model.Restaurant
 import com.swapna.foodapp.domain.model.User
+import com.swapna.foodapp.utils.TestConstants
+import com.swapna.foodapp.utils.TestConstants.USER_EMAIL_SWAPNA
+import com.swapna.foodapp.utils.TestConstants.USER_ID_1
+import com.swapna.foodapp.utils.TestConstants.USER_NAME_SWAPNA
+import com.swapna.foodapp.utils.TestConstants.USER_PHONE
 
 fun fakeUser(
-    id: String = TestConstants.USER_ID_1,
-    name: String = TestConstants.USER_NAME_SWAPNA,
-    email: String = TestConstants.USER_EMAIL_SWAPNA,
-    phone: String = TestConstants.USER_PHONE,
+    id: String = USER_ID_1,
+    name: String = USER_NAME_SWAPNA,
+    email: String = USER_EMAIL_SWAPNA,
+    phone: String = USER_PHONE,
 ) = User(
     id = id,
     name = name,
@@ -234,13 +239,13 @@ fun fakeOrder(
 )
 
 fun fakeUserEntity(
-    id: String = TestConstants.USER_ID_1,
-    name: String = TestConstants.USER_NAME_SWAPNA,
+    id: String = USER_ID_1,
+    name: String = USER_NAME_SWAPNA,
     addressesJson: String = TestConstants.EMPTY_JSON_ARRAY,
 ) = UserEntity(
     id = id,
     name = name,
-    email = TestConstants.USER_EMAIL_SWAPNA,
+    email = USER_EMAIL_SWAPNA,
     phone = TestConstants.USER_PHONE_VALID,
     profileImage = "",
     addressesJson = addressesJson,
@@ -280,6 +285,7 @@ fun fakeCartItemEntity(
     customisationsJson = TestConstants.EMPTY_JSON_ARRAY,
     addedAt = System.currentTimeMillis(),
 )
+
 
 fun singleItemResponse(
     category: String = TestConstants.HOME_CATEGORY_BIRYANI,

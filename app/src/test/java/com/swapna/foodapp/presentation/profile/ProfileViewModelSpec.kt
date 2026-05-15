@@ -76,10 +76,7 @@ class ProfileViewModelSpec : BehaviorSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Initial Profile Load
-    // ══════════════════════════════════════════════════════════
-
     given("ProfileScreen opens for the first time") {
 
         `when`("user is logged in and profile loads") {
@@ -157,10 +154,7 @@ class ProfileViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 2 — Orders Load
-    // ══════════════════════════════════════════════════════════
-
     given("ProfileScreen loads recent orders") {
 
         `when`("API returns 2 orders") {
@@ -211,10 +205,7 @@ class ProfileViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 4 — Edit Mode
-    // ══════════════════════════════════════════════════════════
-
     given("user taps Edit button") {
 
         `when`("onEditClicked called") {
@@ -280,10 +271,7 @@ class ProfileViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Save Profile
-    // ══════════════════════════════════════════════════════════
-
     given("user taps Save after editing profile") {
 
         `when`("name and email are valid") {
@@ -391,10 +379,7 @@ class ProfileViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 6 — Delete Address
-    // ══════════════════════════════════════════════════════════
-
     given("user taps delete on a saved address") {
 
         `when`("deleteAddress succeeds") {
@@ -437,10 +422,7 @@ class ProfileViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 7 — Logout
-    // ══════════════════════════════════════════════════════════
-
     given("user taps Logout") {
 
         `when`("logout succeeds") {

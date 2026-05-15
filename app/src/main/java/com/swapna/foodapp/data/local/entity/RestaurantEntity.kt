@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.swapna.foodapp.utils.AppConstants
+import com.swapna.foodapp.utils.AppConstants.TIME
 
 @Entity(tableName = AppConstants.TABLE_RESTAURANTS)
 data class RestaurantEntity(
@@ -70,7 +71,7 @@ data class RestaurantEntity(
     val phoneNumber: String = "",
 
     @ColumnInfo(name = AppConstants.COL_OPENING_HOURS)
-    val openingHours: String = "11 AM - 11 PM",
+    val openingHours: String = TIME,
 
     // highlights stored as JSON array string
     // ["Good for families", "Outdoor seating"]

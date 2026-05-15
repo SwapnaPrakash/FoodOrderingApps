@@ -2,14 +2,14 @@ package com.swapna.foodapp.domain.usecase
 
 import com.swapna.foodapp.domain.model.AppBusinessRules
 import com.swapna.foodapp.domain.usecase.cart.CalculateCartTotalUseCase
+import com.swapna.foodapp.presentation.common.fakes.fakeCartItem
+import com.swapna.foodapp.presentation.common.fakes.fakeCustomisationOption
 import com.swapna.foodapp.utils.TestConstants.SUBTOTAL_MAX_QTY
 import com.swapna.foodapp.utils.TestConstants.SUBTOTAL_TWO_ITEMS
 import com.swapna.foodapp.utils.TestConstants.SUBTOTAL_WITH_EXTRA
 import com.swapna.foodapp.utils.TestConstants.TEST_PRICE_BIRYANI
 import com.swapna.foodapp.utils.TestConstants.TEST_PRICE_EXTRA
 import com.swapna.foodapp.utils.TestConstants.TEST_PRICE_PIZZA
-import com.swapna.foodapp.utils.fakeCartItem
-import com.swapna.foodapp.utils.fakeCustomisationOption
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe

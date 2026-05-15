@@ -17,9 +17,9 @@ object AppRoutes {
 
     fun restaurant(id: String) = "restaurant/$id"
     fun product(id: String) = "product/$id"
-    fun searchWithQuery(query: String) = "search?query=$query"
     fun product(
         restaurantId: String,
         menuItemId: String,
     ) = "product/$restaurantId/$menuItemId"
+
 }

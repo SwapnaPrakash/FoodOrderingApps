@@ -116,10 +116,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Location Picker Default State
-    // ══════════════════════════════════════════════════════════
-
     given("HomeViewModel is created fresh") {
 
         `when`("no location selected yet") {
@@ -142,10 +139,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 2 — Open Location Sheet
-    // ══════════════════════════════════════════════════════════
-
     given("user taps location bar in HomeTopBar") {
 
         `when`("onLocationBarClicked is called") {
@@ -175,10 +169,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 3 — Dismiss Location Sheet
-    // ══════════════════════════════════════════════════════════
-
     given("location picker sheet is open") {
 
         `when`("onLocationDismissed is called") {
@@ -209,10 +200,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 4 — Manual Location Selection
-    // ══════════════════════════════════════════════════════════
-
     given("user picks location from popular list") {
 
         `when`("Koramangala selected") {
@@ -266,10 +254,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Restore Saved Location from Room
-    // ══════════════════════════════════════════════════════════
-
     given("user previously saved a location") {
 
         `when`("Room emits Indiranagar on app start") {
@@ -310,10 +295,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 6 — Saved Addresses
-    // ══════════════════════════════════════════════════════════
-
     given("user has saved addresses in profile") {
 
         `when`("user has Home and Work addresses") {
@@ -344,10 +326,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 7 — GPS Success in Service Area
-    // ══════════════════════════════════════════════════════════
-
     given("GPS succeeds with Bengaluru address") {
 
         `when`("GPS returns Koramangala") {
@@ -424,10 +403,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 8 — GPS Outside Service Area
-    // ══════════════════════════════════════════════════════════
-
     given("GPS returns address outside Bengaluru") {
 
         `when`("GPS returns Delhi") {
@@ -505,10 +481,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 9 — GPS Failures
-    // ══════════════════════════════════════════════════════════
-
     given("GPS fetch fails") {
 
         `when`("permission denied error") {
@@ -590,10 +563,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 10 — Permission Denied from Android Dialog
-    // ══════════════════════════════════════════════════════════
-
     given("Android system denies location permission") {
 
         `when`("onLocationPermissionDenied is called") {
@@ -631,10 +601,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 11 — Service Area Boundary Tests
-    // ══════════════════════════════════════════════════════════
-
     given("GPS returns Bengaluru boundary addresses") {
 
         listOf(
@@ -679,10 +646,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 12 — State Reset After Error
-    // ══════════════════════════════════════════════════════════
-
     given("user encountered an error") {
 
         `when`("sheet reopened after GPS error") {
@@ -718,10 +682,7 @@ class HomeViewModelLocationSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 13 — Connectivity
-    // ══════════════════════════════════════════════════════════
-
     given("device connectivity changes") {
 
         `when`("device goes offline") {

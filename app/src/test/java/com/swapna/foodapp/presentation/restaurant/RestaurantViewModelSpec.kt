@@ -16,9 +16,14 @@ import com.swapna.foodapp.utils.TestConstants.CART_UUID_1
 import com.swapna.foodapp.utils.TestConstants.CART_UUID_2
 import com.swapna.foodapp.utils.TestConstants.CATEGORY_BIRYANI_CAT
 import com.swapna.foodapp.utils.TestConstants.CATEGORY_STARTERS
+import com.swapna.foodapp.utils.TestConstants.DELIVERY_TIME
 import com.swapna.foodapp.utils.TestConstants.ERR_COULD_NOT_ADD_CART
 import com.swapna.foodapp.utils.TestConstants.ERR_COULD_NOT_LOAD_REST
 import com.swapna.foodapp.utils.TestConstants.ERR_NO_INTERNET_HOME
+import com.swapna.foodapp.utils.TestConstants.HOME_DELIVERY_FEE
+import com.swapna.foodapp.utils.TestConstants.HOME_RATING_COLOR
+import com.swapna.foodapp.utils.TestConstants.HOME_RATING_TEXT_EXCELLENT
+import com.swapna.foodapp.utils.TestConstants.HOME_SOUTH_INDIAN
 import com.swapna.foodapp.utils.TestConstants.LOC_KORAMANGALA
 import com.swapna.foodapp.utils.TestConstants.MENU_CATEGORY_COUNT
 import com.swapna.foodapp.utils.TestConstants.MENU_ID_1
@@ -27,8 +32,10 @@ import com.swapna.foodapp.utils.TestConstants.MENU_ID_3
 import com.swapna.foodapp.utils.TestConstants.MENU_ID_4
 import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_65
 import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_BIR
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_DESC_PREFIX
 import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_MUTTON_BIR
 import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_PANEER_TIKKA
+import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_TEST_NAME
 import com.swapna.foodapp.utils.TestConstants.OFFER_50_OFF
 import com.swapna.foodapp.utils.TestConstants.PRICE_100
 import com.swapna.foodapp.utils.TestConstants.PRICE_179
@@ -74,30 +81,6 @@ class RestaurantViewModelSpec : BehaviorSpec({
     val addToCartUseCase = mockk<AddToCartUseCase>()
 
     val cartItemsFlow = MutableStateFlow<List<CartItem>>(emptyList())
-
-    // ── Test data ─────────────────────────────────────────────
-    val chickenBiryani = testMenuItem(
-        MENU_ID_1,
-        MENU_ITEM_CHICK_BIR,
-        PRICE_249,
-        isRecommended = true,
-        isBestseller = true
-    )
-    val muttonBiryani = testMenuItem(MENU_ID_2, MENU_ITEM_MUTTON_BIR, PRICE_349)
-    val chicken65 = testMenuItem(
-        MENU_ID_3,
-        MENU_ITEM_CHICK_65,
-        PRICE_199,
-        isRecommended = true,
-        category = CATEGORY_STARTERS
-    )
-    val paneerTikka = testMenuItem(
-        MENU_ID_4,
-        MENU_ITEM_PANEER_TIKKA,
-        PRICE_179,
-        isVeg = true,
-        category = CATEGORY_STARTERS
-    )
 
     fun createViewModel(restaurantId: String = RESTAURANT_ID_1): RestaurantViewModel {
         val handle = SavedStateHandle(
@@ -155,10 +138,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Initial Data Loading
-    // ══════════════════════════════════════════════════════════
-
     given("user opens RestaurantScreen") {
 
         `when`("restaurant detail loads successfully") {
@@ -210,10 +190,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 2 — Cart Count in TopBar
-    // ══════════════════════════════════════════════════════════
-
     given("cart has items — checking cartItemCount") {
 
         `when`("cart has item1 qty 2 and item2 qty 1") {
@@ -244,10 +221,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 3 — Cart Total
-    // ══════════════════════════════════════════════════════════
-
     given("cart has items for total calculation") {
 
         `when`("1 item below free delivery threshold") {
@@ -257,7 +231,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
                         CART_UUID_1,
                         testMenuItem("m_cheap", price = PRICE_50),
                         qty = 1
-                    ) // ✅
+                    )
                 )
                 val vm = createViewModel()
                 val subtotal = PRICE_50
@@ -286,10 +260,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 4 — CartBreakdown StateFlow
-    // ══════════════════════════════════════════════════════════
-
     given("cart has items — checking cartBreakdown fields") {
 
         `when`("1 item at price 50 — all fields checked") {
@@ -320,10 +291,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Quick Add to Cart
-    // ══════════════════════════════════════════════════════════
-
     given("user taps ADD on recommended item") {
 
         `when`("quickAddToCart called with valid menu item") {
@@ -380,10 +348,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 6 — onIncrementItem
-    // ══════════════════════════════════════════════════════════
-
     given("user taps + on menu item row") {
 
         `when`("item is NOT in cart — use case called check") {
@@ -496,10 +461,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 7 — onDecrementItem
-    // ══════════════════════════════════════════════════════════
-
     given("user taps - on menu item row") {
 
         `when`("item in cart with qty 2 — uses CartItem UUID for updateQuantity") {
@@ -553,10 +515,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 8 — Per-item Quantities StateFlow
-    // ══════════════════════════════════════════════════════════
-
     given("cart has specific quantities per item") {
 
         `when`("cart has m1 qty 2 and m2 qty 1") {
@@ -610,10 +569,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 9 — Navigation Events
-    // ══════════════════════════════════════════════════════════
-
     given("user is on RestaurantScreen") {
 
         `when`("user taps back button") {
@@ -651,10 +607,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 10 — Tab Selection
-    // ══════════════════════════════════════════════════════════
-
     given("default selected tab is MENU") {
 
         `when`("ViewModel first created") {
@@ -682,10 +635,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 11 — Scroll to Category
-    // ══════════════════════════════════════════════════════════
-
     given("restaurant has multiple menu categories") {
 
         `when`("user taps Starters in category footer") {
@@ -711,10 +661,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 12 — Retry on Error
-    // ══════════════════════════════════════════════════════════
-
     given("restaurant screen shows error on first load") {
 
         `when`("user taps retry after connection restored") {
@@ -736,10 +683,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 13 — getCategoryNames
-    // ══════════════════════════════════════════════════════════
-
     given("menu is fully loaded with Biryani and Starters") {
 
         `when`("getCategoryNames called") {
@@ -753,10 +697,7 @@ class RestaurantViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 14 — Different Restaurant IDs
-    // ══════════════════════════════════════════════════════════
-
     given("RestaurantScreen opened with different restaurant IDs") {
 
         `when`("opened with restaurantId r1") {
@@ -779,14 +720,14 @@ private fun testRestaurant() = Restaurant(
     imageUrl = "",
     thumbUrl = "",
     rating = RESTAURANT_RATING_45,
-    ratingText = "Excellent",
-    ratingColor = "#3F7E00",
+    ratingText = HOME_RATING_TEXT_EXCELLENT,
+    ratingColor = HOME_RATING_COLOR,
     totalVotes = RESTAURANT_VOTES_5000,
-    avgDeliveryTime = 30,
-    deliveryFee = 30.0,
+    avgDeliveryTime = DELIVERY_TIME,
+    deliveryFee = HOME_DELIVERY_FEE,
+    cuisines = listOf(CATEGORY_BIRYANI_CAT, HOME_SOUTH_INDIAN),
     avgCostForTwo = RESTAURANT_COST_500,
     minOrder = RESTAURANT_MIN_ORDER_100,
-    cuisines = listOf(CATEGORY_BIRYANI_CAT, "South Indian"),
     address = RESTAURANT_ADDRESS_KORA,
     locality = LOC_KORAMANGALA,
     distanceKm = 0.0,
@@ -801,7 +742,7 @@ private fun testRestaurant() = Restaurant(
 
 private fun testMenuItem(
     id: String = MENU_ID_1,
-    name: String = "Test Item",
+    name: String = MENU_ITEM_TEST_NAME,
     price: Double = PRICE_100,
     category: String = CATEGORY_BIRYANI_CAT,
     isVeg: Boolean = false,
@@ -811,7 +752,7 @@ private fun testMenuItem(
     id = id,
     restaurantId = RESTAURANT_ID_1,
     name = name,
-    description = "Delicious $name",
+    description = "$MENU_ITEM_DESC_PREFIX $name",
     price = price,
     imageUrl = "",
     category = category,
@@ -862,4 +803,33 @@ private fun testMenuByCategory() = mapOf(
             isVeg = true
         ),
     ),
+)
+
+val chickenBiryani = testMenuItem(
+    MENU_ID_1,
+    MENU_ITEM_CHICK_BIR,
+    PRICE_249,
+    isRecommended = true,
+    isBestseller = true
+)
+
+val muttonBiryani = testMenuItem(
+    MENU_ID_2,
+    MENU_ITEM_MUTTON_BIR,
+    PRICE_349
+)
+
+val chicken65 = testMenuItem(
+    MENU_ID_3,
+    MENU_ITEM_CHICK_65,
+    PRICE_199,
+    isRecommended = true,
+    category = CATEGORY_STARTERS
+)
+val paneerTikka = testMenuItem(
+    MENU_ID_4,
+    MENU_ITEM_PANEER_TIKKA,
+    PRICE_179,
+    isVeg = true,
+    category = CATEGORY_STARTERS
 )

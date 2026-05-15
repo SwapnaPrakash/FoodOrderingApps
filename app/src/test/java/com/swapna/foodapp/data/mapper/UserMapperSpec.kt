@@ -48,8 +48,6 @@ class UserMapperSpec : DescribeSpec({
 
     describe("UserMapper") {
 
-        // ── toDomain (UserDto → User) ─────────────────────────
-
         describe("toDomain") {
 
             context("user with all fields populated") {

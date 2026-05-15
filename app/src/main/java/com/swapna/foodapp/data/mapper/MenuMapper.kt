@@ -33,7 +33,6 @@ class MenuMapper @Inject constructor() {
         restaurantId = restaurantId,
         name = dto.name,
         description = dto.description,
-        // "249 Rs." → 249.0
         price = dto.price.parsePriceString(),
         imageUrl = dto.imageUrl ?: "",
         category = category,

@@ -13,6 +13,7 @@ import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.usecase.cart.AddToCartUseCase
 import com.swapna.foodapp.presentation.navigation.AppRoutes
 import com.swapna.foodapp.utils.AppBusinessRules
+import com.swapna.foodapp.utils.AppBusinessRules.FREE_DELIVERY_FEE
 import com.swapna.foodapp.utils.AppConstants
 import com.swapna.foodapp.utils.AppConstants.ARG_RESTAURANT_ID_MISSING
 import com.swapna.foodapp.utils.AppConstants.ERR_COULD_NOT_ADD_CART
@@ -76,7 +77,15 @@ class RestaurantViewModel @Inject constructor(
     private val _quantities = MutableStateFlow<Map<String, Int>>(emptyMap())
     val quantities: StateFlow<Map<String, Int>> = _quantities.asStateFlow()
 
-    private val _cartBreakdown = MutableStateFlow(CartPriceBreakdown(0.0, 0.0, 0.0, 0.0))
+    private val _cartBreakdown = MutableStateFlow(
+        CartPriceBreakdown(
+            subtotal = FREE_DELIVERY_FEE,
+            deliveryFee = FREE_DELIVERY_FEE,
+            taxes = FREE_DELIVERY_FEE,
+            total = FREE_DELIVERY_FEE,
+        )
+    )
+
     val cartBreakdown: StateFlow<CartPriceBreakdown> = _cartBreakdown.asStateFlow()
 
     private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())

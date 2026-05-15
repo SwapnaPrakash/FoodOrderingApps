@@ -1,6 +1,7 @@
 package com.swapna.foodapp.presentation.auth
 
 import com.swapna.foodapp.domain.repository.UserRepository
+import com.swapna.foodapp.presentation.common.fakes.fakeUser
 import com.swapna.foodapp.utils.TestConstants.ERR_APP_IN_BACKGROUND
 import com.swapna.foodapp.utils.TestConstants.ERR_NETWORK_UNAVAILABLE
 import com.swapna.foodapp.utils.TestConstants.ERR_WRONG_OTP_FIREBASE
@@ -15,7 +16,6 @@ import com.swapna.foodapp.utils.TestConstants.PHONE_TOO_SHORT
 import com.swapna.foodapp.utils.TestConstants.PHONE_WITH_LETTERS
 import com.swapna.foodapp.utils.TestConstants.VALID_OTP
 import com.swapna.foodapp.utils.TestConstants.VALID_PHONE
-import com.swapna.foodapp.utils.fakeUser
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeEmpty
@@ -44,10 +44,7 @@ class AuthViewModelSpec : BehaviorSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // Initial State
-    // ══════════════════════════════════════════════════════════
-
     given("ViewModel is just created") {
         `when`("no action has been taken") {
             then("state should be Idle") {
@@ -57,10 +54,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // Phone Validation — invalid inputs
-    // ══════════════════════════════════════════════════════════
-
     given("phone number is less than 10 digits") {
         `when`("sendOtp is called with '$PHONE_TOO_SHORT'") {
             then("state should be Error — no API call made") {
@@ -90,7 +84,7 @@ class AuthViewModelSpec : BehaviorSpec({
     given("phone number contains letters") {
         `when`("sendOtp is called with '$PHONE_WITH_LETTERS'") {
             then("state should be Error — letters are not valid") {
-                viewModel.sendOtp(PHONE_WITH_LETTERS)                // ✅ was "9876abc210"
+                viewModel.sendOtp(PHONE_WITH_LETTERS)
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -102,7 +96,7 @@ class AuthViewModelSpec : BehaviorSpec({
     given("phone number has more than 10 digits") {
         `when`("sendOtp is called with '$PHONE_TOO_LONG'") {
             then("state should be Error — no API call made") {
-                viewModel.sendOtp(PHONE_TOO_LONG)                    // ✅ was "98765432101"
+                viewModel.sendOtp(PHONE_TOO_LONG)
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -111,16 +105,13 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // Send OTP — valid phone + API outcomes
-    // ══════════════════════════════════════════════════════════
-
     given("phone number is valid 10 digits") {
 
         `when`("sendOtp is called and repository returns success") {
             then("state should be OtpSent with the phone number") {
                 coEvery {
-                    userRepository.sendOtp(VALID_PHONE)              // ✅ was "9876543210"
+                    userRepository.sendOtp(VALID_PHONE)
                 } returns Result.success(Unit)
 
                 viewModel.sendOtp(VALID_PHONE)
@@ -134,7 +125,7 @@ class AuthViewModelSpec : BehaviorSpec({
             then("state should be Error with the failure message") {
                 coEvery {
                     userRepository.sendOtp(any())
-                } returns Result.failure(Exception(ERR_NETWORK_UNAVAILABLE)) // ✅ was hardcoded
+                } returns Result.failure(Exception(ERR_NETWORK_UNAVAILABLE))
 
                 viewModel.sendOtp(VALID_PHONE)
 
@@ -149,7 +140,7 @@ class AuthViewModelSpec : BehaviorSpec({
             then("state should be Error with background message") {
                 coEvery {
                     userRepository.sendOtp(any())
-                } returns Result.failure(Exception(ERR_APP_IN_BACKGROUND)) // ✅ was hardcoded
+                } returns Result.failure(Exception(ERR_APP_IN_BACKGROUND))
 
                 viewModel.sendOtp(VALID_PHONE)
 
@@ -161,10 +152,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // Verify OTP — after OTP sent
-    // ══════════════════════════════════════════════════════════
-
     given("OTP was sent to $VALID_PHONE") {
 
         beforeEach {
@@ -178,7 +166,7 @@ class AuthViewModelSpec : BehaviorSpec({
             then("state should be Success with the returned User") {
                 val mockUser = fakeUser()
                 coEvery {
-                    userRepository.verifyOtp(VALID_OTP)              // ✅ was "123456"
+                    userRepository.verifyOtp(VALID_OTP)
                 } returns Result.success(mockUser)
 
                 viewModel.verifyOtp(VALID_OTP)
@@ -192,9 +180,9 @@ class AuthViewModelSpec : BehaviorSpec({
             then("state should be Error with repository failure message") {
                 coEvery {
                     userRepository.verifyOtp(any())
-                } returns Result.failure(Exception(ERR_WRONG_OTP_REPOSITORY)) // ✅
+                } returns Result.failure(Exception(ERR_WRONG_OTP_REPOSITORY))
 
-                viewModel.verifyOtp(OTP_WRONG)                       // ✅ was "000000"
+                viewModel.verifyOtp(OTP_WRONG)
 
                 val state = viewModel.state.value
                 state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -207,9 +195,9 @@ class AuthViewModelSpec : BehaviorSpec({
             then("state should be Error with Firebase rejection message") {
                 coEvery {
                     userRepository.verifyOtp(any())
-                } returns Result.failure(Exception(ERR_WRONG_OTP_FIREBASE))   // ✅
+                } returns Result.failure(Exception(ERR_WRONG_OTP_FIREBASE))
 
-                viewModel.verifyOtp(OTP_WRONG_FIREBASE)              // ✅ was "999999"
+                viewModel.verifyOtp(OTP_WRONG_FIREBASE)
 
                 val state = viewModel.state.value
                 state.shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -220,7 +208,7 @@ class AuthViewModelSpec : BehaviorSpec({
 
         `when`("verifyOtp is called with OTP shorter than 6 digits") {
             then("state should be Error — no API call made") {
-                viewModel.verifyOtp(OTP_TOO_SHORT)                   // ✅ was "1234"
+                viewModel.verifyOtp(OTP_TOO_SHORT)
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -230,7 +218,7 @@ class AuthViewModelSpec : BehaviorSpec({
 
         `when`("verifyOtp is called with empty string") {
             then("state should be Error — no API call made") {
-                viewModel.verifyOtp(OTP_EMPTY)                       // ✅ was ""
+                viewModel.verifyOtp(OTP_EMPTY)
 
                 viewModel.state.value
                     .shouldBeInstanceOf<AuthViewModel.AuthState.Error>()
@@ -239,10 +227,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // Loading state
-    // ══════════════════════════════════════════════════════════
-
     given("valid phone and slow network") {
         `when`("sendOtp is called") {
             then("final state should be OtpSent — Loading was intermediate") {
@@ -258,10 +243,7 @@ class AuthViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // Reset State
-    // ══════════════════════════════════════════════════════════
-
     given("state is currently Error") {
         `when`("resetState is called") {
             then("state should go back to Idle") {

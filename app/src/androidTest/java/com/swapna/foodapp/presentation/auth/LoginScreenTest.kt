@@ -430,6 +430,7 @@ class LoginScreenTest {
         composeTestRule.waitForIdle()
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
+            .performScrollTo()
             .assertIsDisplayed()
 
         // Step 3: replace OTP → triggers onChange → resetState() → clears error
@@ -475,6 +476,7 @@ class LoginScreenTest {
             .assertIsDisplayed()
         composeTestRule
             .onNodeWithText(LOGIN_NETWORK_UNAVAILABLE)
+            .performScrollTo()
             .assertIsDisplayed()
     }
 
@@ -485,6 +487,7 @@ class LoginScreenTest {
         sendOtp()
         composeTestRule
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
+            .performScrollTo()
             .assertIsEnabled()
     }
 
@@ -500,6 +503,7 @@ class LoginScreenTest {
             .assertIsDisplayed()
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
+            .performScrollTo()
             .assertIsDisplayed()
     }
 
@@ -516,6 +520,7 @@ class LoginScreenTest {
         composeTestRule.waitForIdle()
         composeTestRule
             .onNodeWithTag(LoginTestTags.RESEND_BUTTON)
+            .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
         composeTestRule
@@ -537,6 +542,7 @@ class LoginScreenTest {
             .assertIsDisplayed()
         composeTestRule
             .onNodeWithTag(LoginTestTags.SUCCESS_CARD)
+            .performScrollTo()
             .assertIsDisplayed()
     }
 
@@ -551,6 +557,7 @@ class LoginScreenTest {
         composeTestRule.waitForIdle()
         composeTestRule
             .onNodeWithTag(LoginTestTags.SUCCESS_CARD)
+            .performScrollTo()
             .assertIsDisplayed()
     }
 }

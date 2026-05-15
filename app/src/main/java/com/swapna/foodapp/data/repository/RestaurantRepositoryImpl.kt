@@ -6,6 +6,7 @@ import com.swapna.foodapp.data.mapper.EntityMapper
 import com.swapna.foodapp.data.mapper.MenuMapper
 import com.swapna.foodapp.data.mapper.RestaurantMapper
 import com.swapna.foodapp.data.remote.api.FoodApi
+import com.swapna.foodapp.di.IoDispatcher
 import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.Cuisine
 import com.swapna.foodapp.domain.model.FoodCategory
@@ -17,7 +18,6 @@ import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.utils.AppConstants.COULD_NOT_LOAD_MENU
 import com.swapna.foodapp.utils.AppConstants.NO_INTERNET
 import com.swapna.foodapp.utils.AppConstants.NO_INTERNET_LOAD_RESTAURANT
-import com.swapna.foodapp.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first

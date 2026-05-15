@@ -4,6 +4,10 @@ import app.cash.turbine.test
 import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.presentation.common.fakes.FakeCartRepository
+import com.swapna.foodapp.presentation.common.fakes.chickenBiryani
+import com.swapna.foodapp.presentation.common.fakes.fakeMenuItem
+import com.swapna.foodapp.presentation.common.fakes.muttonBiryani
+import com.swapna.foodapp.presentation.common.fakes.plainNaan
 import com.swapna.foodapp.utils.AppBusinessRules
 import com.swapna.foodapp.utils.TestConstants.CART_RESTAURANT_ID
 import com.swapna.foodapp.utils.TestConstants.ERR_CART_EMPTY_MSG
@@ -13,16 +17,13 @@ import com.swapna.foodapp.utils.TestConstants.MENU_ID_2
 import com.swapna.foodapp.utils.TestConstants.MENU_ID_3
 import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_CHICK_BIR
 import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_MUTTON_BIR
-import com.swapna.foodapp.utils.TestConstants.MENU_ITEM_PLAIN_NAAN
 import com.swapna.foodapp.utils.TestConstants.MSG_REMOVED
 import com.swapna.foodapp.utils.TestConstants.MSG_REMOVED_FROM_CART
 import com.swapna.foodapp.utils.TestConstants.PRICE_100
 import com.swapna.foodapp.utils.TestConstants.PRICE_249
-import com.swapna.foodapp.utils.TestConstants.PRICE_349
 import com.swapna.foodapp.utils.TestConstants.PRICE_50
 import com.swapna.foodapp.utils.TestConstants.SUBTOTAL_249_349
 import com.swapna.foodapp.utils.TestConstants.SUBTOTAL_249_X2
-import com.swapna.foodapp.utils.fakeMenuItem
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
@@ -35,23 +36,6 @@ import kotlinx.coroutines.test.setMain
 class CartViewModelSpec : BehaviorSpec({
 
     lateinit var fakeCartRepo: FakeCartRepository
-
-    val chickenBiryani = fakeMenuItem(
-        id = MENU_ID_1,
-        name = MENU_ITEM_CHICK_BIR,
-        price = PRICE_249,
-    )
-    val muttonBiryani = fakeMenuItem(
-        id = MENU_ID_2,
-        name = MENU_ITEM_MUTTON_BIR,
-        price = PRICE_349,
-    )
-    val plainNaan = fakeMenuItem(
-        id = MENU_ID_3,
-        name = MENU_ITEM_PLAIN_NAAN,
-        price = PRICE_50,
-        isVeg = true,
-    )
 
     fun cartItemOf(
         item: MenuItem,
@@ -68,10 +52,7 @@ class CartViewModelSpec : BehaviorSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Initial State
-    // ══════════════════════════════════════════════════════════
-
     given("CartScreen opens with empty cart") {
 
         `when`("ViewModel is created") {

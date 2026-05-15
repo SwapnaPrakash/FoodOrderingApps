@@ -10,6 +10,7 @@ import com.swapna.foodapp.data.local.entity.UserEntity
 import com.swapna.foodapp.data.mapper.EntityMapper
 import com.swapna.foodapp.data.mapper.UserMapper
 import com.swapna.foodapp.data.remote.api.FoodApi
+import com.swapna.foodapp.di.IoDispatcher
 import com.swapna.foodapp.domain.model.Address
 import com.swapna.foodapp.domain.model.Order
 import com.swapna.foodapp.domain.model.User
@@ -20,7 +21,6 @@ import com.swapna.foodapp.utils.AppConstants.FAILED_OTP_SEND
 import com.swapna.foodapp.utils.AppConstants.FAILED_PROFILE
 import com.swapna.foodapp.utils.AppConstants.FAILED_UPDATED_PROFILE
 import com.swapna.foodapp.utils.AppConstants.FAILED_VERIFICATION
-import com.swapna.foodapp.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

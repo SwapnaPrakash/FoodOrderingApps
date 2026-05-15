@@ -19,6 +19,7 @@ class FakeCartRepository : CartRepository {
 
     private val items = MutableStateFlow<List<CartItem>>(emptyList())
 
+    var seedCartCalled = false
     var addItemCalled = false
     var updateQtyCalled = false
     var removeItemCalled = false
@@ -60,31 +61,8 @@ class FakeCartRepository : CartRepository {
         items.value = current
     }
 
-    override suspend fun updateQuantity(itemId: String, quantity: Int) {
-        updateQtyCalled = true
-        lastUpdatedItemId = itemId
-        lastUpdatedQty = quantity
-        items.value = items.value.map {
-            if (it.id == itemId) it.copy(quantity = quantity) else it
-        }
-    }
-
-    override suspend fun removeItem(itemId: String) {
-        removeItemCalled = true
-        items.value = items.value.filterNot { it.id == itemId }
-    }
-
-    override suspend fun clearCart() {
-        clearCartCalled = true
-        items.value = emptyList()
-    }
-
     override suspend fun itemExists(menuItemId: String): Boolean =
         items.value.any { it.menuItem.id == menuItemId }
-
-    fun seedCart(vararg cartItems: CartItem) {
-        items.value = cartItems.toList()
-    }
 
     fun getQuantityOf(itemId: String): Int =
         items.value.find { it.id == itemId }?.quantity ?: 0
@@ -127,4 +105,31 @@ class FakeCartRepository : CartRepository {
         isAvailable = true,
         customisations = emptyList(),
     )
+
+
+    // Add seedCart helper:
+    fun seedCart(vararg items: CartItem) {
+        _items.value = items.toList()
+        seedCartCalled = true
+    }
+
+    // Update override functions to track calls:
+    override suspend fun updateQuantity(itemId: String, quantity: Int) {
+        updateQtyCalled = true
+        lastUpdatedItemId = itemId
+        lastUpdatedQty = quantity
+        _items.value = _items.value.map {
+            if (it.id == itemId) it.copy(quantity = quantity) else it
+        }
+    }
+
+    override suspend fun removeItem(itemId: String) {
+        removeItemCalled = true
+        _items.value = _items.value.filter { it.id != itemId }
+    }
+
+    override suspend fun clearCart() {
+        clearCartCalled = true
+        _items.value = emptyList()
+    }
 }

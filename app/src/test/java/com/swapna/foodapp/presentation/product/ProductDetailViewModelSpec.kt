@@ -10,6 +10,8 @@ import com.swapna.foodapp.domain.usecase.cart.AddToCartUseCase
 import com.swapna.foodapp.presentation.navigation.AppRoutes
 import com.swapna.foodapp.utils.AppBusinessRules
 import com.swapna.foodapp.utils.TestConstants.CART_QTY_1
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_BIRYANI
+import com.swapna.foodapp.utils.TestConstants.CATEGORY_BREADS
 import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_COUNT_SIZE
 import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_GROUP_SIZE
 import com.swapna.foodapp.utils.TestConstants.CUSTOMISE_GROUP_SPICE
@@ -105,10 +107,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Load Menu Item
-    // ══════════════════════════════════════════════════════════
-
     given("ProductDetailScreen is opened with item m1") {
 
         `when`("menu loads successfully") {
@@ -169,10 +168,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 2 — Default Customisation Selections
-    // ══════════════════════════════════════════════════════════
-
     given("item with customisations loads") {
 
         `when`("screen opens") {
@@ -197,10 +193,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 3 — Initial Price Calculation
-    // ══════════════════════════════════════════════════════════
-
     given("item loads with price ₹249") {
 
         `when`("default selections are applied") {
@@ -210,10 +203,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 4 — Customisation Selection
-    // ══════════════════════════════════════════════════════════
-
     given("user is customising their order") {
 
         `when`("user selects Large size (+₹50)") {
@@ -222,7 +212,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
                 vm.onOptionSelected(
                     groupId = CUSTOMISE_GROUP_SIZE,
                     optionId = CUSTOMISE_OPT_LARGE
-                ) // ✅
+                )
 
                 vm.uiState.value.selectedOptions[CUSTOMISE_GROUP_SIZE] shouldBe CUSTOMISE_OPT_LARGE
             }
@@ -287,10 +277,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Quantity Management
-    // ══════════════════════════════════════════════════════════
-
     given("user adjusts quantity on ProductDetailScreen") {
 
         `when`("user taps + once from qty 1") {
@@ -337,10 +324,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 6 — Price Updates with Quantity
-    // ══════════════════════════════════════════════════════════
-
     given("user changes quantity") {
 
         `when`("qty incremented to 2 with no extra customisations") {
@@ -384,10 +368,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 7 — Add to Cart
-    // ══════════════════════════════════════════════════════════
-
     given("user taps Add to Cart button") {
 
         `when`("item loaded and default selections") {
@@ -506,10 +487,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 8 — Navigation
-    // ══════════════════════════════════════════════════════════
-
     given("user is on ProductDetailScreen") {
 
         `when`("user taps back button") {
@@ -525,10 +503,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 9 — Simple Item (no customisations)
-    // ══════════════════════════════════════════════════════════
-
     given("item has NO customisations (Plain Naan)") {
 
         `when`("screen opens with simple item m2") {
@@ -569,9 +544,8 @@ class ProductDetailViewModelSpec : BehaviorSpec({
 })
 
 // ── Local test data helpers ───────────────────────────────────
-
 private fun fakeMenuWithCustomisations(): Map<String, List<MenuItem>> = mapOf(
-    "Biryani" to listOf(
+    CATEGORY_BIRYANI to listOf(
         MenuItem(
             id = MENU_ID_1,
             restaurantId = RESTAURANT_ID_1,
@@ -579,7 +553,7 @@ private fun fakeMenuWithCustomisations(): Map<String, List<MenuItem>> = mapOf(
             description = MENU_DESC_BIRYANI,
             price = PRICE_249,
             imageUrl = "",
-            category = "Biryani",
+            category = CATEGORY_BIRYANI,
             isVeg = false,
             isRecommended = true,
             isBestseller = true,
@@ -630,7 +604,7 @@ private fun fakeMenuWithCustomisations(): Map<String, List<MenuItem>> = mapOf(
             ),
         )
     ),
-    "Breads" to listOf(
+    CATEGORY_BREADS to listOf(
         MenuItem(
             id = MENU_ID_2,
             restaurantId = RESTAURANT_ID_1,
@@ -638,7 +612,7 @@ private fun fakeMenuWithCustomisations(): Map<String, List<MenuItem>> = mapOf(
             description = MENU_DESC_NAAN,
             price = PRICE_50,
             imageUrl = "",
-            category = "Breads",
+            category = CATEGORY_BREADS,
             isVeg = true,
             isRecommended = false,
             isBestseller = false,

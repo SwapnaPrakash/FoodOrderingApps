@@ -117,6 +117,8 @@ object AppConstants {
     const val KEY_EXTRA_PRICE = "extra_price"
     const val KEY_USER = "user"
     const val KEY_EMAIL = "email"
+    const val TEXT_MAX_LINES_2 = 2
+    const val TEXT_MAX_LINES_1 = 1
     const val KEY_PHONE = "phone"
     const val KEY_PROFILE_IMAGE = "profile_image"
     const val KEY_ADDRESSES = "addresses"
@@ -275,6 +277,10 @@ object AppConstants {
     const val RATING_EXCELLENT = 4.5
     const val RATING_VERY_GOOD = 4.0
     const val RATING_GOOD = 3.5
+
+    const val DELIVERY_MINUTES_20 = 20
+    const val DELIVERY_MINUTES_30 = 30
+    const val DELIVERY_MINUTES_45 = 45
     const val RATING_AVERAGE = 3.0
     const val RECOMMENDED_CARD_MAX = 5
     const val RECOMMENDED_SECTION_KEY = "recommended_section"

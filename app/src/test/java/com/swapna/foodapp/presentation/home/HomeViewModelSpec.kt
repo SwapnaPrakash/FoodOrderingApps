@@ -1,9 +1,6 @@
 package com.swapna.foodapp.presentation.home
 
 import app.cash.turbine.test
-import com.swapna.foodapp.domain.model.Collections
-import com.swapna.foodapp.domain.model.FoodCategory
-import com.swapna.foodapp.domain.model.Restaurant
 import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.domain.usecase.home.GetHomeDataUseCase
 import com.swapna.foodapp.presentation.common.ConnectivityObserver
@@ -12,11 +9,12 @@ import com.swapna.foodapp.presentation.common.LocationManager
 import com.swapna.foodapp.presentation.common.NetworkStatus
 import com.swapna.foodapp.presentation.common.fakes.FakeCartRepository
 import com.swapna.foodapp.presentation.common.fakes.FakeUserRepository
+import com.swapna.foodapp.presentation.common.fakes.homeData
+import com.swapna.foodapp.presentation.common.fakes.restaurantsIndiranagar
+import com.swapna.foodapp.presentation.common.fakes.restaurantsKoramangala
 import com.swapna.foodapp.utils.AppConstants.DEFAULT_LOCATION
-import com.swapna.foodapp.utils.HomeData
 import com.swapna.foodapp.utils.TestConstants.ADDRESS_LABEL_HOME
 import com.swapna.foodapp.utils.TestConstants.ADDRESS_LABEL_WORK
-import com.swapna.foodapp.utils.TestConstants.DELIVERY_TIME
 import com.swapna.foodapp.utils.TestConstants.ERR_ERROR_STR
 import com.swapna.foodapp.utils.TestConstants.ERR_NO_INTERNET_HOME
 import com.swapna.foodapp.utils.TestConstants.GPS_LAT
@@ -25,48 +23,19 @@ import com.swapna.foodapp.utils.TestConstants.HOME_ADDR_COUNT_2
 import com.swapna.foodapp.utils.TestConstants.HOME_AVAILABLE_AREAS_3
 import com.swapna.foodapp.utils.TestConstants.HOME_CART_COUNT_3
 import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_BIRYANI
-import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_ID_1
-import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_ID_2
-import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_PIZZA
 import com.swapna.foodapp.utils.TestConstants.HOME_CAT_COUNT_2
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_60_OFF
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_COUNT_10
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_COUNT_20
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_FREE_DEL
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_ID_1
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_ID_2
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_JUST_LAUNCHED
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_NEWLY_OPENED
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_POPULAR
 import com.swapna.foodapp.utils.TestConstants.HOME_COLL_SIZE_2
-import com.swapna.foodapp.utils.TestConstants.HOME_COLL_TRENDING
-import com.swapna.foodapp.utils.TestConstants.HOME_DELIVERY_FEE
 import com.swapna.foodapp.utils.TestConstants.HOME_LOC_HSR
 import com.swapna.foodapp.utils.TestConstants.HOME_LOC_INDIRANAGAR
 import com.swapna.foodapp.utils.TestConstants.HOME_LOC_KORAMANGALA
 import com.swapna.foodapp.utils.TestConstants.HOME_LOC_WHITEFIELD
-import com.swapna.foodapp.utils.TestConstants.HOME_OFFERS_50_OFF
-import com.swapna.foodapp.utils.TestConstants.HOME_RATING_COLOR
-import com.swapna.foodapp.utils.TestConstants.HOME_RATING_TEXT_EXCELLENT
-import com.swapna.foodapp.utils.TestConstants.HOME_REST_BURGER_KING
 import com.swapna.foodapp.utils.TestConstants.HOME_REST_COUNT_1
 import com.swapna.foodapp.utils.TestConstants.HOME_REST_COUNT_2
 import com.swapna.foodapp.utils.TestConstants.HOME_REST_COUNT_4
-import com.swapna.foodapp.utils.TestConstants.HOME_REST_EMPIRE
-import com.swapna.foodapp.utils.TestConstants.HOME_REST_MEGHANA
 import com.swapna.foodapp.utils.TestConstants.HOME_REST_PIZZA_HUT
 import com.swapna.foodapp.utils.TestConstants.HOME_REST_R1
-import com.swapna.foodapp.utils.TestConstants.HOME_REST_R2
-import com.swapna.foodapp.utils.TestConstants.HOME_REST_R3
-import com.swapna.foodapp.utils.TestConstants.HOME_REST_R4
 import com.swapna.foodapp.utils.TestConstants.HOME_SEARCH_QUERY_BURGER
-import com.swapna.foodapp.utils.TestConstants.HOME_SOUTH_INDIAN
-import com.swapna.foodapp.utils.TestConstants.HOME_TEST_REST_NAME
 import com.swapna.foodapp.utils.TestConstants.LOC_JAKKUR
-import com.swapna.foodapp.utils.TestConstants.RESTAURANT_COST_500
-import com.swapna.foodapp.utils.TestConstants.RESTAURANT_MIN_ORDER_100
-import com.swapna.foodapp.utils.TestConstants.RESTAURANT_RATING_45
-import com.swapna.foodapp.utils.TestConstants.RESTAURANT_VOTES_5000
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -86,7 +55,6 @@ import kotlinx.coroutines.test.setMain
 class HomeViewModelSpec : BehaviorSpec({
 
     val dispatcher = UnconfinedTestDispatcher()
-
     val getHomeDataUseCase = mockk<GetHomeDataUseCase>()
     val connectivityObserver = mockk<ConnectivityObserver>()
     val locationManager = mockk<LocationManager>()
@@ -95,71 +63,6 @@ class HomeViewModelSpec : BehaviorSpec({
     lateinit var fakeUserRepo: FakeUserRepository
 
     val networkFlow = MutableStateFlow<NetworkStatus>(NetworkStatus.Available)
-
-    val fakeCollections = listOf(
-        Collections(
-            HOME_COLL_ID_1,
-            HOME_COLL_TRENDING,
-            HOME_COLL_POPULAR,
-            "",
-            HOME_COLL_COUNT_20,
-            HOME_COLL_60_OFF
-        ),
-        Collections(
-            HOME_COLL_ID_2,
-            HOME_COLL_NEWLY_OPENED,
-            HOME_COLL_JUST_LAUNCHED,
-            "",
-            HOME_COLL_COUNT_10,
-            HOME_COLL_FREE_DEL
-        ),
-    )
-
-    val fakeCategories = listOf(
-        FoodCategory(HOME_CATEGORY_ID_1, HOME_CATEGORY_BIRYANI, ""),
-        FoodCategory(HOME_CATEGORY_ID_2, HOME_CATEGORY_PIZZA, ""),
-    )
-
-    val restaurantsKoramangala = listOf(
-        fakeRestaurant(HOME_REST_R1, HOME_REST_MEGHANA, locality = HOME_LOC_KORAMANGALA),
-        fakeRestaurant(HOME_REST_R4, HOME_REST_EMPIRE, locality = HOME_LOC_KORAMANGALA),
-    )
-
-    val restaurantsIndiranagar = listOf(
-        fakeRestaurant(HOME_REST_R2, HOME_REST_PIZZA_HUT, locality = HOME_LOC_INDIRANAGAR),
-    )
-
-    val restaurantsAll = listOf(
-        fakeRestaurant(HOME_REST_R1, HOME_REST_MEGHANA, locality = HOME_LOC_KORAMANGALA),
-        fakeRestaurant(HOME_REST_R2, HOME_REST_PIZZA_HUT, locality = HOME_LOC_INDIRANAGAR),
-        fakeRestaurant(HOME_REST_R3, HOME_REST_BURGER_KING, locality = HOME_LOC_HSR),
-        fakeRestaurant(HOME_REST_R4, HOME_REST_EMPIRE, locality = HOME_LOC_KORAMANGALA),
-    )
-
-    fun emptyHomeData() = HomeData(
-        restaurants = emptyList(),
-        collections = emptyList(),
-        categories = emptyList(),
-        filterStatus = FilterStatus.NO_FILTER,
-        requestedArea = "",
-        availableAreas = emptyList(),
-    )
-
-    fun homeData(
-        restaurants: List<Restaurant> = restaurantsAll,
-        collections: List<Collections> = fakeCollections,
-        categories: List<FoodCategory> = fakeCategories,
-        filterStatus: FilterStatus = FilterStatus.NO_FILTER,
-        requestedArea: String = "",
-        availableAreas: List<String> = emptyList(),
-    ) = HomeData(
-        restaurants = restaurants,
-        collections = collections,
-        categories = categories,
-        filterStatus = filterStatus,
-        requestedArea = requestedArea,
-        availableAreas = availableAreas,
-    )
 
     fun createViewModel() = HomeViewModel(
         getHomeDataUseCase = getHomeDataUseCase,
@@ -174,28 +77,22 @@ class HomeViewModelSpec : BehaviorSpec({
         Dispatchers.setMain(dispatcher)
         fakeCartRepo = FakeCartRepository()
         fakeUserRepo = FakeUserRepository()
-
         networkFlow.value = NetworkStatus.Available
 
         every { connectivityObserver.networkStatus } returns networkFlow
-        every { getHomeDataUseCase(any()) } returns
-                flowOf(Result.success(homeData()))
-        coEvery { locationManager.getCurrentLocation() } returns
-                Result.success(
-                    CurrentLocationResult(
-                        displayAddress = HOME_LOC_KORAMANGALA,
-                        latitude = GPS_LAT,
-                        longitude = GPS_LNG,
-                    )
-                )
+        every { getHomeDataUseCase(any()) } returns flowOf(Result.success(homeData()))
+        coEvery { locationManager.getCurrentLocation() } returns Result.success(
+            CurrentLocationResult(
+                displayAddress = HOME_LOC_KORAMANGALA,
+                latitude = GPS_LAT,
+                longitude = GPS_LNG,
+            )
+        )
     }
 
     afterEach { Dispatchers.resetMain() }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Initial State
-    // ══════════════════════════════════════════════════════════
-
     given("HomeScreen opens for the first time") {
 
         `when`("ViewModel is created") {
@@ -233,10 +130,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 2 — API Error + Retry
-    // ══════════════════════════════════════════════════════════
-
     given("API throws error") {
 
         `when`("ViewModel is created") {
@@ -268,11 +162,7 @@ class HomeViewModelSpec : BehaviorSpec({
             }
         }
     }
-
-    // ══════════════════════════════════════════════════════════
     // GROUP 3 — Location Selection
-    // ══════════════════════════════════════════════════════════
-
     given("user selects a delivery location") {
 
         `when`("Koramangala is selected") {
@@ -346,10 +236,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 4 — Saved Location Restored
-    // ══════════════════════════════════════════════════════════
-
     given("user had previously saved Indiranagar") {
 
         `when`("app reopens and Room emits saved location") {
@@ -381,10 +268,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Saved Addresses
-    // ══════════════════════════════════════════════════════════
-
     given("user has saved addresses in profile") {
 
         `when`("ViewModel loads user profile") {
@@ -396,8 +280,10 @@ class HomeViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
 
                 vm.uiState.value.savedAddresses.size shouldBe HOME_ADDR_COUNT_2
-                vm.uiState.value.savedAddresses.any { it.label == ADDRESS_LABEL_HOME } shouldBe true
-                vm.uiState.value.savedAddresses.any { it.label == ADDRESS_LABEL_WORK } shouldBe true
+                vm.uiState.value.savedAddresses
+                    .any { it.label == ADDRESS_LABEL_HOME } shouldBe true
+                vm.uiState.value.savedAddresses
+                    .any { it.label == ADDRESS_LABEL_WORK } shouldBe true
             }
         }
 
@@ -409,10 +295,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 6 — Cart Count
-    // ══════════════════════════════════════════════════════════
-
     given("cart has items") {
 
         `when`("cart has 3 items") {
@@ -429,10 +312,8 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
-    // GROUP 7 — Connectivity
-    // ══════════════════════════════════════════════════════════
 
+    // GROUP 7 — Connectivity
     given("device loses internet") {
 
         `when`("network becomes Lost") {
@@ -479,10 +360,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 8 — Filter Status
-    // ══════════════════════════════════════════════════════════
-
     given("API returns filtered results") {
 
         `when`("filterStatus is FOUND") {
@@ -528,10 +406,7 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
-    // ══════════════════════════════════════════════════════════
     // GROUP 9 — Navigation Events
-    // ══════════════════════════════════════════════════════════
-
     given("user is on HomeScreen") {
 
         `when`("restaurant card tapped") {
@@ -623,33 +498,3 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 })
-
-fun fakeRestaurant(
-    id: String = HOME_REST_R1,
-    name: String = HOME_TEST_REST_NAME,
-    locality: String = HOME_LOC_KORAMANGALA,
-    rating: Double = RESTAURANT_RATING_45,
-) = Restaurant(
-    id = id,
-    name = name,
-    imageUrl = "https://picsum.photos/seed/$id/600/300",
-    thumbUrl = "https://picsum.photos/seed/$id/200/200",
-    rating = rating,
-    ratingText = HOME_RATING_TEXT_EXCELLENT,
-    ratingColor = HOME_RATING_COLOR,
-    totalVotes = RESTAURANT_VOTES_5000,
-    avgDeliveryTime = DELIVERY_TIME,
-    deliveryFee = HOME_DELIVERY_FEE,
-    avgCostForTwo = RESTAURANT_COST_500,
-    minOrder = RESTAURANT_MIN_ORDER_100,
-    cuisines = listOf(
-        HOME_CATEGORY_BIRYANI,
-        HOME_SOUTH_INDIAN
-    ),
-    address = "$locality, Bengaluru",
-    locality = locality,
-    distanceKm = 0.0,
-    hasDelivery = true,
-    isOpen = true,
-    offers = listOf(HOME_OFFERS_50_OFF),
-)

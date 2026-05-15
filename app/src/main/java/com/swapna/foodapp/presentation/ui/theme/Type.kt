@@ -4,7 +4,6 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 
 val AppFontFamily = FontFamily.Default
 
@@ -13,120 +12,120 @@ val FoodAppTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
-        lineHeight = 40.sp,
-        letterSpacing = (-0.5).sp,
+        fontSize = Dimens.FontSize32,
+        lineHeight = Dimens.LineHeight40,
+        letterSpacing = Dimens.LetterSpacingNeg,
     ),
 
     displayMedium = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
-        letterSpacing = 0.sp,
+        fontSize = Dimens.FontSize28,
+        lineHeight = Dimens.LineHeight36,
+        letterSpacing = Dimens.LetterSpacingNone,
     ),
 
     displaySmall = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
-        letterSpacing = 0.sp,
+        fontSize = Dimens.FontSize24,
+        lineHeight = Dimens.LineHeight32,
+        letterSpacing = Dimens.LetterSpacingNone,
     ),
 
     headlineLarge = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp,
+        fontSize = Dimens.FontSize22,
+        lineHeight = Dimens.LineHeight28,
+        letterSpacing = Dimens.LetterSpacingNone,
     ),
 
     headlineMedium = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp,
+        fontSize = Dimens.FontSize20,
+        lineHeight = Dimens.LineHeight28,
+        letterSpacing = Dimens.LetterSpacingNone,
     ),
 
     headlineSmall = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 18.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.sp,
+        fontSize = Dimens.FontSize18,
+        lineHeight = Dimens.LineHeight24,
+        letterSpacing = Dimens.LetterSpacingNone,
     ),
 
     titleLarge = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 17.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.sp,
+        fontSize = Dimens.FontSize17,
+        lineHeight = Dimens.LineHeight24,
+        letterSpacing = Dimens.LetterSpacingNone,
     ),
 
     titleMedium = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 15.sp,
-        lineHeight = 22.sp,
-        letterSpacing = 0.1.sp,
+        fontSize = Dimens.FontSize15,
+        lineHeight = Dimens.LineHeight22,
+        letterSpacing = Dimens.LetterSpacingXS,
     ),
 
     titleSmall = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 13.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp,
+        fontSize = Dimens.FontSize13,
+        lineHeight = Dimens.LineHeight20,
+        letterSpacing = Dimens.LetterSpacingXS,
     ),
 
     bodyLarge = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp,
+        fontSize = Dimens.FontSize16,
+        lineHeight = Dimens.LineHeight24,
+        letterSpacing = Dimens.LetterSpacingL,
     ),
 
     bodyMedium = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.25.sp,
+        fontSize = Dimens.FontSize14,
+        lineHeight = Dimens.LineHeight20,
+        letterSpacing = Dimens.LetterSpacingS,
     ),
 
     bodySmall = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.4.sp,
+        fontSize = Dimens.FontSize12,
+        lineHeight = Dimens.LineHeight16,
+        letterSpacing = Dimens.LetterSpacingM,
     ),
 
     labelLarge = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp,
+        fontSize = Dimens.FontSize14,
+        lineHeight = Dimens.LineHeight20,
+        letterSpacing = Dimens.LetterSpacingXS,
     ),
 
     labelMedium = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp,
+        fontSize = Dimens.FontSize12,
+        lineHeight = Dimens.LineHeight16,
+        letterSpacing = Dimens.LetterSpacingL,
     ),
 
     labelSmall = TextStyle(
         fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 10.sp,
-        lineHeight = 14.sp,
-        letterSpacing = 0.5.sp,
+        fontSize = Dimens.FontSize10,
+        lineHeight = Dimens.LineHeight14,
+        letterSpacing = Dimens.LetterSpacingL,
     ),
 )

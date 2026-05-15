@@ -16,19 +16,7 @@ object AndroidTestConstants {
     const val HOME_REST_R2 = "r2"
     const val HOME_REST_MEGHANA = "Meghana Foods"
     const val HOME_REST_PIZZA_HUT = "Pizza Hut"
-    const val HOME_REST_RATING = 4.5
-    const val HOME_REST_RATING_TEXT = "Excellent"
-    const val HOME_REST_RATING_COLOR = "#3F7E00"
-    const val HOME_REST_TOTAL_VOTES = 1000
-    const val HOME_REST_DELIVERY_TIME = 30
-    const val HOME_REST_DELIVERY_FEE = 0.0    // free delivery in UI test fake
-    const val HOME_REST_MIN_ORDER = 100
     const val HOME_REST_ADDRESS = "Koramangala, Bengaluru"
-    const val HOME_REST_LOCALITY = "Koramangala"
-    const val HOME_REST_COST_FOR_TWO = 400
-    const val HOME_REST_DISTANCE_KM = 1.0
-    const val HOME_REST_CUISINE_BIRYANI = "Biryani"
-    const val HOME_REST_CUISINE_SOUTH_IND = "South Indian"
     const val HOME_ERROR_NOT_IN_SUBSTR = "not in"
     const val HOME_CHANGE_DELIVERY_LOCATION = "Change Delivery Location"
     const val HOME_NO_RESTAURANTS_FOUND = "No restaurants found"
@@ -40,9 +28,7 @@ object AndroidTestConstants {
     const val HOME_COLL_TRENDING = "Trending"
     const val HOME_COLL_TRENDING_NOW = "Trending Now"
     const val HOME_COLL_RESTAURANT_COUNT = 10
-    const val HOME_COLL_DISCOUNT = "20% off"
-    const val HOME_ERROR_TITLE_WRONG = "Something went wrong"  // AppConstants.WRONG
-    const val HOME_RETRY_BUTTON_TEXT = "Try Again"             // AppConstants.TRY_AGAIN
+    const val HOME_COLL_DISCOUNT = "20% off"            // AppConstants.TRY_AGAIN
     const val ERR_NO_INTERNET_CONNECTION = "No internet connection"
     const val ERR_NETWORK_ERROR = "Network error"
     const val HOME_OFFLINE_SUBSTR = "offline"
@@ -63,9 +49,6 @@ object AndroidTestConstants {
     const val HOME_USER_EMAIL = "swapna@example.com"
     const val HOME_USER_PHONE = "+919876543210"
     const val HOME_USER_SELECTED_LOCATION = "Koramangala"
-    const val HOME_TAB_DELIVERY = "Delivery"
-    const val HOME_TAB_DINING = "Dining"
-    const val HOME_TAB_PROFILE = "Profile"
     const val LOGIN_BURGER_EMOJI = "🍔"
     const val LOGIN_TITLE = "Login"
     const val LOGIN_SUBTITLE = "Enter your mobile number to continue"
@@ -75,7 +58,6 @@ object AndroidTestConstants {
     const val LOGIN_SHORT_PHONE = "12345"
     const val LOGIN_VALID_PHONE_10 = "1234567890"   // caps test phone
     const val LOGIN_VALID_PHONE = "9876543210"   // auth flow phone
-    const val LOGIN_PHONE_EXTRA_DIGIT = "1"
     const val LOGIN_VALID_OTP = "123456"
     const val LOGIN_WRONG_OTP = "000000"
     const val LOGIN_SHORT_OTP = "1234"
@@ -145,5 +127,69 @@ object AndroidTestConstants {
     const val FAKE_ERR_NOT_IMPLEMENTED = "Not implemented"
     const val CART_BADGE_ONE = "1"
     const val CART_BADGE_THREE = "3"
+    const val CART_EMPTY_MESSAGE = "Your cart is empty"
+    const val CART_BROWSE_FOOD = "Browse Food"
+    const val CART_INCREASE_QTY_CD = "Increase quantity"
+    const val CART_DECREASE_QTY_CD = "Decrease quantity"
+    const val CART_VEG_INDICATOR_CD = "Veg"
+    const val CART_MIN_ORDER_SUBSTR = "Minimum order"
+    const val CART_ITEM_REMOVED_SUFFIX = " removed"
+    const val CART_ITEMS_0 = "0 items"
+    const val CART_ITEMS_2 = "2 items"
+    const val CART_ITEMS_5 = "5 items"
+    const val CART_QTY_STR_1 = "1"
+    const val CART_QTY_STR_2 = "2"
+    const val CART_PRICE_249 = "₹249"
+    const val CART_PRICE_498 = "₹498"
+    const val CART_AMOUNT_249 = "249"
+    const val FAKE_CART_ITEM_ID_PREFIX = "cart_"
+    const val FAKE_CART_ID_C1 = "c1"
+    const val FAKE_CART_ID_C2 = "c2"
+    const val FAKE_MENU_MARGHERITA_PIZZA = "Margherita Pizza"
+    const val FAKE_MENU_PLAIN_NAAN = "Plain Naan"
+    const val FAKE_MENU_PLAIN_WATER = "Plain Water"
+    const val FAKE_MENU_PRICE_50 = 50.0
+    const val FAKE_MENU_PRICE_10 = 10.0
+    const val ASSERT_UPDATE_QTY_INCREMENT = "Expected updateQuantity to be called after increment"
+    const val ASSERT_UPDATE_QTY_DECREMENT =
+        "Expected updateQuantity called when decrementing from qty 2"
+    const val ASSERT_REMOVE_ITEM_FROM_QTY_1 =
+        "Expected removeItem called when decrementing from qty 1"
+    const val ASSERT_CLEAR_CART_CALLED = "Expected clearCart called after valid order placed"
+    const val ASSERT_CLEAR_CART_NOT_CALLED = "Cart must NOT be cleared when minimum order not met"
+    const val FAKE_REST_RATING_STR = "4.6"    // Double → UI display substring
+    const val FAKE_REST_DELIVERY_TIME_STR = "30"     // Int → UI display substring
+    const val ASSERT_REST_ADD_ITEM_CALLED = "Expected addToCart called after ADD tap"
+    const val ASSERT_REST_UPDATE_QTY_CALLED = "Expected updateQuantity called after increment"
+    const val ASSERT_REST_REMOVE_ITEM_CALLED =
+        "Expected removeItem called when decrementing from qty 1"
+    const val PROFILE_DISPLAY_NAME = "Swapna"
+    const val PROFILE_DISPLAY_EMAIL = "swapna@example.com"
+    const val PROFILE_PHONE = "+919876543210"
+    const val PROFILE_ADDRESS_ID = "addr1"
+    const val PROFILE_ADDRESS_LABEL = "Home"
+    const val PROFILE_ADDRESS_FULL = "42, 3rd Floor, Koramangala"
+    const val PROFILE_ORDER_ID = "ord1"
+    const val PROFILE_ORDER_REST_NAME = "Meghana Foods"
+    const val PROFILE_ORDER_STATUS = "Delivered"
+    const val PROFILE_ORDER_TIME = "2 days ago"
+    const val PROFILE_ORDER_TOTAL = 450.0
+    const val PROFILE_ORDER_ITEM_NAME = "Chicken Biryani"
+    const val PROFILE_EDIT_NAME = "Swapna P"
+    const val PROFILE_EDIT_EMAIL = "swapna.p@example.com"
+    const val ASSERT_PROFILE_LOGOUT_CALLED = "Expected logout to trigger NavigateToLogin"
+    const val ASSERT_PROFILE_SAVE_CALLED = "Expected profile save to be called"
+    const val ASSERT_PROFILE_DELETE_CALLED = "Expected address delete to be called"
+    const val PROFILE_USER_ID = "u1"
+    const val PROFILE_ORDER_STATUS_DELIVERED = "Delivered"
+    const val TEST_ROUTE_CART = "cart"
+    const val TEST_ROUTE_RESTAURANT = "restaurant"
+    const val TEST_ROUTE_PROFILE = "profile"
+    const val TEST_ARG_RESTAURANT_ID = "restaurantId"
+    const val TEST_ARG_MENU_ITEM_ID = "menuItemId"
+    const val TEST_ROUTE_PRODUCT =
+        "product/{$TEST_ARG_RESTAURANT_ID}/{$TEST_ARG_MENU_ITEM_ID}"
+    const val ASSERT_LOGOUT_CALLED = "Expected logout() to be called on UserRepository"
+    const val ASSERT_DELETED_ADDRESS_ID_FMT = "Expected deleted id = %s but got %s"
 
 }

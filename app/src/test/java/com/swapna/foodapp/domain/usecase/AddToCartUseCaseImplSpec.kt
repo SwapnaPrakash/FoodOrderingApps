@@ -3,6 +3,8 @@ package com.swapna.foodapp.domain.usecase
 import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.repository.CartRepository
 import com.swapna.foodapp.domain.usecase.cart.AddToCartUseCaseImpl
+import com.swapna.foodapp.presentation.common.fakes.fakeCustomisationOption
+import com.swapna.foodapp.presentation.common.fakes.fakeMenuItem
 import com.swapna.foodapp.utils.AppConstants
 import com.swapna.foodapp.utils.TestConstants.BASE_PRICE_199
 import com.swapna.foodapp.utils.TestConstants.BASE_PRICE_249
@@ -19,8 +21,6 @@ import com.swapna.foodapp.utils.TestConstants.QTY_NEGATIVE
 import com.swapna.foodapp.utils.TestConstants.QTY_ZERO
 import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_598
 import com.swapna.foodapp.utils.TestConstants.TOTAL_PRICE_747
-import com.swapna.foodapp.utils.fakeCustomisationOption
-import com.swapna.foodapp.utils.fakeMenuItem
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -103,9 +103,6 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
                 coEvery { cartRepository.addItem(capture(slot2)) } just runs
                 useCase(item, 1)
 
-                // WHY check uniqueness?
-                // UUID.randomUUID() must differ per call
-                // Duplicate id = Room primary key conflict
                 slot1.captured.id shouldNotBe slot2.captured.id
             }
         }
@@ -155,9 +152,6 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
             }
 
             it("quantity below MIN throws IllegalArgumentException") {
-                // WHY require() not if-else?
-                // require() throws IllegalArgumentException
-                // Consistent with Kotlin stdlib contract
                 val below = AppConstants.MIN_CART_QUANTITY - 1
                 shouldThrow<IllegalArgumentException> {
                     useCase(fakeMenuItem(), below)
@@ -249,8 +243,6 @@ class AddToCartUseCaseImplSpec : DescribeSpec({
         context("CartItem totalPrice with qty and customisations") {
 
             it("totalPrice = (basePrice + extras) × qty") {
-                // base = 249.0, extra = 50.0, qty = 2
-                // total = (249 + 50) × 2 = 598.0
                 val item = fakeMenuItem(price = BASE_PRICE_249)
                 val customisations = listOf(
                     fakeCustomisationOption(extraPrice = EXTRA_PRICE_LARGE)

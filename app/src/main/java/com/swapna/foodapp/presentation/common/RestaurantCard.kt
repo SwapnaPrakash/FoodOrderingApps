@@ -34,14 +34,12 @@ fun RestaurantCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        // ✅ FIX: onClick() calls the passed-in lambda
-        // NOT a hardcoded id or remembered stale lambda
-        onClick  = onClick,
+        onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
             .padding(
                 horizontal = Dimens.SpaceL,
-                vertical   = Dimens.SpaceS,
+                vertical = Dimens.SpaceS,
             ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = Dimens.ElevationS,
@@ -50,67 +48,69 @@ fun RestaurantCard(
             containerColor = Color.White,
         ),
     ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        AsyncImage(
-            model = restaurant.imageUrl,
-            contentDescription = restaurant.name,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(Dimens.RestaurantCardHeight)
-                .clip(RoundedCornerShape(Dimens.RadiusM)),
-        )
         Column(
-            modifier = Modifier.padding(Dimens.SpaceM),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(
-                text       = restaurant.name,
-                style      = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+            AsyncImage(
+                model = restaurant.imageUrl,
+                contentDescription = restaurant.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Dimens.RestaurantCardHeight)
+                    .clip(RoundedCornerShape(Dimens.RadiusM)),
             )
-
-        Row(
-            modifier = Modifier.padding(top = Dimens.SpaceXS),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-
-
-            RatingBadge(rating = restaurant.rating)
-
-            Text(
-                text     = " • ${restaurant.cuisines.take(2)
-                    .joinToString(", ")}",
-                style    = MaterialTheme.typography.bodySmall,
-                color    = AppGray,
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-            Row(
-                modifier = Modifier.padding(top = Dimens.SpaceXS),
+            Column(
+                modifier = Modifier.padding(Dimens.SpaceM),
             ) {
                 Text(
-                    text  = "${restaurant.avgDeliveryTime}$MINS_SUFFIX",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = AppGray,
+                    text = restaurant.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                 )
-                Text(
-                    text  = CUISINE_SEPARATOR,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = AppGray,
-                )
-                Text(
-                    text  = if (restaurant.deliveryFee == 0.0)
-                        FREE_DELIVERY
-                    else
-                        "$DELIVERY_FEE_PREFIX${restaurant.deliveryFee.toInt()}$DELIVERY_FEE_SUFFIX",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = AppGray,
-                )
+
+                Row(
+                    modifier = Modifier.padding(top = Dimens.SpaceXS),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+
+
+                    RatingBadge(rating = restaurant.rating)
+
+                    Text(
+                        text = " • ${
+                            restaurant.cuisines.take(2)
+                                .joinToString(", ")
+                        }",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppGray,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.padding(top = Dimens.SpaceXS),
+                ) {
+                    Text(
+                        text = "${restaurant.avgDeliveryTime}$MINS_SUFFIX",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppGray,
+                    )
+                    Text(
+                        text = CUISINE_SEPARATOR,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppGray,
+                    )
+                    Text(
+                        text = if (restaurant.deliveryFee == 0.0)
+                            FREE_DELIVERY
+                        else
+                            "$DELIVERY_FEE_PREFIX${restaurant.deliveryFee.toInt()}$DELIVERY_FEE_SUFFIX",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppGray,
+                    )
+                }
             }
         }
-    }
     }
 }
