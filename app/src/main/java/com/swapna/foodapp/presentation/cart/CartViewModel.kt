@@ -2,20 +2,24 @@ package com.swapna.foodapp.presentation.cart
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swapna.foodapp.di.IoDispatcher
 import com.swapna.foodapp.domain.model.CartItem
 import com.swapna.foodapp.domain.model.CartPriceBreakdown
 import com.swapna.foodapp.domain.repository.CartRepository
 import com.swapna.foodapp.utils.AppBusinessRules
+import com.swapna.foodapp.utils.AppConstants
 import com.swapna.foodapp.utils.AppConstants.ERR_CART_EMPTY
 import com.swapna.foodapp.utils.AppConstants.ERR_FAILED_PLACE_ORDER
-import com.swapna.foodapp.utils.AppConstants.ERR_FAILED_REMOVE_ITEM
-import com.swapna.foodapp.utils.AppConstants.ERR_FAILED_UPDATE_ITEM
 import com.swapna.foodapp.utils.AppConstants.ERR_MIN_ORDER
 import com.swapna.foodapp.utils.AppConstants.EVENT_BUFFER_NAVIGATION
 import com.swapna.foodapp.utils.AppConstants.EVENT_BUFFER_UI
 import com.swapna.foodapp.utils.AppConstants.MSG_ITEM_REMOVED
 import com.swapna.foodapp.utils.AppConstants.MSG_ITEM_REMOVED_CART
+import com.swapna.foodapp.utils.AppConstants.UNKNOWN_ERROR
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,11 +29,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class CartViewModel @Inject constructor(
     private val cartRepository: CartRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     data class CartUiState(
@@ -38,7 +44,6 @@ class CartViewModel @Inject constructor(
         val isLoading: Boolean = true,
         val isEmpty: Boolean = false,
         val error: String? = null,
-        val restaurantName: String = "",
     )
 
     sealed class CartEvent {
@@ -84,12 +89,16 @@ class CartViewModel @Inject constructor(
     private fun observeCart() = viewModelScope.launch {
         cartRepository.getCartItems().collect { cartItems ->
             val subtotal = cartItems.sumOf { it.totalPrice }
+
             val delivery = when {
-                cartItems.isEmpty() -> 0.0
-                subtotal >= AppBusinessRules.FREE_DELIVERY_ABOVE -> 0.0
-                else -> AppBusinessRules.DEFAULT_DELIVERY_FEE
+                cartItems.isEmpty() -> AppBusinessRules.FREE_DELIVERY_FEE
+                subtotal <= AppBusinessRules.FREE_DELIVERY_FEE -> AppBusinessRules.FREE_DELIVERY_FEE
+                subtotal >= AppBusinessRules.FREE_DELIVERY_ABOVE -> AppBusinessRules.FREE_DELIVERY_FEE
+                else -> AppConstants.DEFAULT_DELIVERY_FEE
             }
+
             val taxes = subtotal * AppBusinessRules.GST_RATE
+
             _uiState.update {
                 it.copy(
                     items = cartItems,
@@ -101,53 +110,70 @@ class CartViewModel @Inject constructor(
                     ),
                     isLoading = false,
                     isEmpty = cartItems.isEmpty(),
-                    restaurantName = cartItems.firstOrNull()?.menuItem?.restaurantId ?: "",
                 )
             }
         }
     }
 
-    fun onIncrementItem(item: CartItem) = viewModelScope.launch {
-        try {
+    private val cartOperationHandler =
+        CoroutineExceptionHandler { _, exception ->
+            viewModelScope.launch(Dispatchers.Main) {
+                _uiEvents.emit(
+                    CartEvent.ShowError(exception.message ?: UNKNOWN_ERROR)
+                )
+            }
+        }
+
+    fun onIncrementItem(item: CartItem) =
+        viewModelScope.launch(ioDispatcher + cartOperationHandler) {
             cartRepository.updateQuantity(
                 itemId = item.id,
-                quantity = (item.quantity + 1).coerceAtMost(AppBusinessRules.MAX_ITEM_QUANTITY),
+                quantity = (item.quantity + 1)
+                    .coerceAtMost(AppBusinessRules.MAX_ITEM_QUANTITY),
             )
-        } catch (e: Exception) {
-            _uiEvents.emit(CartEvent.ShowError(e.message ?: ERR_FAILED_UPDATE_ITEM))
         }
-    }
 
-    fun onDecrementItem(item: CartItem) = viewModelScope.launch {
-        try {
+    fun onDecrementItem(item: CartItem) =
+        viewModelScope.launch(ioDispatcher + cartOperationHandler) {
             if (item.quantity <= 1) {
                 cartRepository.removeItem(item.id)
-                _uiEvents.emit(CartEvent.ShowSnackbar("${item.menuItem.name}$MSG_ITEM_REMOVED"))
+                withContext(Dispatchers.Main) {
+                    _uiEvents.emit(
+                        CartEvent.ShowSnackbar(
+                            "${item.menuItem.name}$MSG_ITEM_REMOVED"
+                        )
+                    )
+                }
             } else {
-                cartRepository.updateQuantity(itemId = item.id, quantity = item.quantity - 1)
+                cartRepository.updateQuantity(
+                    itemId = item.id,
+                    quantity = item.quantity - 1,
+                )
             }
-        } catch (e: Exception) {
-            _uiEvents.emit(CartEvent.ShowError(e.message ?: ERR_FAILED_UPDATE_ITEM))
         }
-    }
 
-    fun onRemoveItem(item: CartItem) = viewModelScope.launch {
-        try {
+    fun onRemoveItem(item: CartItem) =
+        viewModelScope.launch(ioDispatcher + cartOperationHandler) {
             cartRepository.removeItem(item.id)
-            _uiEvents.emit(CartEvent.ShowSnackbar("${item.menuItem.name}$MSG_ITEM_REMOVED_CART"))
-        } catch (e: Exception) {
-            _uiEvents.emit(CartEvent.ShowError(e.message ?: ERR_FAILED_REMOVE_ITEM))
+            withContext(Dispatchers.Main) {
+                _uiEvents.emit(
+                    CartEvent.ShowSnackbar(
+                        "${item.menuItem.name}$MSG_ITEM_REMOVED_CART"
+                    )
+                )
+            }
         }
-    }
 
     fun onPlaceOrder() = viewModelScope.launch {
         try {
-            val items = _uiState.value.items
-            if (items.isEmpty()) {
+            val state = _uiState.value
+
+            if (state.items.isEmpty()) {
                 _uiEvents.emit(CartEvent.ShowError(ERR_CART_EMPTY))
                 return@launch
             }
-            if (_uiState.value.breakdown.total < AppBusinessRules.MIN_ORDER_VALUE) {
+
+            if (state.breakdown.subtotal < AppBusinessRules.MIN_ORDER_VALUE) {
                 _uiEvents.emit(
                     CartEvent.ShowError(
                         "$ERR_MIN_ORDER${AppBusinessRules.MIN_ORDER_VALUE.toInt()}"
@@ -155,10 +181,16 @@ class CartViewModel @Inject constructor(
                 )
                 return@launch
             }
-            cartRepository.clearCart()
+
+            withContext(ioDispatcher) {
+                cartRepository.clearCart()
+            }
             _navigationEvents.emit(CartEvent.OrderPlaced)
+
         } catch (e: Exception) {
-            _uiEvents.emit(CartEvent.ShowError(e.message ?: ERR_FAILED_PLACE_ORDER))
+            _uiEvents.emit(
+                CartEvent.ShowError(e.message ?: ERR_FAILED_PLACE_ORDER)
+            )
         }
     }
 

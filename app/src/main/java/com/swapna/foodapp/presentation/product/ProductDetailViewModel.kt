@@ -3,6 +3,7 @@ package com.swapna.foodapp.presentation.product
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swapna.foodapp.di.IoDispatcher
 import com.swapna.foodapp.domain.model.CustomisationOption
 import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.domain.repository.RestaurantRepository
@@ -17,7 +18,10 @@ import com.swapna.foodapp.utils.AppConstants.ERR_ITEM_NOT_FOUND
 import com.swapna.foodapp.utils.AppConstants.EVENT_BUFFER_NAVIGATION
 import com.swapna.foodapp.utils.AppConstants.EVENT_BUFFER_UI
 import com.swapna.foodapp.utils.AppConstants.MSG_ADDED_TO_CART
+import com.swapna.foodapp.utils.AppConstants.PROD_MERGE
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,13 +31,17 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val restaurantRepository: RestaurantRepository,
     private val addToCartUseCase: AddToCartUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val restaurantId: String =
@@ -83,12 +91,17 @@ class ProductDetailViewModel @Inject constructor(
     )
     val events: SharedFlow<ProductDetailEvent> = _mergedEvents.asSharedFlow()
 
+    private val mergeObserverHandler =
+        CoroutineExceptionHandler { _, exception ->
+            Timber.e(exception, PROD_MERGE)
+        }
+
     init {
         loadMenuItem()
-        viewModelScope.launch {
+        viewModelScope.launch(mergeObserverHandler) {
             _navigationEvents.collect { _mergedEvents.emit(it) }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(mergeObserverHandler) {
             _uiEvents.collect { _mergedEvents.emit(it) }
         }
     }
@@ -115,8 +128,12 @@ class ProductDetailViewModel @Inject constructor(
                     }
                 },
                 onFailure = { error ->
+                    if (error is CancellationException) throw error
                     _uiState.update {
-                        it.copy(isLoading = false, error = error.message ?: ERR_FAILED_LOAD_ITEM)
+                        it.copy(
+                            isLoading = false,
+                            error = error.message ?: ERR_FAILED_LOAD_ITEM,
+                        )
                     }
                 }
             )
@@ -153,15 +170,22 @@ class ProductDetailViewModel @Inject constructor(
 
     fun onIncrementQuantity() {
         val item = _uiState.value.item ?: return
-        val newQty = (_uiState.value.quantity + 1).coerceAtMost(AppBusinessRules.MAX_ITEM_QUANTITY)
+        val newQty = (_uiState.value.quantity + 1)
+            .coerceAtMost(AppBusinessRules.MAX_ITEM_QUANTITY)
+            .coerceAtLeast(1)
         _uiState.update {
-            it.copy(quantity = newQty, totalPrice = computeTotal(item, it.selectedOptions, newQty))
+            it.copy(
+                quantity = newQty,
+                totalPrice = computeTotal(item, it.selectedOptions, newQty)
+            )
         }
     }
 
     fun onDecrementQuantity() {
         val item = _uiState.value.item ?: return
-        val newQty = (_uiState.value.quantity - 1).coerceAtLeast(1)
+        val newQty = (_uiState.value.quantity - 1)
+            .coerceAtLeast(1)
+            .coerceAtMost(AppBusinessRules.MAX_ITEM_QUANTITY)
         _uiState.update {
             it.copy(quantity = newQty, totalPrice = computeTotal(item, it.selectedOptions, newQty))
         }
@@ -179,13 +203,17 @@ class ProductDetailViewModel @Inject constructor(
                 group.options.find { it.id == selectedId }
             }
         try {
-            addToCartUseCase(
-                menuItem = item,
-                quantity = state.quantity,
-                customisations = selectedCustomisations,
-            )
+            withContext(ioDispatcher) {
+                addToCartUseCase(
+                    menuItem = item,
+                    quantity = state.quantity,
+                    customisations = selectedCustomisations,
+                )
+            }
             _uiEvents.emit(ProductDetailEvent.ShowSnackbar("${item.name}$MSG_ADDED_TO_CART"))
             _navigationEvents.emit(ProductDetailEvent.NavigateBack)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             _uiEvents.emit(ProductDetailEvent.ShowError(e.message ?: ERR_FAILED_ADD_CART))
         }

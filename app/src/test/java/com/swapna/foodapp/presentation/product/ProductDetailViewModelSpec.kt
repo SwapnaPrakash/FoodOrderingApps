@@ -92,6 +92,7 @@ class ProductDetailViewModelSpec : BehaviorSpec({
             savedStateHandle = handle,
             restaurantRepository = restaurantRepository,
             addToCartUseCase = addToCartUseCase,
+            ioDispatcher = dispatcher,
         )
     }
 
@@ -111,34 +112,24 @@ class ProductDetailViewModelSpec : BehaviorSpec({
     given("ProductDetailScreen is opened with item m1") {
 
         `when`("menu loads successfully") {
+            lateinit var vm: ProductDetailViewModel
+
+            beforeEach { vm = createViewModel() }
+
             then("uiState.item should be Chicken Biryani") {
-                createViewModel().uiState.value
-                    .item?.name shouldBe MENU_ITEM_CHICK_BIR
+                vm.uiState.value.item?.name shouldBe MENU_ITEM_CHICK_BIR
             }
-        }
-
-        `when`("menu loads successfully") {
             then("isLoading should be false") {
-                createViewModel().uiState.value.isLoading shouldBe false
+                vm.uiState.value.isLoading shouldBe false
             }
-        }
-
-        `when`("menu loads successfully") {
             then("error should be null") {
-                createViewModel().uiState.value.error shouldBe null
+                vm.uiState.value.error shouldBe null
             }
-        }
-
-        `when`("menu loads successfully") {
             then("initial quantity should be 1") {
-                createViewModel().uiState.value.quantity shouldBe CART_QTY_1
+                vm.uiState.value.quantity shouldBe CART_QTY_1
             }
-        }
-
-        `when`("menu loads successfully") {
             then("item should have 2 customisation groups") {
-                val item = createViewModel().uiState.value.item
-
+                val item = vm.uiState.value.item
                 item?.customisations?.size shouldBe CUSTOMISE_COUNT_SIZE
                 item?.customisations?.any { it.name == CUSTOMISE_NAME_SIZE } shouldBe true
                 item?.customisations?.any { it.name == CUSTOMISE_NAME_SPICE } shouldBe true
@@ -171,16 +162,17 @@ class ProductDetailViewModelSpec : BehaviorSpec({
     // GROUP 2 — Default Customisation Selections
     given("item with customisations loads") {
 
-        `when`("screen opens") {
+        `when`("screen opens with default selections") {
+            lateinit var vm: ProductDetailViewModel
+
+            beforeEach { vm = createViewModel() }
+
             then("first option of Size group is pre-selected") {
-                createViewModel().uiState.value
+                vm.uiState.value
                     .selectedOptions[CUSTOMISE_GROUP_SIZE] shouldBe CUSTOMISE_OPT_REGULAR
             }
-        }
-
-        `when`("screen opens") {
             then("first option of Spice group is pre-selected") {
-                createViewModel().uiState.value
+                vm.uiState.value
                     .selectedOptions[CUSTOMISE_GROUP_SPICE] shouldBe CUSTOMISE_OPT_MILD
             }
         }
@@ -207,22 +199,20 @@ class ProductDetailViewModelSpec : BehaviorSpec({
     given("user is customising their order") {
 
         `when`("user selects Large size (+₹50)") {
-            then("selectedOptions updates to large for size_group") {
-                val vm = createViewModel()
+            lateinit var vm: ProductDetailViewModel
+
+            beforeEach {
+                vm = createViewModel()
                 vm.onOptionSelected(
                     groupId = CUSTOMISE_GROUP_SIZE,
-                    optionId = CUSTOMISE_OPT_LARGE
+                    optionId = CUSTOMISE_OPT_LARGE,
                 )
+            }
 
+            then("selectedOptions updates to large for size_group") {
                 vm.uiState.value.selectedOptions[CUSTOMISE_GROUP_SIZE] shouldBe CUSTOMISE_OPT_LARGE
             }
-        }
-
-        `when`("user selects Large size (+₹50)") {
             then("totalPrice should be 299.0") {
-                val vm = createViewModel()
-                vm.onOptionSelected(groupId = CUSTOMISE_GROUP_SIZE, optionId = CUSTOMISE_OPT_LARGE)
-
                 vm.uiState.value.totalPrice shouldBe TOTAL_PRICE_299
             }
         }
@@ -424,25 +414,17 @@ class ProductDetailViewModelSpec : BehaviorSpec({
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onAddToCart()
-
                     awaitItem() shouldBe ProductDetailViewModel.ProductDetailEvent
                         .ShowSnackbar(MSG_BIRYANI_ADDED_CART)
-
                     cancelAndIgnoreRemainingEvents()
                 }
             }
-        }
-
-        `when`("add to cart succeeds") {
             then("NavigateBack event emitted after snackbar") {
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onAddToCart()
-
-                    awaitItem() // consume ShowSnackbar
-
+                    awaitItem()   // consume ShowSnackbar
                     awaitItem() shouldBe ProductDetailViewModel.ProductDetailEvent.NavigateBack
-
                     cancelAndIgnoreRemainingEvents()
                 }
             }

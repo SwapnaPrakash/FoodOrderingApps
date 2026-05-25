@@ -1,6 +1,6 @@
 package com.swapna.foodapp.fakes
 
-import com.swapna.foodapp.domain.model.Collections
+import com.swapna.foodapp.domain.model.RestaurantCollection
 import com.swapna.foodapp.domain.model.Cuisine
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.MenuItem
@@ -50,7 +50,7 @@ class FakeRestaurantRepository : RestaurantRepository {
     var nearbyRestaurantsResult: Result<List<Restaurant>> =
         Result.success(emptyList())
 
-    var collectionsResult: Result<List<Collections>> =
+    var restaurantCollectionResult: Result<List<RestaurantCollection>> =
         Result.success(emptyList())
 
     var categoriesResult: Result<List<FoodCategory>> =
@@ -67,8 +67,8 @@ class FakeRestaurantRepository : RestaurantRepository {
         return flowOf(nearbyRestaurantsResult)
     }
 
-    override fun getCollections(): Flow<Result<List<Collections>>> =
-        flowOf(collectionsResult)
+    override fun getRestaurantCollection(): Flow<Result<List<RestaurantCollection>>> =
+        flowOf(restaurantCollectionResult)
 
     override fun getCategories(): Flow<Result<List<FoodCategory>>> =
         flowOf(categoriesResult)

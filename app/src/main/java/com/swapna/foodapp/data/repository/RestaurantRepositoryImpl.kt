@@ -7,11 +7,11 @@ import com.swapna.foodapp.data.mapper.MenuMapper
 import com.swapna.foodapp.data.mapper.RestaurantMapper
 import com.swapna.foodapp.data.remote.api.FoodApi
 import com.swapna.foodapp.di.IoDispatcher
-import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.Cuisine
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.domain.model.RestaurantCollection
 import com.swapna.foodapp.domain.model.Review
 import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.repository.RestaurantRepository
@@ -80,11 +80,11 @@ class RestaurantRepositoryImpl @Inject constructor(
     }.flowOn(ioDispatcher)
 
     // GET COLLECTIONS — (Exciting Offers)
-    override fun getCollections(): Flow<Result<List<Collections>>> = flow {
+    override fun getRestaurantCollection(): Flow<Result<List<RestaurantCollection>>> = flow {
         try {
             val response = api.getCollections()
             val collections = response.collections.map { wrapper ->
-                Collections(
+                RestaurantCollection(
                     id = wrapper.collection.id,
                     title = wrapper.collection.title,
                     description = wrapper.collection.description,

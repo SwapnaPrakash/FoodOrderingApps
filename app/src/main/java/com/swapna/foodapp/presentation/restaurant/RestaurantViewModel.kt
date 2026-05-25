@@ -22,7 +22,12 @@ import com.swapna.foodapp.utils.AppConstants.ERR_FAILED_ADD_ITEM
 import com.swapna.foodapp.utils.AppConstants.ERR_FAILED_UPDATE_CART
 import com.swapna.foodapp.utils.AppConstants.EVENT_BUFFER_NAVIGATION
 import com.swapna.foodapp.utils.AppConstants.EVENT_BUFFER_UI
+import com.swapna.foodapp.utils.AppConstants.OBSERVER_FAILED
+import com.swapna.foodapp.utils.AppConstants.RESTAURANT_MERGE_FAILED
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +38,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -85,7 +91,6 @@ class RestaurantViewModel @Inject constructor(
             total = FREE_DELIVERY_FEE,
         )
     )
-
     val cartBreakdown: StateFlow<CartPriceBreakdown> = _cartBreakdown.asStateFlow()
 
     private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
@@ -95,13 +100,11 @@ class RestaurantViewModel @Inject constructor(
         extraBufferCapacity = EVENT_BUFFER_NAVIGATION,
         onBufferOverflow = BufferOverflow.SUSPEND,
     )
-
     private val _uiEvents = MutableSharedFlow<RestaurantEvent>(
         replay = 0,
         extraBufferCapacity = EVENT_BUFFER_UI,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-
     private val _mergedEvents = MutableSharedFlow<RestaurantEvent>(
         replay = 0,
         extraBufferCapacity = EVENT_BUFFER_NAVIGATION,
@@ -116,89 +119,115 @@ class RestaurantViewModel @Inject constructor(
     )
     val scrollToCategory: SharedFlow<String> = _scrollToCategory.asSharedFlow()
 
+    private val loadRestaurantDataHandler =
+        CoroutineExceptionHandler { _, exception ->
+            viewModelScope.launch(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isMenuLoading = false,
+                        error = exception.message ?: ERR_COULD_NOT_LOAD_RESTAURANT,
+                    )
+                }
+            }
+        }
+
+    private val observerExceptionHandler =
+        CoroutineExceptionHandler { _, exception ->
+            Timber.e(exception, OBSERVER_FAILED)
+        }
+
+    private val mergeObserverHandler =
+        CoroutineExceptionHandler { _, exception ->
+            Timber.e(exception, RESTAURANT_MERGE_FAILED)
+        }
+
     init {
         loadRestaurantData()
         observeCart()
         observeQuantities()
         observeBreakdown()
-        viewModelScope.launch {
+        viewModelScope.launch(mergeObserverHandler) {
             _navigationEvents.collect { _mergedEvents.emit(it) }
         }
-        viewModelScope.launch {
+        viewModelScope.launch(mergeObserverHandler) {
             _uiEvents.collect { _mergedEvents.emit(it) }
         }
     }
 
-    private fun loadRestaurantData() = viewModelScope.launch {
-        combine(
-            restaurantRepository.getRestaurantDetail(restaurantId),
-            restaurantRepository.getMenuItems(restaurantId),
-            restaurantRepository.getReviews(restaurantId),
-        ) { restaurantResult, menuResult, reviewsResult ->
-            val restaurant = restaurantResult.getOrNull()
-            val menuMap = menuResult.getOrDefault(emptyMap())
-            val reviews = reviewsResult.getOrDefault(emptyList())
-            val recommended = menuMap.values.flatten()
-                .filter { it.isRecommended }
-                .take(AppConstants.MAX_RECOMMENDED_ITEMS)
+    private fun loadRestaurantData() =
+        viewModelScope.launch(loadRestaurantDataHandler) {
+            combine(
+                restaurantRepository.getRestaurantDetail(restaurantId),
+                restaurantRepository.getMenuItems(restaurantId),
+                restaurantRepository.getReviews(restaurantId),
+            ) { restaurantResult, menuResult, reviewsResult ->
+                val restaurant = restaurantResult.getOrNull()
+                val menuMap = menuResult.getOrDefault(emptyMap())
+                val reviews = reviewsResult.getOrDefault(emptyList())
+                val recommended = menuMap.values.flatten()
+                    .filter { it.isRecommended }
+                    .take(AppConstants.MAX_RECOMMENDED_ITEMS)
 
-            RestaurantUiState(
-                restaurant = restaurant,
-                menuByCategory = menuMap,
-                recommended = recommended,
-                reviews = reviews,
-                isLoading = false,
-                isMenuLoading = false,
-                error = if (restaurant == null) ERR_COULD_NOT_LOAD_RESTAURANT else null,
-            )
-        }.collect { newState ->
-            _uiState.update { current ->
-                newState.copy(cartItemCount = current.cartItemCount, cartTotal = current.cartTotal)
-            }
-        }
-    }
-
-    private fun observeCart() = viewModelScope.launch {
-        combine(
-            cartRepository.getCartItemCount(),
-            cartRepository.getCartTotal(),
-        ) { count, breakdown -> count to breakdown }
-            .collect { (count, breakdown) ->
-                _uiState.update {
-                    it.copy(cartItemCount = count, cartTotal = breakdown.total)
+                RestaurantUiState(
+                    restaurant = restaurant,
+                    menuByCategory = menuMap,
+                    recommended = recommended,
+                    reviews = reviews,
+                    isLoading = false,
+                    isMenuLoading = false,
+                    error = if (restaurant == null) ERR_COULD_NOT_LOAD_RESTAURANT else null,
+                )
+            }.collect { newState ->
+                _uiState.update { current ->
+                    newState.copy(
+                        cartItemCount = current.cartItemCount,
+                        cartTotal = current.cartTotal,
+                    )
                 }
-                _cartBreakdown.value = breakdown
             }
-    }
-
-    private fun observeQuantities() = viewModelScope.launch {
-        cartRepository.getCartItems().collect { items ->
-            _cartItems.value = items
-            _quantities.value = items.associate { it.menuItem.id to it.quantity }
         }
-    }
 
-    private fun observeBreakdown() = viewModelScope.launch {
-        cartRepository.getCartItems().collect { items ->
-            val subtotal = items.sumOf { it.totalPrice }
-            val delivery = when {
-                subtotal <= 0.0 -> 0.0
-                subtotal >= AppBusinessRules.FREE_DELIVERY_ABOVE -> 0.0
-                else -> AppBusinessRules.DEFAULT_DELIVERY_FEE
+    private fun observeCart() =
+        viewModelScope.launch(observerExceptionHandler) {
+            combine(
+                cartRepository.getCartItemCount(),
+                cartRepository.getCartTotal(),
+            ) { count, breakdown -> count to breakdown }
+                .collect { (count, breakdown) ->
+                    _uiState.update {
+                        it.copy(cartItemCount = count, cartTotal = breakdown.total)
+                    }
+                    _cartBreakdown.value = breakdown
+                }
+        }
+
+    private fun observeQuantities() =
+        viewModelScope.launch(observerExceptionHandler) {
+            cartRepository.getCartItems().collect { items ->
+                _cartItems.value = items
+                _quantities.value = items.associate { it.menuItem.id to it.quantity }
             }
-            val taxes = subtotal * AppBusinessRules.GST_RATE
-            _cartBreakdown.value = CartPriceBreakdown(
-                subtotal = subtotal,
-                deliveryFee = delivery,
-                taxes = taxes,
-                total = subtotal + delivery + taxes,
-            )
         }
-    }
 
-    fun onMenuItemTapped(itemId: String) = viewModelScope.launch {
-        _navigationEvents.emit(RestaurantEvent.NavigateToProduct(itemId))
-    }
+    private fun observeBreakdown() =
+        viewModelScope.launch(observerExceptionHandler) {
+            cartRepository.getCartItems().collect { items ->
+                val subtotal = items.sumOf { it.totalPrice }
+                val delivery = when {
+                    subtotal <= 0.0 -> 0.0
+                    subtotal >= AppBusinessRules.FREE_DELIVERY_ABOVE -> 0.0
+                    else -> AppBusinessRules.DEFAULT_DELIVERY_FEE
+                }
+                val taxes = subtotal * AppBusinessRules.GST_RATE
+                _cartBreakdown.value = CartPriceBreakdown(
+                    subtotal = subtotal,
+                    deliveryFee = delivery,
+                    taxes = taxes,
+                    total = subtotal + delivery + taxes,
+                )
+            }
+        }
 
     fun quickAddToCart(item: MenuItem) = viewModelScope.launch {
         try {
@@ -208,6 +237,8 @@ class RestaurantViewModel @Inject constructor(
                 customisations = emptyList(),
             )
             _uiEvents.emit(RestaurantEvent.ItemAdded(item.name))
+        } catch (e: CancellationException) {
+            throw e   // Fix 1 — rethrow structured concurrency
         } catch (e: Exception) {
             _uiEvents.emit(RestaurantEvent.ShowError(e.message ?: ERR_COULD_NOT_ADD_CART))
         }
@@ -228,9 +259,12 @@ class RestaurantViewModel @Inject constructor(
                     ?: return@launch
                 cartRepository.updateQuantity(
                     itemId = cartItem.id,
-                    quantity = (currentQty + 1).coerceAtMost(AppBusinessRules.MAX_ITEM_QUANTITY),
+                    quantity = (currentQty + 1)
+                        .coerceAtMost(AppBusinessRules.MAX_ITEM_QUANTITY),
                 )
             }
+        } catch (e: CancellationException) {
+            throw e   // Fix 2 — rethrow
         } catch (e: Exception) {
             _uiEvents.emit(RestaurantEvent.ShowError(e.message ?: ERR_FAILED_ADD_ITEM))
         }
@@ -250,27 +284,38 @@ class RestaurantViewModel @Inject constructor(
                         quantity = cartItem.quantity - 1,
                     )
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             _uiEvents.emit(RestaurantEvent.ShowError(e.message ?: ERR_FAILED_UPDATE_CART))
         }
     }
 
-    fun onCategoryFooterTapped(category: String) = viewModelScope.launch {
-        _scrollToCategory.emit(category)
-    }
+    fun onMenuItemTapped(itemId: String) =
+        viewModelScope.launch {
+            _navigationEvents.emit(RestaurantEvent.NavigateToProduct(itemId))
+        }
+
+    fun onCartBarTapped() =
+        viewModelScope.launch {
+            _navigationEvents.emit(RestaurantEvent.NavigateToCart)
+        }
+
+    fun onBackPressed() =
+        viewModelScope.launch {
+            _navigationEvents.emit(RestaurantEvent.NavigateBack)
+        }
+
+    fun onCategoryFooterTapped(category: String) =
+        viewModelScope.launch {
+            _scrollToCategory.emit(category)
+        }
 
     fun onTabSelected(tab: MenuTab) {
         _uiState.update { it.copy(selectedTab = tab) }
     }
 
-    fun onCartBarTapped() = viewModelScope.launch {
-        _navigationEvents.emit(RestaurantEvent.NavigateToCart)
-    }
-
-    fun onBackPressed() = viewModelScope.launch {
-        _navigationEvents.emit(RestaurantEvent.NavigateBack)
-    }
-
     fun retry() = loadRestaurantData()
+
     fun getCategoryNames() = _uiState.value.menuByCategory.keys.toList()
 }

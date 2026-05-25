@@ -60,7 +60,10 @@ class ProfileViewModelSpec : BehaviorSpec({
     val userRepository = mockk<UserRepository>()
     val userFlow = MutableStateFlow<User?>(null)
 
-    fun createViewModel() = ProfileViewModel(userRepository = userRepository)
+    fun createViewModel() = ProfileViewModel(
+        userRepository = userRepository,
+        ioDispatcher = dispatcher,
+    )
 
     beforeEach {
         clearAllMocks()
@@ -79,39 +82,34 @@ class ProfileViewModelSpec : BehaviorSpec({
     // GROUP 1 — Initial Profile Load
     given("ProfileScreen opens for the first time") {
 
-        `when`("user is logged in and profile loads") {
-            then("isLoading is false") {
-                createViewModel().uiState.value.isLoading shouldBe false
-            }
-        }
+        `when`("user profile loads successfully") {
+            lateinit var vm: ProfileViewModel
+            beforeEach { vm = createViewModel() }
 
-        `when`("user profile loads") {
+            then("isLoading is false") { vm.uiState.value.isLoading shouldBe false }
+
             then("user name is Swapna") {
-                createViewModel().uiState.value.user?.name shouldBe USER_NAME_SWAPNA
+                vm.uiState.value.user?.name shouldBe USER_NAME_SWAPNA
             }
-        }
 
-        `when`("user profile loads") {
-            then("error is null") {
-                createViewModel().uiState.value.error shouldBe null
-            }
-        }
+            then("error is null") { vm.uiState.value.error shouldBe null }
 
-        `when`("user profile loads") {
-            then("isLoggedIn computed property is true") {
-                createViewModel().uiState.value.isLoggedIn shouldBe true
-            }
-        }
+            then("isLoggedIn is true") { vm.uiState.value.isLoggedIn shouldBe true }
 
-        `when`("user has name and email set") {
             then("displayName shows user name") {
-                createViewModel().uiState.value.displayName shouldBe USER_NAME_SWAPNA
+                vm.uiState.value.displayName shouldBe USER_NAME_SWAPNA
             }
-        }
 
-        `when`("user has name and email set") {
             then("displayEmail shows user email") {
-                createViewModel().uiState.value.displayEmail shouldBe USER_EMAIL_SWAPNA
+                vm.uiState.value.displayEmail shouldBe USER_EMAIL_SWAPNA
+            }
+
+            then("editName matches user name") {
+                vm.uiState.value.editName shouldBe USER_NAME_SWAPNA
+            }
+
+            then("editEmail matches user email") {
+                vm.uiState.value.editEmail shouldBe USER_EMAIL_SWAPNA
             }
         }
 
@@ -141,17 +139,6 @@ class ProfileViewModelSpec : BehaviorSpec({
             }
         }
 
-        `when`("editName and editEmail pre-filled on load") {
-            then("editName matches user name") {
-                createViewModel().uiState.value.editName shouldBe USER_NAME_SWAPNA
-            }
-        }
-
-        `when`("editName and editEmail pre-filled on load") {
-            then("editEmail matches user email") {
-                createViewModel().uiState.value.editEmail shouldBe USER_EMAIL_SWAPNA
-            }
-        }
     }
 
     // GROUP 2 — Orders Load
@@ -209,25 +196,23 @@ class ProfileViewModelSpec : BehaviorSpec({
     given("user taps Edit button") {
 
         `when`("onEditClicked called") {
-            then("isEditMode becomes true") {
-                val vm = createViewModel()
+
+            lateinit var vm: ProfileViewModel
+
+            beforeEach {
+                vm = createViewModel()
                 vm.onEditClicked()
+            }
+
+            then("isEditMode becomes true") {
                 vm.uiState.value.isEditMode shouldBe true
             }
-        }
 
-        `when`("onEditClicked called") {
             then("editName pre-filled with current user name") {
-                val vm = createViewModel()
-                vm.onEditClicked()
                 vm.uiState.value.editName shouldBe USER_NAME_SWAPNA
             }
-        }
 
-        `when`("onEditClicked called") {
             then("editEmail pre-filled with current user email") {
-                val vm = createViewModel()
-                vm.onEditClicked()
                 vm.uiState.value.editEmail shouldBe USER_EMAIL_SWAPNA
             }
         }
@@ -294,23 +279,23 @@ class ProfileViewModelSpec : BehaviorSpec({
         }
 
         `when`("save succeeds") {
+
             then("isEditMode becomes false") {
                 val vm = createViewModel()
                 vm.onEditClicked()
                 vm.onSaveProfile()
                 vm.uiState.value.isEditMode shouldBe false
             }
-        }
 
-        `when`("save succeeds") {
-            then("ShowSnackbar event emitted with Profile updated") {
+            then("ShowSnackbar emitted with Profile updated") {
+
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onEditClicked()
                     vm.onSaveProfile()
-
-                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
-                        .ShowSnackbar(MSG_PROFILE_UPDATED_TICK)
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent.ShowSnackbar(
+                        MSG_PROFILE_UPDATED_TICK
+                    )
 
                     cancelAndIgnoreRemainingEvents()
                 }
@@ -324,22 +309,15 @@ class ProfileViewModelSpec : BehaviorSpec({
                 vm.onNameChanged("")
                 vm.events.test {
                     vm.onSaveProfile()
-
-                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
-                        .ShowError(ERR_NAME_EMPTY_MSG)
-
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent.ShowError(ERR_NAME_EMPTY_MSG)
                     cancelAndIgnoreRemainingEvents()
                 }
             }
-        }
-
-        `when`("name is blank") {
             then("updateUser is NOT called") {
                 val vm = createViewModel()
                 vm.onEditClicked()
                 vm.onNameChanged("")
                 vm.onSaveProfile()
-
                 coVerify(exactly = 0) { userRepository.updateUser(any()) }
             }
         }
@@ -388,17 +366,13 @@ class ProfileViewModelSpec : BehaviorSpec({
                 vm.onDeleteAddress(ADDRESS_ID_1)
                 coVerify { userRepository.deleteAddress(ADDRESS_ID_1) }
             }
-        }
-
-        `when`("deleteAddress succeeds") {
             then("ShowSnackbar emitted with Address removed") {
                 val vm = createViewModel()
                 vm.events.test {
                     vm.onDeleteAddress(ADDRESS_ID_1)
-
-                    awaitItem() shouldBe ProfileViewModel.ProfileEvent
-                        .ShowSnackbar(MSG_ADDRESS_REMOVED)
-
+                    awaitItem() shouldBe ProfileViewModel.ProfileEvent.ShowSnackbar(
+                        MSG_ADDRESS_REMOVED
+                    )
                     cancelAndIgnoreRemainingEvents()
                 }
             }
@@ -430,9 +404,6 @@ class ProfileViewModelSpec : BehaviorSpec({
                 createViewModel().also { it.onLogout() }
                 coVerify { userRepository.logout() }
             }
-        }
-
-        `when`("logout succeeds") {
             then("NavigateToLogin event emitted") {
                 val vm = createViewModel()
                 vm.events.test {

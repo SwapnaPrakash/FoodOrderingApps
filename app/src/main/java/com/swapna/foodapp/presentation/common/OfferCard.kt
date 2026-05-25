@@ -27,7 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.swapna.foodapp.domain.model.Collections
+import com.swapna.foodapp.domain.model.RestaurantCollection
 import com.swapna.foodapp.presentation.ui.theme.Dimens
 import com.swapna.foodapp.presentation.ui.theme.Dimens.OfferCardElevation
 import com.swapna.foodapp.presentation.ui.theme.GradientEnd
@@ -38,7 +38,7 @@ import com.swapna.foodapp.utils.AppConstants.RESTAURANT
 
 @Composable
 fun OfferCard(
-    collection: Collections,
+    collection: RestaurantCollection,
     modifier: Modifier = Modifier,
 ) {
     Card(

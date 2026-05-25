@@ -141,37 +141,29 @@ class RestaurantViewModelSpec : BehaviorSpec({
     // GROUP 1 — Initial Data Loading
     given("user opens RestaurantScreen") {
 
-        `when`("restaurant detail loads successfully") {
+        `when`("restaurant and menu load successfully") {
+            lateinit var vm: RestaurantViewModel
+
+            beforeEach {
+                vm = createViewModel()   // ONE VM shared
+            }
+
             then("restaurant name should be Meghana Foods") {
-                createViewModel().uiState.value
-                    .restaurant?.name shouldBe RESTAURANT_MEGHANA
+                vm.uiState.value.restaurant?.name shouldBe RESTAURANT_MEGHANA
             }
-        }
-
-        `when`("restaurant detail loads — isLoading check") {
             then("isLoading should be false after loading") {
-                createViewModel().uiState.value.isLoading shouldBe false
+                vm.uiState.value.isLoading shouldBe false
             }
-        }
-
-        `when`("restaurant detail loads — error check") {
             then("error should be null on success") {
-                createViewModel().uiState.value.error shouldBe null
+                vm.uiState.value.error shouldBe null
             }
-        }
-
-        `when`("menu loads successfully") {
             then("menuByCategory has 2 categories Biryani and Starters") {
-                val menu = createViewModel().uiState.value.menuByCategory
+                val menu = vm.uiState.value.menuByCategory
                 menu.size shouldBe MENU_CATEGORY_COUNT
                 menu.containsKey(CATEGORY_BIRYANI_CAT) shouldBe true
                 menu.containsKey(CATEGORY_STARTERS) shouldBe true
             }
-        }
-
-        `when`("menu loads — recommended items check") {
             then("recommended list not empty and all are isRecommended") {
-                val vm = createViewModel()
                 vm.uiState.value.recommended.isNotEmpty() shouldBe true
                 vm.uiState.value.recommended.all { it.isRecommended } shouldBe true
             }
@@ -351,17 +343,15 @@ class RestaurantViewModelSpec : BehaviorSpec({
     // GROUP 6 — onIncrementItem
     given("user taps + on menu item row") {
 
-        `when`("item is NOT in cart — use case called check") {
+        `when`("item is NOT in cart") {
+            lateinit var vm: RestaurantViewModel
+            beforeEach { vm = createViewModel() }
+
             then("AddToCartUseCase called once") {
-                val vm = createViewModel()
                 vm.onIncrementItem(chickenBiryani)
                 coVerify(exactly = 1) { addToCartUseCase(any(), any(), any()) }
             }
-        }
-
-        `when`("item is NOT in cart — event check") {
             then("ItemAdded event emitted on first add") {
-                val vm = createViewModel()
                 vm.events.test {
                     vm.onIncrementItem(chickenBiryani)
                     val event = awaitItem()

@@ -1,7 +1,7 @@
 package com.swapna.foodapp.presentation.common.fakes
 
-import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.FoodCategory
+import com.swapna.foodapp.domain.model.RestaurantCollection
 import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_BIRYANI
 import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_ID_1
 import com.swapna.foodapp.utils.TestConstants.HOME_CATEGORY_ID_2
@@ -15,7 +15,7 @@ import com.swapna.foodapp.utils.TestConstants.HOME_RESTAURANT_ID_1
 import com.swapna.foodapp.utils.TestConstants.HOME_RESTAURANT_ID_2
 
 val getHomeDataFakeCollections = listOf(
-    Collections(
+    RestaurantCollection(
         HOME_COLLECTION_ID,
         HOME_COLLECTION_TITLE,
         HOME_COLLECTION_DESC,

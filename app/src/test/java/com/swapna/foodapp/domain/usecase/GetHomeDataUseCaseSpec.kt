@@ -61,7 +61,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
         context("all repositories return data successfully") {
 
             beforeEach {
-                every { restaurantRepository.getCollections() } returns
+                every { restaurantRepository.getRestaurantCollection() } returns
                         flowOf(Result.success(getHomeDataFakeCollections))
                 every { restaurantRepository.getCategories() } returns
                         flowOf(Result.success(getHomeDataFakeCategories))
@@ -99,7 +99,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
         context("collections fail but categories and restaurants succeed") {
 
             beforeEach {
-                every { restaurantRepository.getCollections() } returns
+                every { restaurantRepository.getRestaurantCollection() } returns
                         flowOf(Result.success(emptyList()))
                 every { restaurantRepository.getCategories() } returns
                         flowOf(Result.success(getHomeDataFakeCategories))
@@ -122,7 +122,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
         context("all repositories return empty lists") {
 
             beforeEach {
-                every { restaurantRepository.getCollections() } returns flowOf(
+                every { restaurantRepository.getRestaurantCollection() } returns flowOf(
                     Result.success(
                         emptyList()
                     )
@@ -155,7 +155,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
         context("restaurants fail with network error") {
 
             beforeEach {
-                every { restaurantRepository.getCollections() } returns
+                every { restaurantRepository.getRestaurantCollection() } returns
                         flowOf(Result.success(getHomeDataFakeCollections))
                 every { restaurantRepository.getCategories() } returns
                         flowOf(Result.success(getHomeDataFakeCategories))
@@ -163,12 +163,18 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
                         flowOf(Result.failure(Exception(ERR_NO_INTERNET_MSG)))
             }
 
-            it("HomeData should still be returned — restaurants will be empty") {
+            it("Result.failure is returned — restaurants are critical") {
                 val useCase = GetHomeDataUseCase(restaurantRepository)
                 val result = useCase().first()
 
-                result.isSuccess shouldBe true
-                result.getOrNull()!!.restaurants.shouldBeEmpty()
+                result.isFailure shouldBe true
+            }
+
+            it("failure message matches network error") {
+                val useCase = GetHomeDataUseCase(restaurantRepository)
+                val result = useCase().first()
+
+                result.exceptionOrNull()?.message shouldBe ERR_NO_INTERNET_MSG
             }
         }
     }
@@ -177,7 +183,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("selectedLocation is blank — no filter applied") {
         it("filterStatus is NO_FILTER and all restaurants returned") {
-            every { restaurantRepository.getCollections() } returns flowOf(
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(
                 Result.success(
                     getHomeDataFakeCollections
                 )
@@ -205,7 +211,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("selectedLocation is 'Select Location' — no filter applied") {
         it("filterStatus is NO_FILTER and all restaurants returned") {
-            every { restaurantRepository.getCollections() } returns flowOf(
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(
                 Result.success(
                     getHomeDataFakeCollections
                 )
@@ -234,7 +240,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("selectedLocation is 'Current Location' — GPS fallback") {
         it("filterStatus is NO_FILTER and all restaurants returned") {
-            every { restaurantRepository.getCollections() } returns flowOf(
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(
                 Result.success(
                     getHomeDataFakeCollections
                 )
@@ -269,7 +275,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
         )
 
         beforeEach {
-            every { restaurantRepository.getCollections() } returns flowOf(
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(
                 Result.success(
                     getHomeDataFakeCollections
                 )
@@ -318,7 +324,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("selectedLocation has city suffix — Koramangala, Bengaluru") {
         it("extracts first part before comma and matches correctly") {
-            every { restaurantRepository.getCollections() } returns flowOf(Result.success(emptyList()))
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getCategories() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getNearbyRestaurants() } returns flowOf(
                 Result.success(
@@ -341,7 +347,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("matchesLocation — locality contains key (partial match)") {
         it("Greater Koramangala locality matches Koramangala search") {
-            every { restaurantRepository.getCollections() } returns flowOf(Result.success(emptyList()))
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getCategories() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getNearbyRestaurants() } returns flowOf(
                 Result.success(
@@ -364,7 +370,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("matchesLocation — key contains locality (reverse partial)") {
         it("Koramangala 5th Block search matches locality Koramangala") {
-            every { restaurantRepository.getCollections() } returns flowOf(Result.success(emptyList()))
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getCategories() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getNearbyRestaurants() } returns flowOf(
                 Result.success(
@@ -387,7 +393,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("matchesLocation — address contains key fallback") {
         it("restaurant with Koramangala in address but different locality matches") {
-            every { restaurantRepository.getCollections() } returns flowOf(Result.success(emptyList()))
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getCategories() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getNearbyRestaurants() } returns flowOf(
                 Result.success(
@@ -410,7 +416,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("matchesLocation — case insensitive") {
         it("lowercase koramangala matches KORAMANGALA locality") {
-            every { restaurantRepository.getCollections() } returns flowOf(Result.success(emptyList()))
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getCategories() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getNearbyRestaurants() } returns flowOf(
                 Result.success(
@@ -440,7 +446,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
         )
 
         beforeEach {
-            every { restaurantRepository.getCollections() } returns flowOf(
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(
                 Result.success(
                     getHomeDataFakeCollections
                 )
@@ -496,7 +502,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("NOT_SERVICEABLE for out-of-city location — Mumbai") {
         it("returns NOT_SERVICEABLE with all local areas as suggestions") {
-            every { restaurantRepository.getCollections() } returns flowOf(Result.success(emptyList()))
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getCategories() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getNearbyRestaurants() } returns flowOf(
                 Result.success(
@@ -518,7 +524,7 @@ class GetHomeDataUseCaseSpec : DescribeSpec({
 
     context("availableAreas deduplication — multiple restaurants same locality") {
         it("availableAreas has no duplicates and is sorted") {
-            every { restaurantRepository.getCollections() } returns flowOf(Result.success(emptyList()))
+            every { restaurantRepository.getRestaurantCollection() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getCategories() } returns flowOf(Result.success(emptyList()))
             every { restaurantRepository.getNearbyRestaurants() } returns flowOf(
                 Result.success(

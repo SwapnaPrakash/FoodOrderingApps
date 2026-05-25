@@ -55,6 +55,7 @@ import kotlinx.coroutines.test.setMain
 class HomeViewModelSpec : BehaviorSpec({
 
     val dispatcher = UnconfinedTestDispatcher()
+
     val getHomeDataUseCase = mockk<GetHomeDataUseCase>()
     val connectivityObserver = mockk<ConnectivityObserver>()
     val locationManager = mockk<LocationManager>()
@@ -80,55 +81,65 @@ class HomeViewModelSpec : BehaviorSpec({
         networkFlow.value = NetworkStatus.Available
 
         every { connectivityObserver.networkStatus } returns networkFlow
-        every { getHomeDataUseCase(any()) } returns flowOf(Result.success(homeData()))
-        coEvery { locationManager.getCurrentLocation() } returns Result.success(
-            CurrentLocationResult(
-                displayAddress = HOME_LOC_KORAMANGALA,
-                latitude = GPS_LAT,
-                longitude = GPS_LNG,
-            )
-        )
+        every { getHomeDataUseCase(any()) } returns
+                flowOf(Result.success(homeData()))
+        coEvery { locationManager.getCurrentLocation() } returns
+                Result.success(
+                    CurrentLocationResult(
+                        displayAddress = HOME_LOC_KORAMANGALA,
+                        latitude = GPS_LAT,
+                        longitude = GPS_LNG,
+                    )
+                )
     }
 
     afterEach { Dispatchers.resetMain() }
+
 
     // GROUP 1 — Initial State
     given("HomeScreen opens for the first time") {
 
         `when`("ViewModel is created") {
+            lateinit var vm: HomeViewModel
+
+            beforeEach {
+                vm = createViewModel()   // ONE VM — all then blocks share
+            }
+
             then("isLoading is false after data loads") {
-                createViewModel().uiState.value.isLoading shouldBe false
+                vm.uiState.value.isLoading shouldBe false
             }
             then("error is null") {
-                createViewModel().uiState.value.error shouldBe null
+                vm.uiState.value.error shouldBe null
             }
             then("selectedLocation defaults to DEFAULT_LOCATION") {
-                createViewModel().uiState.value.selectedLocation shouldBe DEFAULT_LOCATION
+                vm.uiState.value.selectedLocation shouldBe DEFAULT_LOCATION
             }
             then("selectedTab is DELIVERY") {
-                createViewModel().uiState.value.selectedTab shouldBe
+                vm.uiState.value.selectedTab shouldBe
                         HomeViewModel.DeliveryTab.DELIVERY
             }
             then("cartItemCount is 0") {
-                createViewModel().uiState.value.cartItemCount shouldBe 0
+                vm.uiState.value.cartItemCount shouldBe 0
             }
             then("showLocationPicker is false") {
-                createViewModel().uiState.value.showLocationPicker shouldBe false
+                vm.uiState.value.showLocationPicker shouldBe false
             }
             then("savedAddresses is empty") {
-                createViewModel().uiState.value.savedAddresses shouldBe emptyList()
+                vm.uiState.value.savedAddresses shouldBe emptyList()
             }
             then("restaurants list has 4 items") {
-                createViewModel().uiState.value.restaurants.size shouldBe HOME_REST_COUNT_4
+                vm.uiState.value.restaurants.size shouldBe HOME_REST_COUNT_4
             }
             then("collections has 2 items") {
-                createViewModel().uiState.value.collections.size shouldBe HOME_COLL_SIZE_2
+                vm.uiState.value.collections.size shouldBe HOME_COLL_SIZE_2
             }
             then("categories has 2 items") {
-                createViewModel().uiState.value.categories.size shouldBe HOME_CAT_COUNT_2
+                vm.uiState.value.categories.size shouldBe HOME_CAT_COUNT_2
             }
         }
     }
+
 
     // GROUP 2 — API Error + Retry
     given("API throws error") {
@@ -162,7 +173,11 @@ class HomeViewModelSpec : BehaviorSpec({
             }
         }
     }
+
+
     // GROUP 3 — Location Selection
+    // WHY VM per then:
+    // Each then needs different stub (different restaurant list)
     given("user selects a delivery location") {
 
         `when`("Koramangala is selected") {
@@ -237,6 +252,10 @@ class HomeViewModelSpec : BehaviorSpec({
     }
 
     // GROUP 4 — Saved Location Restored
+    // WHY VM per then:
+    // Each then sets different fakeUserRepo state before VM
+    // UserRepository.getCurrentUser() emits on VM init
+
     given("user had previously saved Indiranagar") {
 
         `when`("app reopens and Room emits saved location") {
@@ -268,7 +287,12 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
+    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Saved Addresses
+    // WHY VM per then:
+    // Each then sets different fakeUserRepo address state
+    // ══════════════════════════════════════════════════════════
+
     given("user has saved addresses in profile") {
 
         `when`("ViewModel loads user profile") {
@@ -295,39 +319,74 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
+    // ══════════════════════════════════════════════════════════
     // GROUP 6 — Cart Count
+    // WHY shared VM for "cart has 3 items":
+    // setItemCount BEFORE VM → Flow emits on creation → correct
+    // WHY no shared VM for "cart is empty":
+    // default is empty — VM already correct without seeding
+    // ══════════════════════════════════════════════════════════
+
     given("cart has items") {
 
         `when`("cart has 3 items") {
+            lateinit var vm: HomeViewModel
+
+            beforeEach {
+                fakeCartRepo.setItemCount(HOME_CART_COUNT_3)  // seed first
+                vm = createViewModel()                          // then create
+            }
+
             then("cartItemCount shows 3") {
-                fakeCartRepo.setItemCount(HOME_CART_COUNT_3)
-                createViewModel().uiState.value.cartItemCount shouldBe HOME_CART_COUNT_3
+                vm.uiState.value.cartItemCount shouldBe HOME_CART_COUNT_3
             }
         }
 
         `when`("cart is empty") {
+            lateinit var vm: HomeViewModel
+
+            beforeEach {
+                vm = createViewModel()   // default cart is empty
+            }
+
             then("cartItemCount is 0") {
-                createViewModel().uiState.value.cartItemCount shouldBe 0
+                vm.uiState.value.cartItemCount shouldBe 0
             }
         }
     }
 
-
+    // ══════════════════════════════════════════════════════════
     // GROUP 7 — Connectivity
+    // WHY shared VM for Lost/Available groups:
+    // VM created once — networkFlow changed AFTER creation
+    // MutableStateFlow emits → connectivity observer reacts
+    // ══════════════════════════════════════════════════════════
+
     given("device loses internet") {
 
         `when`("network becomes Lost") {
+            lateinit var vm: HomeViewModel
+
+            beforeEach {
+                vm = createViewModel()
+            }
+
             then("isOffline becomes true") {
-                val vm = createViewModel()
                 networkFlow.value = NetworkStatus.Lost
                 vm.uiState.value.isOffline shouldBe true
             }
         }
 
         `when`("network becomes Unavailable") {
+            lateinit var vm: HomeViewModel
+
+            beforeEach {
+                vm = createViewModel()
+            }
+
             then("isOffline is true") {
                 networkFlow.value = NetworkStatus.Unavailable
-                createViewModel().uiState.value.isOffline shouldBe true
+                vm.uiState.value.isOffline shouldBe true
             }
         }
     }
@@ -335,8 +394,13 @@ class HomeViewModelSpec : BehaviorSpec({
     given("device reconnects") {
 
         `when`("network changes from Lost to Available") {
+            lateinit var vm: HomeViewModel
+
+            beforeEach {
+                vm = createViewModel()
+            }
+
             then("isOffline becomes false") {
-                val vm = createViewModel()
                 networkFlow.value = NetworkStatus.Lost
                 networkFlow.value = NetworkStatus.Available
                 vm.uiState.value.isOffline shouldBe false
@@ -349,7 +413,8 @@ class HomeViewModelSpec : BehaviorSpec({
                     flowOf(Result.success(homeData()))
                 }
 
-                val vm = createViewModel()
+                // Recreate VM with new stub tracking
+                val trackedVm = createViewModel()
                 val countBefore = callCount
 
                 networkFlow.value = NetworkStatus.Lost
@@ -360,7 +425,12 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
+    // ══════════════════════════════════════════════════════════
     // GROUP 8 — Filter Status
+    // WHY VM per then:
+    // Each then needs different stub with different FilterStatus
+    // ══════════════════════════════════════════════════════════
+
     given("API returns filtered results") {
 
         `when`("filterStatus is FOUND") {
@@ -406,12 +476,22 @@ class HomeViewModelSpec : BehaviorSpec({
         }
     }
 
+    // ══════════════════════════════════════════════════════════
     // GROUP 9 — Navigation Events
+    // WHY shared VM:
+    // All then blocks use DEFAULT stub from spec beforeEach
+    // All are navigation events — same initial state
+    // ══════════════════════════════════════════════════════════
+
     given("user is on HomeScreen") {
+        lateinit var vm: HomeViewModel
+
+        beforeEach {
+            vm = createViewModel()
+        }
 
         `when`("restaurant card tapped") {
             then("NavigateToRestaurant emitted with correct id") {
-                val vm = createViewModel()
                 vm.events.test {
                     vm.onRestaurantClicked(HOME_REST_R1)
                     awaitItem() shouldBe
@@ -423,7 +503,6 @@ class HomeViewModelSpec : BehaviorSpec({
 
         `when`("search bar tapped") {
             then("NavigateToSearch emitted with empty query") {
-                val vm = createViewModel()
                 vm.events.test {
                     vm.onSearchClicked()
                     awaitItem() shouldBe HomeViewModel.HomeEvent.NavigateToSearch("")
@@ -434,7 +513,6 @@ class HomeViewModelSpec : BehaviorSpec({
 
         `when`("category chip tapped") {
             then("NavigateToSearch emitted with category name") {
-                val vm = createViewModel()
                 vm.events.test {
                     vm.onCategoryClicked(HOME_CATEGORY_BIRYANI)
                     awaitItem() shouldBe
@@ -446,7 +524,6 @@ class HomeViewModelSpec : BehaviorSpec({
 
         `when`("cart icon tapped") {
             then("NavigateToCart event emitted") {
-                val vm = createViewModel()
                 vm.events.test {
                     vm.onCartClicked()
                     awaitItem() shouldBe HomeViewModel.HomeEvent.NavigateToCart
@@ -457,7 +534,6 @@ class HomeViewModelSpec : BehaviorSpec({
 
         `when`("PROFILE tab tapped") {
             then("NavigateToProfile event emitted") {
-                val vm = createViewModel()
                 vm.events.test {
                     vm.onTabSelected(HomeViewModel.DeliveryTab.PROFILE)
                     awaitItem() shouldBe HomeViewModel.HomeEvent.NavigateToProfile
@@ -468,7 +544,6 @@ class HomeViewModelSpec : BehaviorSpec({
 
         `when`("DINING tab tapped") {
             then("selectedTab updates — no event emitted") {
-                val vm = createViewModel()
                 vm.onTabSelected(HomeViewModel.DeliveryTab.DINING)
                 vm.uiState.value.selectedTab shouldBe HomeViewModel.DeliveryTab.DINING
             }
@@ -476,7 +551,6 @@ class HomeViewModelSpec : BehaviorSpec({
 
         `when`("profile icon tapped directly") {
             then("NavigateToProfile emitted via onProfileClicked") {
-                val vm = createViewModel()
                 vm.events.test {
                     vm.onProfileClicked()
                     awaitItem() shouldBe HomeViewModel.HomeEvent.NavigateToProfile
@@ -487,7 +561,6 @@ class HomeViewModelSpec : BehaviorSpec({
 
         `when`("search tapped with query") {
             then("NavigateToSearch emitted with correct query") {
-                val vm = createViewModel()
                 vm.events.test {
                     vm.onSearchClicked(HOME_SEARCH_QUERY_BURGER)
                     awaitItem() shouldBe

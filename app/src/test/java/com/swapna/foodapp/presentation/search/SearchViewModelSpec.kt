@@ -63,55 +63,65 @@ class SearchViewModelSpec : BehaviorSpec({
 
     afterEach { Dispatchers.resetMain() }
 
+    suspend fun kotlinx.coroutines.test.TestScope.searchAndWait(
+        vm: SearchViewModel,
+        query: String,
+    ) {
+        vm.onQueryChange(query)
+        advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
+        advanceUntilIdle()
+    }
+
+    // ══════════════════════════════════════════════════════════
     // GROUP 1 — Initial State
+    // WHY shared VM:
+    // All then blocks check initial state — no debounce needed
+    // Same default stubs → one VM per when block correct
+    // ══════════════════════════════════════════════════════════
+
     given("ViewModel is just created") {
 
         `when`("no query entered") {
+            lateinit var vm: SearchViewModel
+
+            beforeEach { vm = createViewModel() }
 
             then("query should be empty string") {
-                createViewModel().uiState.value.query shouldBe ""
+                vm.uiState.value.query shouldBe ""
             }
-
             then("results should be empty") {
-                createViewModel().uiState.value.results.shouldBeEmpty()
+                vm.uiState.value.results.shouldBeEmpty()
             }
-
             then("isLoading should be false") {
-                createViewModel().uiState.value.isLoading shouldBe false
+                vm.uiState.value.isLoading shouldBe false
             }
-
             then("hasSearched should be false") {
-                createViewModel().uiState.value.hasSearched shouldBe false
+                vm.uiState.value.hasSearched shouldBe false
             }
-
             then("error should be null") {
-                createViewModel().uiState.value.error shouldBe null
+                vm.uiState.value.error shouldBe null
             }
-
             then("filters should be default SearchFilters") {
-                createViewModel().uiState.value.filters shouldBe SearchFilters()
+                vm.uiState.value.filters shouldBe SearchFilters()
             }
-
             then("searchUseCase should NOT be called") {
-                createViewModel()
                 verify(exactly = 0) { searchUseCase(any(), any()) }
             }
         }
 
         `when`("cuisines are loaded") {
+            lateinit var vm: SearchViewModel
+
+            beforeEach { vm = createViewModel() }
 
             then("cuisines list should have 4 items") {
-                createViewModel().uiState.value.cuisines shouldHaveSize SEARCH_RESULT_COUNT_4
+                vm.uiState.value.cuisines shouldHaveSize SEARCH_RESULT_COUNT_4
             }
-
             then("first cuisine should be Biryani") {
-                createViewModel().uiState.value.cuisines
-                    .first().name shouldBe CUISINE_BIRYANI
+                vm.uiState.value.cuisines.first().name shouldBe CUISINE_BIRYANI
             }
-
             then("all cuisine names load correctly") {
-                val cuisines = createViewModel().uiState.value.cuisines
-                cuisines.map { it.name } shouldBe
+                vm.uiState.value.cuisines.map { it.name } shouldBe
                         listOf(CUISINE_BIRYANI, CUISINE_PIZZA, CUISINE_BURGER, CUISINE_CHINESE)
             }
         }
@@ -119,6 +129,9 @@ class SearchViewModelSpec : BehaviorSpec({
 
     // ══════════════════════════════════════════════════════════
     // GROUP 2 — Query too short
+    // WHY VM per then inside runTest:
+    // Debounce tests need StandardTestDispatcher + advanceTimeBy
+    // runTest controls virtual time for debounce
     // ══════════════════════════════════════════════════════════
 
     given("user types below minimum characters") {
@@ -126,13 +139,8 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("onQueryChange called with single char 'p'") {
             then("no search triggered — below minimum chars") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     val vm = createViewModel()
-
-                    vm.onQueryChange(QUERY_P)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_P)
                     verify(exactly = 0) { searchUseCase(any(), any()) }
                     vm.uiState.value.results.shouldBeEmpty()
                 }
@@ -142,13 +150,8 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("onQueryChange called with empty string") {
             then("no search triggered and results stay empty") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     val vm = createViewModel()
-
-                    vm.onQueryChange("")
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, "")
                     verify(exactly = 0) { searchUseCase(any(), any()) }
                     vm.uiState.value.results.shouldBeEmpty()
                 }
@@ -158,14 +161,9 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("query length is exactly SEARCH_MIN_CHARS minus 1") {
             then("search is NOT triggered") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     val belowMin = QUERY_P.repeat(AppConstants.SEARCH_MIN_CHARS - 1)
                     val vm = createViewModel()
-
-                    vm.onQueryChange(belowMin)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, belowMin)
                     verify(exactly = 0) { searchUseCase(any(), any()) }
                 }
             }
@@ -181,47 +179,39 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("query length equals minimum threshold") {
             then("search IS triggered at boundary") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     val minQuery = QUERY_P.repeat(AppConstants.SEARCH_MIN_CHARS)
                     every { searchUseCase(minQuery, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-
-                    vm.onQueryChange(minQuery)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, minQuery)
                     verify(exactly = 1) { searchUseCase(minQuery, any()) }
                 }
             }
         }
     }
 
+    // ══════════════════════════════════════════════════════════
     // GROUP 4 — Valid query
+    // WHY stub set inside then not beforeEach:
+    // Each then returns different result (fakeResults, emptyList, etc.)
+    // Stub set BEFORE onQueryChange — VM created in beforeEach
+    // ══════════════════════════════════════════════════════════
+
     given("user types 'pizza' — valid query above minimum") {
 
         `when`("API returns matching restaurants") {
 
             then("results contain only Pizza Hut") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
-                            flowOf(
-                                Result.success(
-                                fakeResults.filter {
-                                    it.name.contains(QUERY_PIZZA, ignoreCase = true) ||
-                                            it.cuisines.any { c ->
-                                                c.contains(QUERY_PIZZA, ignoreCase = true)
-                                            }
-                                }
-                            ))
-
+                            flowOf(Result.success(fakeResults.filter {
+                                it.name.contains(QUERY_PIZZA, ignoreCase = true) ||
+                                        it.cuisines.any { c ->
+                                            c.contains(QUERY_PIZZA, ignoreCase = true)
+                                        }
+                            }))
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.results.size shouldBe SEARCH_RESULT_COUNT_1
                     vm.uiState.value.results.first().name shouldBe SEARCH_VM_PIZZA_HUT
                 }
@@ -229,35 +219,27 @@ class SearchViewModelSpec : BehaviorSpec({
 
             then("hasSearched becomes true") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(emptyList()))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.hasSearched shouldBe true
                 }
             }
 
             then("isLoading is false after results arrive") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.isLoading shouldBe false
                 }
             }
 
             then("query updates uiState immediately without waiting for debounce") {
+                // WHY no runTest: onQueryChange updates _uiState immediately
+                // not tied to debounce — UnconfinedTestDispatcher handles
                 val vm = createViewModel()
                 vm.onQueryChange(QUERY_PIZZA)
                 vm.uiState.value.query shouldBe QUERY_PIZZA
@@ -265,64 +247,43 @@ class SearchViewModelSpec : BehaviorSpec({
 
             then("searchUseCase called with exact query string") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     verify(exactly = 1) { searchUseCase(QUERY_PIZZA, any()) }
                 }
             }
 
             then("error is null after successful search") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.error shouldBe null
                 }
             }
 
             then("all 3 results returned when API returns all") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.results shouldHaveSize SEARCH_RESULT_COUNT_3
                 }
             }
 
             then("isLoading becomes true while search is in-flight") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
-
                     var loadingDuringSearch = false
                     every { searchUseCase(QUERY_PIZZA, any()) } returns flow {
                         loadingDuringSearch = true
                         emit(Result.success(fakeResults))
                     }
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     loadingDuringSearch shouldBe true
                     vm.uiState.value.isLoading shouldBe false
                 }
@@ -333,15 +294,10 @@ class SearchViewModelSpec : BehaviorSpec({
 
             then("error set in uiState with message") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.error shouldNotBe null
                     vm.uiState.value.error shouldBe ERR_NETWORK_MSG
                 }
@@ -349,88 +305,58 @@ class SearchViewModelSpec : BehaviorSpec({
 
             then("results remain empty on error") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.results.shouldBeEmpty()
                 }
             }
 
             then("hasSearched is true even on error") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.hasSearched shouldBe true
                 }
             }
 
             then("isLoading is false after error") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.isLoading shouldBe false
                 }
             }
 
             then("error clears when user types a new query after error") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
-
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
                     every { searchUseCase(QUERY_BURGER_FULL, any()) } returns
                             flowOf(Result.success(fakeResults))
 
                     val vm = createViewModel()
-
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.error shouldNotBe null
 
-                    vm.onQueryChange(QUERY_BURGER_FULL)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_BURGER_FULL)
                     vm.uiState.value.error shouldBe null
                 }
             }
         }
 
         `when`("API returns empty list") {
-
             then("results empty and hasSearched true") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(emptyList()))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.results.shouldBeEmpty()
                     vm.uiState.value.hasSearched shouldBe true
                 }
@@ -438,18 +364,21 @@ class SearchViewModelSpec : BehaviorSpec({
         }
     }
 
+    // ══════════════════════════════════════════════════════════
     // GROUP 5 — Debounce behavior
+    // WHY VM per then:
+    // Each test has complex timing sequences — runTest required
+    // ══════════════════════════════════════════════════════════
+
     given("user types rapidly within debounce window") {
 
         `when`("multiple chars typed before debounce expires") {
             then("searchUseCase called only once with final query") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_BURGER_FULL, any()) } returns
                             flowOf(Result.success(fakeResults))
 
                     val vm = createViewModel()
-
                     vm.onQueryChange(QUERY_B)
                     advanceTimeBy(50)
                     vm.onQueryChange("bu")
@@ -476,21 +405,14 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("user pauses between two distinct queries") {
             then("searchUseCase called once per paused query") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
                     every { searchUseCase(QUERY_BURGER_FULL, any()) } returns
                             flowOf(Result.success(fakeResults))
 
                     val vm = createViewModel()
-
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
-                    vm.onQueryChange(QUERY_BURGER_FULL)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
+                    searchAndWait(vm, QUERY_PIZZA)
+                    searchAndWait(vm, QUERY_BURGER_FULL)
 
                     verify(exactly = 1) { searchUseCase(QUERY_PIZZA, any()) }
                     verify(exactly = 1) { searchUseCase(QUERY_BURGER_FULL, any()) }
@@ -501,19 +423,12 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("user types then goes below min chars again") {
             then("search cleared and use case not called again") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
 
                     val vm = createViewModel()
-
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
-                    vm.onQueryChange(QUERY_P)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
+                    searchAndWait(vm, QUERY_PIZZA)
+                    searchAndWait(vm, QUERY_P)
 
                     verify(exactly = 1) { searchUseCase(any(), any()) }
                     vm.uiState.value.results.shouldBeEmpty()
@@ -525,22 +440,34 @@ class SearchViewModelSpec : BehaviorSpec({
 
     // ══════════════════════════════════════════════════════════
     // GROUP 6 — Clear Search
+    // WHY split strategy:
+    // Simple idempotent test → shared VM
+    // Tests after search → runTest needed for debounce
     // ══════════════════════════════════════════════════════════
 
     given("user had searched and clears query") {
 
+        `when`("clearSearch called with no prior search — idempotent") {
+            // WHY shared VM: no debounce, no stubs needed
+            lateinit var vm: SearchViewModel
+            beforeEach { vm = createViewModel() }
+
+            then("state stays at defaults and no crash") {
+                vm.clearSearch()
+                vm.uiState.value.query shouldBe ""
+                vm.uiState.value.results.shouldBeEmpty()
+                vm.uiState.value.hasSearched shouldBe false
+                vm.uiState.value.error shouldBe null
+            }
+        }
+
         `when`("clearSearch called after results loaded") {
             then("query results hasSearched error all reset") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(any(), any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.clearSearch()
                     advanceUntilIdle()
 
@@ -552,35 +479,16 @@ class SearchViewModelSpec : BehaviorSpec({
             }
         }
 
-        `when`("clearSearch called with no prior search — idempotent") {
-            then("state stays at defaults and no crash") {
-                val vm = createViewModel()
-                vm.clearSearch()
-
-                vm.uiState.value.query shouldBe ""
-                vm.uiState.value.results.shouldBeEmpty()
-                vm.uiState.value.hasSearched shouldBe false
-                vm.uiState.value.error shouldBe null
-            }
-        }
-
         `when`("clearSearch called after error state") {
             then("error also cleared") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(any(), any()) } returns
                             flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.error shouldNotBe null
-
                     vm.clearSearch()
                     advanceUntilIdle()
-
                     vm.uiState.value.error shouldBe null
                 }
             }
@@ -589,22 +497,13 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("user searches again after clearSearch") {
             then("new search returns results correctly") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(any(), any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.clearSearch()
                     advanceUntilIdle()
-
-                    vm.onQueryChange(QUERY_BURGER_FULL)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
+                    searchAndWait(vm, QUERY_BURGER_FULL)
 
                     vm.uiState.value.results shouldHaveSize SEARCH_RESULT_COUNT_3
                     vm.uiState.value.hasSearched shouldBe true
@@ -615,31 +514,29 @@ class SearchViewModelSpec : BehaviorSpec({
 
     // ══════════════════════════════════════════════════════════
     // GROUP 7 — Veg filter
+    // WHY split strategy:
+    // Toggle tests → shared VM (no debounce)
+    // Search integration → runTest needed
     // ══════════════════════════════════════════════════════════
 
     given("isVegOnly filter is off by default") {
 
-        `when`("onVegToggle called once") {
-            then("isVegOnly becomes true") {
-                val vm = createViewModel()
+        `when`("veg toggle tests") {
+            // WHY shared: no debounce, no different stubs
+            lateinit var vm: SearchViewModel
+            beforeEach { vm = createViewModel() }
+
+            then("onVegToggle once → isVegOnly true") {
                 vm.uiState.value.filters.isVegOnly shouldBe false
                 vm.onVegToggle()
                 vm.uiState.value.filters.isVegOnly shouldBe true
             }
-        }
-
-        `when`("onVegToggle called twice") {
-            then("isVegOnly returns to false") {
-                val vm = createViewModel()
+            then("onVegToggle twice → isVegOnly false") {
                 vm.onVegToggle()
                 vm.onVegToggle()
                 vm.uiState.value.filters.isVegOnly shouldBe false
             }
-        }
-
-        `when`("onVegToggle called three times") {
-            then("isVegOnly is true — odd toggles = on") {
-                val vm = createViewModel()
+            then("onVegToggle three times → isVegOnly true") {
                 vm.onVegToggle()
                 vm.onVegToggle()
                 vm.onVegToggle()
@@ -650,19 +547,12 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("veg filter active and search runs") {
             then("searchUseCase called with isVegOnly true") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
                     vm.onVegToggle()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
-                    verify {
-                        searchUseCase(QUERY_PIZZA, match { it.isVegOnly == true })
-                    }
+                    searchAndWait(vm, QUERY_PIZZA)
+                    verify { searchUseCase(QUERY_PIZZA, match { it.isVegOnly == true }) }
                 }
             }
         }
@@ -670,43 +560,32 @@ class SearchViewModelSpec : BehaviorSpec({
 
     // ══════════════════════════════════════════════════════════
     // GROUP 8 — Sort filter
+    // WHY shared VM for sort change tests:
+    // Just updating _filters state — no debounce
     // ══════════════════════════════════════════════════════════
 
     given("default sort is RELEVANCE") {
 
-        `when`("ViewModel is created") {
-            then("sortBy defaults to RELEVANCE") {
-                createViewModel().uiState.value.filters.sortBy shouldBe SortOption.RELEVANCE
-            }
-        }
+        `when`("sort change tests") {
+            lateinit var vm: SearchViewModel
+            beforeEach { vm = createViewModel() }
 
-        `when`("onSortChange called with RATING") {
-            then("filters.sortBy is RATING") {
-                val vm = createViewModel()
+            then("sortBy defaults to RELEVANCE") {
+                vm.uiState.value.filters.sortBy shouldBe SortOption.RELEVANCE
+            }
+            then("onSortChange RATING → filters.sortBy is RATING") {
                 vm.onSortChange(SortOption.RATING)
                 vm.uiState.value.filters.sortBy shouldBe SortOption.RATING
             }
-        }
-
-        `when`("onSortChange called with DELIVERY_TIME") {
-            then("filters.sortBy is DELIVERY_TIME") {
-                val vm = createViewModel()
+            then("onSortChange DELIVERY_TIME → filters.sortBy is DELIVERY_TIME") {
                 vm.onSortChange(SortOption.DELIVERY_TIME)
                 vm.uiState.value.filters.sortBy shouldBe SortOption.DELIVERY_TIME
             }
-        }
-
-        `when`("onSortChange called with COST_LOW") {
-            then("filters.sortBy is COST_LOW") {
-                val vm = createViewModel()
+            then("onSortChange COST_LOW → filters.sortBy is COST_LOW") {
                 vm.onSortChange(SortOption.COST_LOW)
                 vm.uiState.value.filters.sortBy shouldBe SortOption.COST_LOW
             }
-        }
-
-        `when`("onSortChange called with COST_HIGH") {
-            then("filters.sortBy is COST_HIGH") {
-                val vm = createViewModel()
+            then("onSortChange COST_HIGH → filters.sortBy is COST_HIGH") {
                 vm.onSortChange(SortOption.COST_HIGH)
                 vm.uiState.value.filters.sortBy shouldBe SortOption.COST_HIGH
             }
@@ -715,19 +594,12 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("RATING sort active and search runs") {
             then("searchUseCase called with sortBy RATING") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
                     vm.onSortChange(SortOption.RATING)
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
-                    verify {
-                        searchUseCase(QUERY_PIZZA, match { it.sortBy == SortOption.RATING })
-                    }
+                    searchAndWait(vm, QUERY_PIZZA)
+                    verify { searchUseCase(QUERY_PIZZA, match { it.sortBy == SortOption.RATING }) }
                 }
             }
         }
@@ -739,35 +611,25 @@ class SearchViewModelSpec : BehaviorSpec({
 
     given("no cuisine filter selected") {
 
-        `when`("onCuisineSelected called with cuisineId 1") {
-            then("filters.cuisineId is 1") {
-                val vm = createViewModel()
+        `when`("cuisine selection tests") {
+            lateinit var vm: SearchViewModel
+            beforeEach { vm = createViewModel() }
+
+            then("onCuisineSelected 1 → cuisineId is 1") {
                 vm.onCuisineSelected(CUISINE_ID_1)
                 vm.uiState.value.filters.cuisineId shouldBe CUISINE_ID_1
             }
-        }
-
-        `when`("same cuisine selected twice") {
-            then("filters.cuisineId goes back to null — deselect") {
-                val vm = createViewModel()
+            then("same cuisine twice → deselect → null") {
                 vm.onCuisineSelected(CUISINE_ID_1)
                 vm.onCuisineSelected(CUISINE_ID_1)
                 vm.uiState.value.filters.cuisineId shouldBe null
             }
-        }
-
-        `when`("different cuisine selected after first") {
-            then("filters.cuisineId is the newer selection") {
-                val vm = createViewModel()
+            then("different cuisine → replaces first selection") {
                 vm.onCuisineSelected(CUISINE_ID_1)
                 vm.onCuisineSelected(CUISINE_ID_2)
                 vm.uiState.value.filters.cuisineId shouldBe CUISINE_ID_2
             }
-        }
-
-        `when`("cuisine 1 selected then cuisine 2 selected") {
-            then("cuisine 1 is no longer selected") {
-                val vm = createViewModel()
+            then("cuisine 1 replaced by cuisine 2 → cuisine 1 not selected") {
                 vm.onCuisineSelected(CUISINE_ID_1)
                 vm.onCuisineSelected(CUISINE_ID_2)
                 vm.uiState.value.filters.cuisineId shouldNotBe CUISINE_ID_1
@@ -777,19 +639,12 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("cuisine filter active and search runs") {
             then("searchUseCase called with cuisineId 1") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
                     vm.onCuisineSelected(CUISINE_ID_1)
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
-                    verify {
-                        searchUseCase(QUERY_PIZZA, match { it.cuisineId == CUISINE_ID_1 })
-                    }
+                    searchAndWait(vm, QUERY_PIZZA)
+                    verify { searchUseCase(QUERY_PIZZA, match { it.cuisineId == CUISINE_ID_1 }) }
                 }
             }
         }
@@ -801,25 +656,19 @@ class SearchViewModelSpec : BehaviorSpec({
 
     given("no rating filter set") {
 
-        `when`("onMinRatingSelected called with 4.0") {
-            then("filters.minRating is 4.0") {
-                val vm = createViewModel()
+        `when`("rating filter tests") {
+            lateinit var vm: SearchViewModel
+            beforeEach { vm = createViewModel() }
+
+            then("onMinRatingSelected 4.0 → minRating is 4.0") {
                 vm.onMinRatingSelected(RATING_FILTER_40)
                 vm.uiState.value.filters.minRating shouldBe RATING_FILTER_40
             }
-        }
-
-        `when`("onMinRatingSelected called with 3.5") {
-            then("filters.minRating is 3.5") {
-                val vm = createViewModel()
+            then("onMinRatingSelected 3.5 → minRating is 3.5") {
                 vm.onMinRatingSelected(3.5)
                 vm.uiState.value.filters.minRating shouldBe 3.5
             }
-        }
-
-        `when`("onMinRatingSelected called with null after 4.0") {
-            then("filters.minRating is null — cleared") {
-                val vm = createViewModel()
+            then("onMinRatingSelected null → minRating cleared") {
                 vm.onMinRatingSelected(RATING_FILTER_40)
                 vm.onMinRatingSelected(null)
                 vm.uiState.value.filters.minRating shouldBe null
@@ -829,16 +678,11 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("minRating 4.0 active and search runs") {
             then("searchUseCase called with minRating 4.0") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
                     vm.onMinRatingSelected(RATING_FILTER_40)
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     verify {
                         searchUseCase(QUERY_PIZZA, match { it.minRating == RATING_FILTER_40 })
                     }
@@ -853,25 +697,19 @@ class SearchViewModelSpec : BehaviorSpec({
 
     given("no delivery time filter set") {
 
-        `when`("onDeliveryTimeSelected called with 30") {
-            then("filters.maxDeliveryTime is 30") {
-                val vm = createViewModel()
+        `when`("delivery time filter tests") {
+            lateinit var vm: SearchViewModel
+            beforeEach { vm = createViewModel() }
+
+            then("onDeliveryTimeSelected 30 → maxDeliveryTime is 30") {
                 vm.onDeliveryTimeSelected(DELIVERY_FILTER_30)
                 vm.uiState.value.filters.maxDeliveryTime shouldBe DELIVERY_FILTER_30
             }
-        }
-
-        `when`("onDeliveryTimeSelected called with 45") {
-            then("filters.maxDeliveryTime is 45") {
-                val vm = createViewModel()
+            then("onDeliveryTimeSelected 45 → maxDeliveryTime is 45") {
                 vm.onDeliveryTimeSelected(DELIVERY_FILTER_45)
                 vm.uiState.value.filters.maxDeliveryTime shouldBe DELIVERY_FILTER_45
             }
-        }
-
-        `when`("onDeliveryTimeSelected called with null — clear") {
-            then("filters.maxDeliveryTime is null") {
-                val vm = createViewModel()
+            then("onDeliveryTimeSelected null → maxDeliveryTime cleared") {
                 vm.onDeliveryTimeSelected(DELIVERY_FILTER_30)
                 vm.onDeliveryTimeSelected(null)
                 vm.uiState.value.filters.maxDeliveryTime shouldBe null
@@ -881,20 +719,16 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("delivery time 30 active and search runs") {
             then("searchUseCase called with maxDeliveryTime 30") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
                     vm.onDeliveryTimeSelected(DELIVERY_FILTER_30)
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     verify {
                         searchUseCase(
                             QUERY_PIZZA,
-                            match { it.maxDeliveryTime == DELIVERY_FILTER_30 })
+                            match { it.maxDeliveryTime == DELIVERY_FILTER_30 },
+                        )
                     }
                 }
             }
@@ -903,26 +737,27 @@ class SearchViewModelSpec : BehaviorSpec({
 
     // ══════════════════════════════════════════════════════════
     // GROUP 12 — Multiple filters
+    // WHY split:
+    // State-only tests → shared VM
+    // Search integration tests → runTest
     // ══════════════════════════════════════════════════════════
 
     given("user applies multiple filters") {
 
-        `when`("veg + rating + sort all set") {
-            then("all three filters active simultaneously") {
-                val vm = createViewModel()
+        `when`("filter combination state tests") {
+            lateinit var vm: SearchViewModel
+            beforeEach { vm = createViewModel() }
+
+            then("veg + rating + sort all set simultaneously") {
                 vm.onVegToggle()
                 vm.onMinRatingSelected(RATING_FILTER_40)
                 vm.onSortChange(SortOption.RATING)
-
                 vm.uiState.value.filters.isVegOnly shouldBe true
                 vm.uiState.value.filters.minRating shouldBe RATING_FILTER_40
                 vm.uiState.value.filters.sortBy shouldBe SortOption.RATING
             }
-        }
 
-        `when`("all filters set at once") {
-            then("each field reflects its set value") {
-                val vm = createViewModel()
+            then("all 5 filters set — each field reflects value") {
                 vm.onVegToggle()
                 vm.onMinRatingSelected(RATING_FILTER_40)
                 vm.onSortChange(SortOption.RATING)
@@ -935,30 +770,22 @@ class SearchViewModelSpec : BehaviorSpec({
                 vm.uiState.value.filters.cuisineId shouldBe CUISINE_ID_2
                 vm.uiState.value.filters.maxDeliveryTime shouldBe DELIVERY_FILTER_30
             }
-        }
 
-        `when`("clearFilters called after veg + rating + sort") {
-            then("all filters reset to SearchFilters defaults") {
-                val vm = createViewModel()
+            then("clearFilters resets all 3 filters to defaults") {
                 vm.onVegToggle()
                 vm.onMinRatingSelected(RATING_FILTER_40)
                 vm.onSortChange(SortOption.RATING)
                 vm.clearFilters()
-
                 vm.uiState.value.filters shouldBe SearchFilters()
             }
-        }
 
-        `when`("clearFilters called with all 5 filters active") {
-            then("all fields return to default values") {
-                val vm = createViewModel()
+            then("clearFilters resets all 5 filters to defaults") {
                 vm.onVegToggle()
                 vm.onMinRatingSelected(RATING_FILTER_40)
                 vm.onSortChange(SortOption.RATING)
                 vm.onCuisineSelected(CUISINE_ID_2)
                 vm.onDeliveryTimeSelected(DELIVERY_FILTER_30)
                 vm.clearFilters()
-
                 vm.uiState.value.filters shouldBe SearchFilters()
             }
         }
@@ -966,20 +793,13 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("filter changes while valid query is active") {
             then("searchUseCase called again with new filters") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.onVegToggle()
                     advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
                     advanceUntilIdle()
-
                     verify(atLeast = 2) { searchUseCase(QUERY_PIZZA, any()) }
                 }
             }
@@ -988,25 +808,16 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("clearFilters called while valid query is active") {
             then("searchUseCase called again with default filters") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-
                     vm.onVegToggle()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.clearFilters()
                     advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
                     advanceUntilIdle()
-
                     verify(atLeast = 2) { searchUseCase(QUERY_PIZZA, any()) }
-                    verify {
-                        searchUseCase(QUERY_PIZZA, match { !it.isVegOnly })
-                    }
+                    verify { searchUseCase(QUERY_PIZZA, match { !it.isVegOnly }) }
                 }
             }
         }
@@ -1014,31 +825,23 @@ class SearchViewModelSpec : BehaviorSpec({
         `when`("all filters passed together in single search") {
             then("searchUseCase receives all filters correctly") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
                     vm.onVegToggle()
                     vm.onMinRatingSelected(RATING_FILTER_40)
                     vm.onSortChange(SortOption.RATING)
                     vm.onCuisineSelected(CUISINE_ID_2)
                     vm.onDeliveryTimeSelected(DELIVERY_FILTER_30)
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     verify {
-                        searchUseCase(
-                            QUERY_PIZZA,
-                            match {
-                                it.isVegOnly == true &&
-                                        it.minRating == RATING_FILTER_40 &&
-                                        it.sortBy == SortOption.RATING &&
-                                        it.cuisineId == CUISINE_ID_2 &&
-                                        it.maxDeliveryTime == DELIVERY_FILTER_30
-                            },
-                        )
+                        searchUseCase(QUERY_PIZZA, match {
+                            it.isVegOnly == true &&
+                                    it.minRating == RATING_FILTER_40 &&
+                                    it.sortBy == SortOption.RATING &&
+                                    it.cuisineId == CUISINE_ID_2 &&
+                                    it.maxDeliveryTime == DELIVERY_FILTER_30
+                        })
                     }
                 }
             }
@@ -1047,51 +850,49 @@ class SearchViewModelSpec : BehaviorSpec({
 
     // ══════════════════════════════════════════════════════════
     // GROUP 13 — Cuisines fail to load
+    // WHY split:
+    // Initial state tests → set stub then shared VM
+    // Search still works test → runTest
     // ══════════════════════════════════════════════════════════
 
     given("getCuisines API fails") {
 
-        `when`("ViewModel is created with failing cuisines API") {
+        `when`("ViewModel created with failing cuisines API") {
+            lateinit var vm: SearchViewModel
+
+            beforeEach {
+                // Override spec-level getCuisines stub with failure
+                every { restaurantRepository.getCuisines() } returns
+                        flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
+                vm = createViewModel()
+            }
 
             then("cuisines empty — non-critical failure") {
-                every { restaurantRepository.getCuisines() } returns
-                        flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
-
-                createViewModel().uiState.value.cuisines.shouldBeEmpty()
+                vm.uiState.value.cuisines.shouldBeEmpty()
             }
-
-            then("screen still works — query and isLoading correct") {
-                every { restaurantRepository.getCuisines() } returns
-                        flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
-
-                val vm = createViewModel()
+            then("query is still empty string") {
                 vm.uiState.value.query shouldBe ""
+            }
+            then("isLoading is still false") {
                 vm.uiState.value.isLoading shouldBe false
             }
+            then("main error state is null — cuisines non-critical") {
+                vm.uiState.value.error shouldBe null
+            }
+        }
 
-            then("search still works when cuisines fail") {
+        `when`("search still works when cuisines fail") {
+            then("results returned correctly despite cuisines failure") {
                 runTest(StandardTestDispatcher()) {
-                    Dispatchers.setMain(UnconfinedTestDispatcher())
                     every { restaurantRepository.getCuisines() } returns
                             flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
                     every { searchUseCase(QUERY_PIZZA, any()) } returns
                             flowOf(Result.success(fakeResults))
-
                     val vm = createViewModel()
-                    vm.onQueryChange(QUERY_PIZZA)
-                    advanceTimeBy(AppConstants.SEARCH_DEBOUNCE_MS + 100)
-                    advanceUntilIdle()
-
+                    searchAndWait(vm, QUERY_PIZZA)
                     vm.uiState.value.results shouldHaveSize SEARCH_RESULT_COUNT_3
                     vm.uiState.value.cuisines.shouldBeEmpty()
                 }
-            }
-
-            then("error in cuisines does not set main error state") {
-                every { restaurantRepository.getCuisines() } returns
-                        flowOf(Result.failure(Exception(ERR_NETWORK_MSG)))
-
-                createViewModel().uiState.value.error shouldBe null
             }
         }
     }

@@ -3,14 +3,16 @@ package com.swapna.foodapp.presentation.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swapna.foodapp.domain.model.Address
-import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.domain.model.RestaurantCollection
 import com.swapna.foodapp.domain.repository.CartRepository
 import com.swapna.foodapp.domain.repository.UserRepository
 import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.domain.usecase.home.GetHomeDataUseCase
+import com.swapna.foodapp.presentation.common.ConnectivityObserver
 import com.swapna.foodapp.presentation.common.LocationManager
+import com.swapna.foodapp.presentation.common.NetworkStatus
 import com.swapna.foodapp.utils.AppConstants
 import com.swapna.foodapp.utils.AppConstants.DEFAULT_LOCATION
 import com.swapna.foodapp.utils.AppConstants.DISABLED
@@ -19,11 +21,12 @@ import com.swapna.foodapp.utils.AppConstants.ERR_LOCATION_DETECT
 import com.swapna.foodapp.utils.AppConstants.ERR_LOCATION_PERMISSION
 import com.swapna.foodapp.utils.AppConstants.ERR_LOCATION_PERMISSION_DENIED
 import com.swapna.foodapp.utils.AppConstants.EVENT_BUFFER_NAVIGATION
+import com.swapna.foodapp.utils.AppConstants.FAILED_TO_SAVE_LOCATION
+import com.swapna.foodapp.utils.AppConstants.OBSERVER_FAILED
 import com.swapna.foodapp.utils.AppConstants.PERMISSION
 import com.swapna.foodapp.utils.AppConstants.WRONG
-import com.swapna.foodapp.presentation.common.ConnectivityObserver
-import com.swapna.foodapp.presentation.common.NetworkStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +36,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -60,7 +65,7 @@ class HomeViewModel @Inject constructor(
     data class HomeUiState(
         val isLoading: Boolean = true,
         val error: String? = null,
-        val collections: List<Collections> = emptyList(),
+        val collections: List<RestaurantCollection> = emptyList(),
         val categories: List<FoodCategory> = emptyList(),
         val restaurants: List<Restaurant> = emptyList(),
         val cartItemCount: Int = 0,
@@ -83,6 +88,11 @@ class HomeViewModel @Inject constructor(
         object NavigateToProfile : HomeEvent()
     }
 
+    private val observerExceptionHandler =
+        CoroutineExceptionHandler { _, exception ->
+            Timber.e(exception, OBSERVER_FAILED)
+        }
+
     init {
         observeUserProfile()
         loadHomeData()
@@ -90,7 +100,7 @@ class HomeViewModel @Inject constructor(
         observeConnectivity()
     }
 
-    private fun observeUserProfile() = viewModelScope.launch {
+    private fun observeUserProfile() = viewModelScope.launch(observerExceptionHandler) {
         userRepository.getCurrentUser().collect { user ->
             _uiState.update { state ->
                 state.copy(
@@ -125,6 +135,8 @@ class HomeViewModel @Inject constructor(
                         }
                     },
                     onFailure = { throwable ->
+                        if (throwable is CancellationException)
+                            throw throwable
                         _uiState.update {
                             it.copy(isLoading = false, error = throwable.message ?: WRONG)
                         }
@@ -133,13 +145,13 @@ class HomeViewModel @Inject constructor(
             }
     }
 
-    private fun observeCartCount() = viewModelScope.launch {
+    private fun observeCartCount() = viewModelScope.launch(observerExceptionHandler) {
         cartRepository.getCartItemCount().collect { count ->
             _uiState.update { it.copy(cartItemCount = count) }
         }
     }
 
-    private fun observeConnectivity() = viewModelScope.launch {
+    private fun observeConnectivity() = viewModelScope.launch(observerExceptionHandler) {
         var wasOffline = false
         connectivityObserver.networkStatus.collect { status ->
             val isOffline = status != NetworkStatus.Available
@@ -177,22 +189,34 @@ class HomeViewModel @Inject constructor(
                     _uiState.update { it.copy(locationFetchState = LocationFetchState.NotInArea) }
                     return@launch
                 }
-                saveAndApplyLocation(locationResult.displayAddress)
+                _uiState.update { it.copy(selectedLocation = locationResult.displayAddress) }
+                try {
+                    userRepository.saveSelectedLocation(locationResult.displayAddress)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "$FAILED_TO_SAVE_LOCATION ${locationResult.displayAddress}")
+                }
+                loadHomeData()
                 _uiState.update {
                     it.copy(
                         locationFetchState = LocationFetchState.Success,
-                        showLocationPicker = false
+                        showLocationPicker = false,
                     )
                 }
             }
             .onFailure { error ->
+                if (error is CancellationException) throw error
                 val msg = when {
                     error.message?.contains(PERMISSION, true) == true -> ERR_LOCATION_PERMISSION
                     error.message?.contains(DISABLED, true) == true -> ERR_GPS_DISABLED
                     else -> ERR_LOCATION_DETECT
                 }
                 _uiState.update {
-                    it.copy(locationFetchState = LocationFetchState.Error, locationErrorMsg = msg)
+                    it.copy(
+                        locationFetchState = LocationFetchState.Error,
+                        locationErrorMsg = msg,
+                    )
                 }
             }
     }
@@ -208,7 +232,15 @@ class HomeViewModel @Inject constructor(
 
     fun onLocationSelected(location: String) {
         viewModelScope.launch {
-            saveAndApplyLocation(location)
+            _uiState.update { it.copy(selectedLocation = location) }
+            try {
+                userRepository.saveSelectedLocation(location)
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                Timber.e(exception, "$FAILED_TO_SAVE_LOCATION $location")
+            }
+            loadHomeData()
             _uiState.update { it.copy(showLocationPicker = false) }
         }
     }
@@ -216,7 +248,13 @@ class HomeViewModel @Inject constructor(
     private fun saveAndApplyLocation(location: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(selectedLocation = location) }
-            userRepository.saveSelectedLocation(location)
+            try {
+                userRepository.saveSelectedLocation(location)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "$FAILED_TO_SAVE_LOCATION $location")
+            }
             loadHomeData()
         }
     }
@@ -236,16 +274,28 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onProfileClicked() = viewModelScope.launch { _events.emit(HomeEvent.NavigateToProfile) }
+    fun onProfileClicked() = viewModelScope.launch {
+        _events.emit(HomeEvent.NavigateToProfile)
+    }
+
     fun onRestaurantClicked(id: String) =
-        viewModelScope.launch { _events.emit(HomeEvent.NavigateToRestaurant(id)) }
+        viewModelScope.launch {
+            _events.emit(HomeEvent.NavigateToRestaurant(id))
+        }
 
     fun onSearchClicked(query: String = "") =
-        viewModelScope.launch { _events.emit(HomeEvent.NavigateToSearch(query)) }
+        viewModelScope.launch {
+            _events.emit(HomeEvent.NavigateToSearch(query))
+        }
 
-    fun onCartClicked() = viewModelScope.launch { _events.emit(HomeEvent.NavigateToCart) }
+    fun onCartClicked() = viewModelScope.launch {
+        _events.emit(HomeEvent.NavigateToCart)
+    }
+
     fun onCategoryClicked(name: String) =
-        viewModelScope.launch { _events.emit(HomeEvent.NavigateToSearch(name)) }
+        viewModelScope.launch {
+            _events.emit(HomeEvent.NavigateToSearch(name))
+        }
 
     fun retry() = loadHomeData()
 }

@@ -423,15 +423,24 @@ class RestaurantScreenTest {
     // GROUP 8 — Snackbar Messages
     // ══════════════════════════════════════════════════════════════
 
+    private fun waitForSnackbar() {
+        composeTestRule.waitForIdle()
+        Thread.sleep(500)
+        composeTestRule.waitForIdle()
+        composeTestRule.mainClock.advanceTimeBy(1000)
+        composeTestRule.waitForIdle()
+    }
+
     @Test
     fun restaurantScreen_snackbar_shown_after_item_added_via_add_button() {
-        // No RecommendedSection → AddButton ("ADD  +") is on screen
         setContent { menuResult = minimalMenu(isRecommended = false) }
         composeTestRule
             .onAllNodesWithText(ADD_LABEL)
             .onFirst()
             .performClick()
         composeTestRule.waitForIdle()
+
+        waitForSnackbar()
 
         // onIncrementItem (qty=0) → addToCartUseCase → ItemAdded event
         composeTestRule

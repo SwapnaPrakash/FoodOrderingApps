@@ -6,7 +6,7 @@ data class FoodCategory(
     val imageUrl: String,
 )
 
-data class Collections(
+data class RestaurantCollection(
     val id: Int,
     val title: String,
     val description: String,

@@ -1,8 +1,8 @@
 package com.swapna.foodapp.presentation.common.fakes
 
-import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.domain.model.RestaurantCollection
 import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.utils.HomeData
 import com.swapna.foodapp.utils.TestConstants.CITY_BENGALURU
@@ -71,7 +71,7 @@ fun fakeRestaurant(
 )
 
 val fakeCollections = listOf(
-    Collections(
+    RestaurantCollection(
         HOME_COLL_ID_1,
         HOME_COLL_TRENDING,
         HOME_COLL_POPULAR,
@@ -79,7 +79,7 @@ val fakeCollections = listOf(
         HOME_COLL_COUNT_20,
         HOME_COLL_60_OFF
     ),
-    Collections(
+    RestaurantCollection(
         HOME_COLL_ID_2,
         HOME_COLL_NEWLY_OPENED,
         HOME_COLL_JUST_LAUNCHED,
@@ -121,7 +121,7 @@ fun emptyHomeData() = HomeData(
 
 fun homeData(
     restaurants: List<Restaurant> = restaurantsAll,
-    collections: List<Collections> = fakeCollections,
+    collections: List<RestaurantCollection> = fakeCollections,
     categories: List<FoodCategory> = fakeCategories,
     filterStatus: FilterStatus = FilterStatus.NO_FILTER,
     requestedArea: String = "",

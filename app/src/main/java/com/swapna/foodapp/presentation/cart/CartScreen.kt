@@ -186,19 +186,6 @@ fun CartScreen(
                         .fillMaxSize()
                         .padding(paddingValues),
                 ) {
-
-                    /*item(key = CART_RESTAURANT_NAME_KEY) {
-                        Text(
-                            text = uiState.restaurantName,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(AppWhiteSurface)
-                                .padding(Dimens.SpaceL),
-                        )
-                    }*/
-
                     items(
                         items = uiState.items,
                         key = { it.id },

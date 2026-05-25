@@ -9,8 +9,11 @@ import com.swapna.foodapp.domain.model.SortOption
 import com.swapna.foodapp.domain.repository.RestaurantRepository
 import com.swapna.foodapp.domain.usecase.search.SearchRestaurantsUseCase
 import com.swapna.foodapp.utils.AppConstants
+import com.swapna.foodapp.utils.AppConstants.EMPTY
+import com.swapna.foodapp.utils.AppConstants.FAILED_TO_LOAD
 import com.swapna.foodapp.utils.AppConstants.SEARCH_FAILED
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
@@ -34,7 +38,7 @@ class SearchViewModel @Inject constructor(
 ) : ViewModel() {
 
     data class SearchUiState(
-        val query: String = "",
+        val query: String = EMPTY,
         val filters: SearchFilters = SearchFilters(),
         val results: List<Restaurant> = emptyList(),
         val cuisines: List<Cuisine> = emptyList(),
@@ -46,7 +50,8 @@ class SearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    private val _query = MutableStateFlow("")
+    private val _query = MutableStateFlow(EMPTY)
+
     private val _filters = MutableStateFlow(SearchFilters())
 
     init {
@@ -73,17 +78,9 @@ class SearchViewModel @Inject constructor(
                         return@flatMapLatest emptyFlow()
                     }
                     _uiState.update { it.copy(isLoading = true, error = null) }
-                    searchUseCase(query, filters).catch { e ->
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                hasSearched = true,
-                                error = e.message ?: SEARCH_FAILED,
-                                results = emptyList(),
-                            )
-                        }
-                        emit(Result.failure(e))
-                    }
+
+                    searchUseCase(query, filters)
+                        .catch { e -> emit(Result.failure(e)) }
                 }
                 .collect { result ->
                     result.fold(
@@ -98,6 +95,7 @@ class SearchViewModel @Inject constructor(
                             }
                         },
                         onFailure = { throwable ->
+                            if (throwable is CancellationException) throw throwable
                             _uiState.update {
                                 it.copy(
                                     results = emptyList(),
@@ -114,7 +112,7 @@ class SearchViewModel @Inject constructor(
 
     private fun loadCuisines() = viewModelScope.launch {
         restaurantRepository.getCuisines()
-            .catch { /* non-critical — silently ignore */ }
+            .catch { e -> Timber.e(e, FAILED_TO_LOAD) }
             .collect { result ->
                 result.onSuccess { cuisines ->
                     _uiState.update { it.copy(cuisines = cuisines) }
@@ -128,41 +126,37 @@ class SearchViewModel @Inject constructor(
     }
 
     fun onVegToggle() {
-        val updated = _filters.value.copy(isVegOnly = !_filters.value.isVegOnly)
-        _filters.value = updated
-        _uiState.update { it.copy(filters = updated) }
+        _filters.update { it.copy(isVegOnly = !it.isVegOnly) }
+        _uiState.update { it.copy(filters = _filters.value) }
     }
 
     fun onSortChange(sort: SortOption) {
-        val updated = _filters.value.copy(sortBy = sort)
-        _filters.value = updated
-        _uiState.update { it.copy(filters = updated) }
+        _filters.update { it.copy(sortBy = sort) }
+        _uiState.update { it.copy(filters = _filters.value) }
     }
 
     fun onCuisineSelected(cuisineId: Int) {
-        val newId = if (_filters.value.cuisineId == cuisineId) null else cuisineId
-        val updated = _filters.value.copy(cuisineId = newId)
-        _filters.value = updated
-        _uiState.update { it.copy(filters = updated) }
+        _filters.update {
+            it.copy(cuisineId = if (it.cuisineId == cuisineId) null else cuisineId)
+        }
+        _uiState.update { it.copy(filters = _filters.value) }
     }
 
     fun onMinRatingSelected(rating: Double?) {
-        val updated = _filters.value.copy(minRating = rating)
-        _filters.value = updated
-        _uiState.update { it.copy(filters = updated) }
+        _filters.update { it.copy(minRating = rating) }
+        _uiState.update { it.copy(filters = _filters.value) }
     }
 
     fun onDeliveryTimeSelected(maxMinutes: Int?) {
-        val updated = _filters.value.copy(maxDeliveryTime = maxMinutes)
-        _filters.value = updated
-        _uiState.update { it.copy(filters = updated) }
+        _filters.update { it.copy(maxDeliveryTime = maxMinutes) }
+        _uiState.update { it.copy(filters = _filters.value) }
     }
 
     fun clearSearch() {
-        _query.value = ""
+        _query.value = EMPTY
         _uiState.update {
             it.copy(
-                query = "",
+                query = EMPTY,
                 results = emptyList(),
                 hasSearched = false,
                 isLoading = false,
@@ -173,7 +167,7 @@ class SearchViewModel @Inject constructor(
 
     fun clearFilters() {
         val defaults = SearchFilters()
-        _filters.value = defaults
+        _filters.update { defaults }
         _uiState.update { it.copy(filters = defaults) }
     }
 }

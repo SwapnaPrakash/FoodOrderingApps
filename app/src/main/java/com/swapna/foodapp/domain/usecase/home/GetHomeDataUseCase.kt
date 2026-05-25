@@ -16,13 +16,14 @@ class GetHomeDataUseCase @Inject constructor(
         selectedLocation: String = ""
     ): Flow<Result<HomeData>> =
         combine(
-            repository.getCollections(),
+            repository.getRestaurantCollection(),
             repository.getCategories(),
             repository.getNearbyRestaurants(),
         ) { collectionsResult, categoriesResult, restaurantsResult ->
 
-            val allRestaurants = restaurantsResult
-                .getOrDefault(emptyList())
+            val allRestaurants = restaurantsResult.getOrElse {
+                return@combine Result.failure(it)
+            }
 
             val filterResult = buildFilterResult(
                 allRestaurants = allRestaurants,

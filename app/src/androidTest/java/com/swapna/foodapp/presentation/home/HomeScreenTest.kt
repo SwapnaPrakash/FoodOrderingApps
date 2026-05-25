@@ -11,9 +11,9 @@ import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.swapna.foodapp.domain.model.Address
-import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.domain.model.RestaurantCollection
 import com.swapna.foodapp.domain.model.User
 import com.swapna.foodapp.domain.usecase.home.FilterStatus
 import com.swapna.foodapp.domain.usecase.home.GetHomeDataUseCase
@@ -364,7 +364,7 @@ class HomeScreenTest {
     // GROUP 5 — Offers Section
     @Test
     fun homeScreen_excitingOffers_title_shown_when_collections_loaded() {
-        fakeRestaurantRepo.collectionsResult =
+        fakeRestaurantRepo.restaurantCollectionResult =
             Result.success(listOf(fakeCollection(HOME_CATEGORY_ID_1, HOME_COLL_TRENDING)))
         setContent()
         composeTestRule.waitForIdle()
@@ -376,7 +376,7 @@ class HomeScreenTest {
 
     @Test
     fun homeScreen_offers_section_not_shown_when_empty() {
-        fakeRestaurantRepo.collectionsResult = Result.success(emptyList())
+        fakeRestaurantRepo.restaurantCollectionResult = Result.success(emptyList())
         setContent()
         composeTestRule.waitForIdle()
 
@@ -387,7 +387,7 @@ class HomeScreenTest {
 
     @Test
     fun homeScreen_collection_title_isDisplayed() {
-        fakeRestaurantRepo.collectionsResult =
+        fakeRestaurantRepo.restaurantCollectionResult =
             Result.success(listOf(fakeCollection(HOME_COLL_ID_1, HOME_COLL_TRENDING_NOW)))
         setContent()
         composeTestRule.waitForIdle()
@@ -654,7 +654,7 @@ private fun fakeCategory(id: Int, name: String) = FoodCategory(
     imageUrl = "",
 )
 
-private fun fakeCollection(id: Int, title: String) = Collections(
+private fun fakeCollection(id: Int, title: String) = RestaurantCollection(
     id = id,
     title = title,
     description = "",

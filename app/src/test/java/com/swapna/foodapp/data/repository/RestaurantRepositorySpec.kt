@@ -284,7 +284,7 @@ class RestaurantRepositorySpec : FunSpec({
             )
         )
 
-        val result = createRepo().getCollections().first()
+        val result = createRepo().getRestaurantCollection().first()
 
         result.isSuccess shouldBe true
         result.getOrNull()!! shouldHaveSize 2
@@ -295,7 +295,7 @@ class RestaurantRepositorySpec : FunSpec({
     test("getCollections: returns empty list when API throws — non-critical") {
         coEvery { api.getCollections() } throws IOException(ERR_NO_INTERNET)
 
-        val result = createRepo().getCollections().first()
+        val result = createRepo().getRestaurantCollection().first()
 
         result.isSuccess shouldBe true
         result.getOrNull()!!.shouldBeEmpty()
@@ -317,7 +317,7 @@ class RestaurantRepositorySpec : FunSpec({
             )
         )
 
-        val result = createRepo().getCollections().first()
+        val result = createRepo().getRestaurantCollection().first()
 
         result.getOrNull()!!.first().id shouldBe COLLECTION_ID_42
         result.getOrNull()!!.first().restaurantCount shouldBe COLLECTION_COUNT_15

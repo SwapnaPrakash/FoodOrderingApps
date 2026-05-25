@@ -67,6 +67,7 @@ import com.swapna.foodapp.utils.AppConstants.NON_VEG
 import com.swapna.foodapp.utils.AppConstants.PLACE_ORDER_PREFIX
 import com.swapna.foodapp.utils.AppConstants.REMOVE_DESC
 import com.swapna.foodapp.utils.AppConstants.TO_PAY
+import kotlinx.coroutines.Dispatchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -95,7 +96,10 @@ class CartScreenTest {
         if (preSeeded.isNotEmpty()) {
             fakeCartRepo.seedCart(*preSeeded.toTypedArray())
         }
-        viewModel = CartViewModel(fakeCartRepo)
+        viewModel = CartViewModel(
+            fakeCartRepo,
+            ioDispatcher = Dispatchers.Unconfined,
+            )
 
         composeTestRule.setContent {
             MaterialTheme {
@@ -238,15 +242,6 @@ class CartScreenTest {
         setContent(preSeeded = listOf(cartItemOf(biryani, quantity = 2)))
         composeTestRule
             .onNodeWithText(CART_QTY_STR_2)
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun cartScreen_restaurant_name_shown_as_section_header() {
-        val biryani = fakeMenuItem()
-        setContent(preSeeded = listOf(cartItemOf(biryani)))
-        composeTestRule
-            .onNodeWithText(FAKE_CART_RESTAURANT_ID, substring = true)
             .assertIsDisplayed()
     }
 

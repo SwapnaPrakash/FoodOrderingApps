@@ -1,12 +1,12 @@
 package com.swapna.foodapp.presentation.common.fakes
 
-import com.swapna.foodapp.domain.model.Collections
 import com.swapna.foodapp.domain.model.Cuisine
 import com.swapna.foodapp.domain.model.Customisation
 import com.swapna.foodapp.domain.model.CustomisationOption
 import com.swapna.foodapp.domain.model.FoodCategory
 import com.swapna.foodapp.domain.model.MenuItem
 import com.swapna.foodapp.domain.model.Restaurant
+import com.swapna.foodapp.domain.model.RestaurantCollection
 import com.swapna.foodapp.domain.model.Review
 import com.swapna.foodapp.domain.model.SearchFilters
 import com.swapna.foodapp.domain.repository.RestaurantRepository
@@ -31,8 +31,8 @@ class FakeRestaurantRepository : RestaurantRepository {
             Flow<Result<List<Restaurant>>> =
         flowOf(Result.success(listOf(restaurantResult)))
 
-    override fun getCollections():
-            Flow<Result<List<Collections>>> =
+    override fun getRestaurantCollection():
+            Flow<Result<List<RestaurantCollection>>> =
         flowOf(Result.success(emptyList()))
 
     override fun getCategories():

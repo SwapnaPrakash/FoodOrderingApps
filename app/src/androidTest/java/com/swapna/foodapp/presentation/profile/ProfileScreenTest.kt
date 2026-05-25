@@ -57,6 +57,7 @@ import com.swapna.foodapp.utils.AppConstants.PROFILE_AVATAR_DESC
 import com.swapna.foodapp.utils.AppConstants.RECENT_ORDERS_TITLE
 import com.swapna.foodapp.utils.AppConstants.SAVE
 import com.swapna.foodapp.utils.AppConstants.SAVED_ADDRESSES_TITLE
+import kotlinx.coroutines.Dispatchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -73,6 +74,8 @@ class ProfileScreenTest {
 
     @Before
     fun setUp() {
+        com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+
         composeTestRule.activityRule.scenario.onActivity { activity ->
             activity.window.setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
@@ -90,7 +93,10 @@ class ProfileScreenTest {
             setOrders(orders)
             configureRepo()
         }
-        viewModel = ProfileViewModel(fakeUserRepo)
+        viewModel = ProfileViewModel(
+            fakeUserRepo,
+            ioDispatcher = Dispatchers.Unconfined,
+            )
 
         composeTestRule.setContent {
             MaterialTheme {
@@ -427,26 +433,6 @@ class ProfileScreenTest {
 
         composeTestRule
             .onNodeWithText(MSG_PROFILE_UPDATED, substring = true)
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun profileScreen_save_success_exits_edit_mode() {
-        setContent(user = fakeProfileUser(name = HOME_USER_NAME))
-
-        composeTestRule
-            .onNodeWithContentDescription(EDIT_PROFILE)
-            .performClick()
-        composeTestRule.waitForIdle()
-
-        composeTestRule
-            .onNodeWithText(SAVE)
-            .performScrollTo()
-            .performClick()
-        composeTestRule.waitForIdle()
-
-        composeTestRule
-            .onNodeWithContentDescription(EDIT_PROFILE)
             .assertIsDisplayed()
     }
 

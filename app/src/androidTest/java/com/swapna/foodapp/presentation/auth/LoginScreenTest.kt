@@ -116,6 +116,12 @@ class LoginScreenTest {
             .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
+
+        Thread.sleep(300)
+        composeTestRule.waitForIdle()
+
+        composeTestRule.mainClock.advanceTimeBy(1000)
+        composeTestRule.waitForIdle()
     }
 
     private fun verifyOtp(otp: String) {
@@ -127,6 +133,13 @@ class LoginScreenTest {
             .onNodeWithTag(LoginTestTags.AUTH_BUTTON)
             .performScrollTo()
             .performClick()
+        composeTestRule.waitForIdle()
+        Thread.sleep(300)
+        composeTestRule.waitForIdle()
+    }
+
+    private fun waitForAnimation() {
+        composeTestRule.mainClock.advanceTimeBy(1000)
         composeTestRule.waitForIdle()
     }
 
@@ -229,6 +242,7 @@ class LoginScreenTest {
             .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
+        waitForAnimation()
         composeTestRule
             .onNodeWithText(LOGIN_PHONE_ERROR_MSG)
             .performScrollTo()
@@ -244,6 +258,9 @@ class LoginScreenTest {
             .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
+
+        waitForAnimation()
+
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
             .assertIsDisplayed()
@@ -261,6 +278,7 @@ class LoginScreenTest {
             .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
+        waitForAnimation()
         composeTestRule
             .onNodeWithText(LOGIN_PHONE_ERROR_MSG)
             .assertIsDisplayed()
@@ -385,6 +403,7 @@ class LoginScreenTest {
             .performScrollTo()
             .performClick()
         composeTestRule.waitForIdle()
+        waitForAnimation()
         composeTestRule
             .onNodeWithTag(LoginTestTags.OTP_ERROR_CARD)
             .assertIsDisplayed()
@@ -472,6 +491,7 @@ class LoginScreenTest {
         fakeRepo.sendOtpResult = Result.failure(Exception(LOGIN_NETWORK_UNAVAILABLE))
         setContent()
         sendOtp()
+        waitForAnimation()
         composeTestRule
             .onNodeWithTag(LoginTestTags.PHONE_ERROR_CARD)
             .performScrollTo()
@@ -500,6 +520,7 @@ class LoginScreenTest {
         setContent()
         sendOtp()
         verifyOtp(LOGIN_WRONG_OTP)
+        waitForAnimation()
         composeTestRule
             .onNodeWithText(LOGIN_WRONG_OTP_FULL_MSG)
             .assertIsDisplayed()

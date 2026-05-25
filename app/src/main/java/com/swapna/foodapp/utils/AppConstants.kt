@@ -88,6 +88,8 @@ object AppConstants {
     const val DELIVERING_TO = "Delivering to"
     const val CHANGE_LOCATION = "Change location"
     const val DEFAULT_LOCATION = "Koramangala, Bengaluru"
+    const val OBSERVER_FAILED = "HomeViewModel observer failed"
+    const val RESTAURANT_MERGE_FAILED = "Restaurant merge failed"
     const val KEY_COLLECTIONS = "collections"
     const val KEY_COLLECTION = "collection"
     const val KEY_COLLECTION_ID = "collection_id"
@@ -98,6 +100,7 @@ object AppConstants {
     const val KEY_COLLECTION_DISCOUNT = "discount"
     const val SEARCH_DEBOUNCE_MS = 300L
     const val SEARCH_MIN_CHARS = 2
+    const val EMPTY = ""
     const val SPLASH_DELAY_MS = 1500L
     const val KEY_DAILY_MENUS = "daily_menus"
     const val KEY_DAILY_MENU = "daily_menu"
@@ -129,6 +132,7 @@ object AppConstants {
     const val KEY_RESTAURANT_ID = "restaurant_id"
     const val KEY_RESTAURANT_NAME = "restaurant_name"
     const val KEY_RESTAURANT_IMAGE = "restaurant_image"
+    const val FAILED_TO_LOAD = "Failed to load cuisines"
     const val KEY_STATUS = "status"
     const val KEY_TIME_FRIENDLY = "time_friendly"
     const val KEY_TOTAL_AMOUNT = "total_amount"
@@ -473,6 +477,7 @@ object AppConstants {
     const val ARG_RESTAURANT_ID_REQUIRED = "restaurantId required"
     const val ARG_MENU_ITEM_ID_REQUIRED = "menuItemId required"
     const val ERR_ITEM_NOT_FOUND = "Item not found"
+    const val PROD_MERGE = "ProductDetail merge observer failed"
     const val ERR_FAILED_LOAD_ITEM = "Failed to load item"
     const val ERR_FAILED_ADD_CART = "Failed to add to cart"
     const val MSG_ADDED_TO_CART = " added to cart 🛒"
@@ -484,6 +489,7 @@ object AppConstants {
     const val MSG_PROFILE_UPDATED = "Profile updated ✅"
     const val MSG_ADDRESS_REMOVED = "Address removed"
     const val PLACEHOLDER_ADD_NAME = "Add your name"
+    const val PROFILE_MERGE_FAILED = "Profile merge failed"
     const val PLACEHOLDER_ADD_EMAIL = "Add email address"
     const val ERR_COULD_NOT_LOAD_PROFILE = "Could not load profile"
     const val ARG_RESTAURANT_ID_MISSING =
@@ -549,6 +555,7 @@ object AppConstants {
     const val UNKNOWN_ERROR = "Unknown error"
     const val CUSTOMISATIONS_SEPARATOR = ", "
     const val INCLUDED = "Included"
+    const val FAILED_TO_SAVE_LOCATION = "Failed to save location:"
 
 
     val LOCATION_KEYWORDS = listOf(
